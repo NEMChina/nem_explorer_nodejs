@@ -14,7 +14,7 @@ AngularJS, Bootstrap, MongoDB, Node.js
 
 2) NIS is started and blocks loading is finished.
 
-3) MongoDB is started.
+3) install MongoDB and start it (it's better to set an account and password).
 
 4) install the GIT (bower will use GIT)
 
@@ -38,7 +38,7 @@ AngularJS, Bootstrap, MongoDB, Node.js
 
 5) you can make some modifications in the config file (app/config/config.js)
 
-port: 7101, //app port
+port: 8081, //app port
 
 mongodb: 'mongodb://localhost/explorer', //MongoDB uri
 
@@ -47,3 +47,6 @@ nisInitStartBlock: 0 //default 0
 6) start the application
 
 <pre>npm start</pre>
+
+7) then visit http://127.0.0.1:8081
+
