@@ -1,0 +1,19 @@
+#header {
+	 margin-top: 20px;
+}
+.margin-right-20 {
+	margin-right: 20px;
+}
+.margin-top-20 {
+	margin-top: 20px;
+}
+.footer {
+	text-align: center;
+  	padding: 10px 0;
+  	margin-top: 20px;
+  	border-top: 1px solid #e5e5e5;
+  	background-color: #f5f5f5;
+}
+.cursorPointer{
+	cursor: pointer;
+}

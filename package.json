@@ -1,0 +1,19 @@
+{
+  "name": "nem_explorer_nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bin/www",
+  "scripts": {
+    "start": "babel-node app.js"
+  },
+  "author": "lu-chang",
+  "license": "MIT",
+  "dependencies": {
+    "babel-preset-es2015": "^6.18.0",
+    "body-parser": "^1.15.2",
+    "crypto-js": "^3.1.8",
+    "express": "^4.14.0",
+    "mongoose": "^4.7.1",
+    "node-schedule": "^1.2.0"
+  }
+}
