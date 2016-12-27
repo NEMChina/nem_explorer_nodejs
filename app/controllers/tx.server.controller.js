@@ -106,6 +106,11 @@ module.exports = {
 							}
 							if(tx.tx.message && tx.tx.message.type)
 								tx.tx.message.payload = message.hexToUtf8(tx.tx.message.payload);
+							if(tx.tx.modifications){
+								tx.tx.modifications.forEach(m => {
+									m.cosignatoryAccount = address.publicKeyToAddress(m.cosignatoryAccount);
+								});
+							}
 							tx.height = height;
 							res.json(tx);
 							return;

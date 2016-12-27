@@ -64,14 +64,15 @@ function showTransaction(height, hash, $scope, TXService) {
 			items.push({label: "Remote", content: tx.remoteAccount});
 			items.push({label: "Fee", content: fmtXEM(tx.fee)});
 		} else if(tx.type==4097){ //Converting an account to a multisig account
+			console.info(tx);
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			items.push({label: "Type", content: "converting to be a multisig account"});
-			items.push({label: "Sender", content: tx.sender});
+			items.push({label: "Sender", content: tx.signerAccount});
 			items.push({label: "Fee", content: fmtXEM(tx.fee)});
 			if(tx.modifications!=null){
 				items.push({label: "Cosignatory list：", content: ""});
 				for(i in tx.modifications){
-					var cosignatory = tx.modifications[i]
+					var cosignatory = tx.modifications[i];
 					items.push({label: "", content: cosignatory.cosignatoryAccount});
 				}
 			}

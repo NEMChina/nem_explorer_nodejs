@@ -1,40 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="UTF-8">
-	<title>NEM - BlockChain Explorer</title>
-	<link href="lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
-	<link href="views/css/nemchina_explorer.css" rel="stylesheet">
-	<link rel="shortcut icon" href="views/images/icon.ico" type="image/x-icon">
-</head>
-<body ng-app="webapp">
-<div id="header" class="container">
-    <div id="navigation" class="row top-buffer-10" ng-controller="NavController">
-        <div class="col-xs-12">
-        	<div class="pull-left margin-right-20"><a href="blocklist.html"><img src="views/images/nem.png" width="99" height="33"></a></div>
-        	<div class="pull-right form-group bottom-buffer-10">
-		        <form class="form-inline" role="form">
-		        	<input id="searchInput" type="text" style="width:300px;" class="form-control" placeholder="block height / tx id / account">
-		  	 		<button id="search" type="button" class="btn btn-default" ng-click="search()"><span class="glyphicon glyphicon-search small"></span></button>
-		    	</form>
-		    </div>
-          	<div class="pull-right btn-group margin-right-20">
-                <button class="btn btn-default navi" ng-click="go('blocklist.html')">Blocks</button>
-	            <button class="btn btn-default navi" ng-click="go('txlist.html')">Transactions</button>
-	            <button class="btn btn-default navi" ng-click="go('accountlist.html')">Accounts</button>
-	            <button class="btn btn-default navi active" ng-click="go('nodelist.html')">Nodes</button>
-	            <button class="btn btn-default navi" ng-click="go('supernodepayout.html')">Supernodes Reward</button>
-	            <button class="btn btn-default navi" ng-click="go('namespacelist.html')">Namespace & Mosaic</button>
-            </div>
-        </div>
-    </div>
-    <div id="warning" class="alert alert-warning hidden">
-	    <a href="#" class="close" onclick="$('#warning').hide();">&times;</a>
-	    <strong>warning：  </strong><span id="warningContent"></span>
-	</div>
-</div>
-<div id="content" class="container" ng-controller="NodeController" style="padding-bottom:70px;">
-	<h4 class="pull-left" style="padding-left:10px;"><a href="http://supernode.nem.io" target="_blank"> >> supernodes.nem.io << </a></h4>
+<div id="content" class="container" style="padding-bottom:70px;">
+	<h4 class="pull-left" style="padding-left:10px;"><a href="http://supernodes.nem.io" target="_blank"> >> supernodes.nem.io << </a></h4>
 	<div class="form-group pull-right" style="width:140px;">
     	<label class="checkbox">
 			<input type="checkbox" ng-model="justSupernode" value="1"> Only Supernodes
@@ -69,15 +34,3 @@
 		</tbody>
 	</table>
 </div>
-<footer class="footer navbar-fixed-bottom" ng-include="'views/inc/inc_footer.html'"></footer>
-<script type="text/javascript" src="lib/angular/angular.js"></script>
-<script type="text/javascript" src="lib/jquery/dist/jquery.js"></script>
-<script type="text/javascript" src="lib/bootstrap/dist/js/bootstrap.js"></script>
-<script type="text/javascript" src="webapp.js"></script>
-<script type="text/javascript" src="utils/utils.js"></script>
-<script type="text/javascript" src="services/node.client.service.js"></script>
-<script type="text/javascript" src="controllers/node.client.controller.js"></script>
-<script type="text/javascript" src="controllers/nav.client.controller.js"></script>
-<script type="text/javascript" src="views/vendors/xbbcode.js"></script>
-</body>
-</html>

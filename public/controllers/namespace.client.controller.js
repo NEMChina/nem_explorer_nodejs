@@ -3,8 +3,8 @@ angular.module("webapp").controller("NamespaceController", ["$scope", "Namespace
 function NamespaceController($scope, NamespaceService){
 	$scope.page = 1;
 	$scope.hideMore = false;
-	$scope.loadingMore = true;
 	$scope.loadNamespaceList = function(){
+		$scope.loadingMore = true;
 		NamespaceService.namespaceList({"page": $scope.page}, function(r_namespaceList){
 			r_namespaceList.forEach((item, index) => {
 				r_namespaceList[index].timeStamp = fmtDate(item.timeStamp);
