@@ -2,13 +2,13 @@ angular.module('webapp').service('AccountService', ["$http", AccountService]);
 
 function AccountService($http){
 	return {
-		accountList: function(callback) {
-			$http.post("/account/accountList").success(function(data){
+		accountList: function(params, callback) {
+			$http.post("/account/accountList", params).success(function(data){
 				callback(data);
 			});
 		},
-		harvesterList: function(callback) {
-			$http.post("/account/harvesterList").success(function(data){
+		harvesterList: function(params, callback) {
+			$http.post("/account/harvesterList", params).success(function(data){
 				callback(data);
 			});
 		},

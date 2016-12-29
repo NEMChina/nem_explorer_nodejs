@@ -6,11 +6,12 @@ function TXController($scope, TXService){
 	$scope.loadTXList = function(){
 		TXService.txList({"page": $scope.page}, function(r_txList){
 			$scope.txList = r_txList;
-			$scope.txList.forEach(function(tx) {
+			for(let i in $scope.txList){
+				let tx = $scope.txList[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
 				tx.amount = fmtXEM(tx.amount);
 				tx.fee = fmtXEM(tx.fee);
-			});
+			}
 		});
 	}
 	$scope.nextPage = function(){

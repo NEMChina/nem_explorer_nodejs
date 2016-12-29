@@ -238,6 +238,7 @@ let loadBlocks = (height, callback) => {
  */
 let updateAddress = (address, height) => {
 	let Account = mongoose.model('Account');
+	let AccountRemark = mongoose.model('AccountRemark');
 	//query account info from NIS
 	nis.accountByAddress(address, data => {
 		if(!data || !data.account) {
@@ -287,9 +288,15 @@ let updateAddress = (address, height) => {
 							else log('<success> Block [' + height + '] update ['+address+']');
 						});
 					} else { //save
-						new Account(updateAccount).save((err, doc) => {
-							if(err) log('<error> Block [' + height + '] save ['+address+']: ' + err);
-							else log('<success> Block [' + height + '] save ['+address+']');
+						//query the account remark and save the entity
+						AccountRemark.findOne({address: updateAccount.address}).exec((err, remark) => {
+							if(!err && remark){
+								updateAccount.remark = remark.remark;
+							}
+							new Account(updateAccount).save((err, doc) => {
+								if(err) log('<error> Block [' + height + '] save ['+address+']: ' + err);
+								else log('<success> Block [' + height + '] save ['+address+']');
+							});
 						});
 					}
 				});

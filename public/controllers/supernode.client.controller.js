@@ -12,8 +12,8 @@ function SupernodeController($scope, SupernodeService){
 			for(let i in r_payoutList) {
 				let payout = r_payoutList[i];
 				payout.round = (payout.round-3) + "-" + payout.round;
-				let sender = "<a href='s_account.html?account="+payout.sender+"' target='_blank'>"+payout.sender+"</a>";
-				let recipient = "<a href='s_account.html?account="+payout.recipient+"' target='_blank'>"+payout.recipient+"</a>";
+				let sender = "<a href='#s_account?account="+payout.sender+"' target='_blank'>"+payout.sender+"</a>";
+				let recipient = "<a href='#s_account?account="+payout.recipient+"' target='_blank'>"+payout.recipient+"</a>";
 				payout.senderAndRecipient = sender + "<br/>" + recipient;
 				payout.amount = fmtXEM(payout.amount);
 				payout.fee = fmtXEM(payout.fee);

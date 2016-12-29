@@ -8,7 +8,8 @@ let AccountSchema = new mongoose.Schema({
 	lastBlock: {type: Number, default: 0},
 	fees: {type: Number, default: 0},
 	timeStamp: {type: Number, default: 0},
-	label: String
+	label: String,
+	remark: String
 });
 
 //init Account Schema

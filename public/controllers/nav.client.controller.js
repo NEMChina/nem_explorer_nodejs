@@ -7,8 +7,8 @@ function NavController($scope, $location, $rootScope){
 		$rootScope.navClass1 = (path == "/blocklist" || path == "/s_block" || path == "/" || path == "") ? "active" : "";
 		$rootScope.navClass2 = (path == "/txlist" || path == "/s_tx") ? "active" : "";
 		$rootScope.navClass3 = (path == "/accountlist" || path == "/s_account") ? "active" : "";
-		$rootScope.navClass4 = (path == "/supernodepayout") ? "active" : "";
-		$rootScope.navClass5 = (path == "/nodelist") ? "active" : "";
+		$rootScope.navClass4 = (path == "/nodelist") ? "active" : "";
+		$rootScope.navClass5 = (path == "/supernodepayout") ? "active" : "";
 		$rootScope.navClass6 = (path == "/namespacelist") ? "active" : "";
 	});
 

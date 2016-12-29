@@ -9,5 +9,6 @@ module.exports = () => {
 	require('../models/supernodePayout.server.model');
 	require('../models/transaction.server.model');
 	require('../models/supernode.server.model');
+	require('../models/accountRemark.server.model');
 	return db;
 }

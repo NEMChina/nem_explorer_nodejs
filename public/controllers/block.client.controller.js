@@ -7,10 +7,11 @@ function BlockController($scope, BlockService, TXService){
 	$scope.loadBlockList = function(){
 		BlockService.blockList({"page": $scope.page}, function(r_blockList){
 			$scope.blockList = r_blockList;
-			$scope.blockList.forEach(function(block, index) {
+			for(let index in r_blockList){
+				let block = $scope.blockList[index];
 				block.timeStamp = fmtDate(block.timeStamp);
 				block.txFee = fmtXEM(block.txFee);
-			});
+			}
 		});
 	};
 	$scope.nextPage = function(){
@@ -32,7 +33,8 @@ function BlockController($scope, BlockService, TXService){
 		}
 		let txArr = [];
 		let tx = {};
-		txes.forEach(function(item){
+		for(let i in txes){
+			let item = txes[i];
 			tx = {};
 			tx.hash = item.hash;
 			tx.time = fmtDate(item.tx.timeStamp);
@@ -43,7 +45,7 @@ function BlockController($scope, BlockService, TXService){
 			tx.height = item.tx.height;
 			tx.signature = item.tx.signature;
 			txArr.push(tx);
-		});
+		}
 		if(txArr.length>0){
 			$scope.showBlockTxesFlag = true;
 		} else {

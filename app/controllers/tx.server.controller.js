@@ -111,6 +111,8 @@ module.exports = {
 									m.cosignatoryAccount = address.publicKeyToAddress(m.cosignatoryAccount);
 								});
 							}
+							if(tx.tx.remoteAccount)
+								tx.tx.remoteAccount = address.publicKeyToAddress(tx.tx.remoteAccount);
 							tx.height = height;
 							res.json(tx);
 							return;

@@ -3,30 +3,68 @@ angular.module("webapp").controller("SearchAccountController", ["$scope", "$loca
 
 function AccountController($scope, AccountService){
 	$scope.selectOptions = [
-        {"key": "Top100 - Rich List", "value": 1},
-        {"key": "Top100 - Harvested List", "value": 2}
+        {"key": "Rich List", "value": 1},
+        {"key": "Harvested List", "value": 2}
 	];
 	$scope.select = $scope.selectOptions[0];
+	$scope.page = 1;
+	$scope.hideMore = false;
 	$scope.changeSelectOption = function(){
 		if($scope.select.value==1){ //rich list
-			AccountService.accountList(function(r_accountList){
-				$scope.accountList = r_accountList;
-				$scope.accountList.forEach(function(account) {
-					account.timeStamp = fmtDate(account.timeStamp);
-					account.balance = fmtXEM(account.balance);
-					account.importance = fmtPOI(account.importance);
-				});
-			});
+			$scope.loadingMore = true;
+			$scope.getAccountList();
 		} else if($scope.select.value==2) { //harvester list
-			AccountService.harvesterList(function(r_harvesterList){
-				$scope.harvesterList = r_harvesterList;
-				$scope.harvesterList.forEach(function(account) {
-					account.fees = fmtXEM(account.fees);
-					account.importance = fmtPOI(account.importance);
-				});
-			});
+			$scope.loadingMore = true;
+			$scope.getHarvesterList();
 		}
 	}
+	$scope.getAccountList = function(){
+		AccountService.accountList({"page": $scope.page}, function(r_accountList){
+			for(let i in r_accountList){
+				let account = r_accountList[i];
+				account.timeStamp = fmtDate(account.timeStamp);
+				account.balance = fmtXEM(account.balance);
+				account.importance = fmtPOI(account.importance);
+			}
+			if($scope.accountList){
+				$scope.accountList = $scope.accountList.concat(r_accountList);
+			} else {
+				$scope.accountList = r_accountList;
+			}
+			if(r_accountList.length==0 || r_accountList.length<100){
+				$scope.hideMore = true;
+			}
+			$scope.loadingMore = false;
+		});
+	}
+	$scope.getHarvesterList = function(){
+		AccountService.harvesterList({"page": $scope.page}, function(r_harvesterList){
+			for(let i in r_harvesterList){
+				let account = r_harvesterList[i];
+				account.fees = fmtXEM(account.fees);
+				account.importance = fmtPOI(account.importance);
+			}
+			if($scope.harvesterList){
+				$scope.harvesterList = $scope.harvesterList.concat(r_harvesterList);
+			} else {
+				$scope.harvesterList = r_harvesterList;
+			}
+			if(r_harvesterList.length==0 || r_harvesterList.length<100){
+				$scope.hideMore = true;
+			}
+			$scope.loadingMore = false;
+		});
+	}
+	$scope.loadMore = function(){
+		$scope.page++;
+		if($scope.select.value==1){ //rich list
+			$scope.loadingMore = true;
+			$scope.getAccountList();
+		} else if($scope.select.value==2) { //harvester list
+			$scope.loadingMore = true;
+			$scope.getHarvesterList();
+		}
+	};
 	$scope.changeSelectOption();
 }
 
@@ -67,6 +105,9 @@ function SearchAccountController($scope, $location, AccountService, TXService){
 			}
 			if(data.blocks!=null){
 				list.push({label: "Harvested fees", content: "" + data.fees});
+			}
+			if(data.remark!=null){
+				list.push({label: "Info", content: "" + data.remark});
 			}
 			if(data.cosignatories!=null && data.cosignatories!=""){
 				list.push({label: "Multisig account", content: "Yes"});
@@ -111,7 +152,7 @@ function SearchAccountController($scope, $location, AccountService, TXService){
 			for(i in data) {
 				let tx = data[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
-				tx.amount = fmtXEM(tx.amount);
+				tx.amount = tx.amount?fmtXEM(tx.amount):0;
 				tx.fee = fmtXEM(tx.fee);
 				$scope.lastID = tx.id;
 			}

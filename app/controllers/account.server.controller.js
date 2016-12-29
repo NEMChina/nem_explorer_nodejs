@@ -11,8 +11,12 @@ module.exports = {
      */
 	accountList: (req, res, next) => {
 		try{
+			let page = 1;
+			if(req.body.page){
+				page = parseInt(req.body.page);
+			}
 			let Account = mongoose.model('Account');
-			Account.find().sort({balance: -1}).limit(LISTSIZE).exec((err, doc) => {
+			Account.find().sort({balance: -1}).skip(LISTSIZE*(page-1)).limit(LISTSIZE).exec((err, doc) => {
 				if(err) {
 					console.info(err);
 					return res.json([]);
@@ -25,6 +29,7 @@ module.exports = {
 					r_account.address = item.address;
 					r_account.balance = item.balance;
 					r_account.timeStamp = item.timeStamp;
+					r_account.remark = item.remark;
 					r_accountArray.push(r_account);
 					nis.accountByAddress(item.address, data =>{
 						r_accountArray[index].importance = (data && data.account && data.account.importance)?data.account.importance:0;
@@ -44,8 +49,12 @@ module.exports = {
      */
 	harvesterList: (req, res, next) => {
 		try{
+			let page = 1;
+			if(req.body.page){
+				page = parseInt(req.body.page);
+			}
 			let Account = mongoose.model('Account');
-			Account.find().sort({blocks: -1}).limit(LISTSIZE).exec((err, doc) => {
+			Account.find().sort({blocks: -1}).skip(LISTSIZE*(page-1)).limit(LISTSIZE).exec((err, doc) => {
 				if(err) {
 					console.info(err);
 					return res.json([]);
@@ -60,6 +69,7 @@ module.exports = {
 					r_harvester.blocks = item.blocks;
 					r_harvester.fees = item.fees;
 					r_harvester.lastBlock = item.lastBlock;
+					r_harvester.remark = item.remark;
 					r_harvesterArray.push(r_harvester);
 					nis.accountByAddress(item.address, data =>{
 						r_harvesterArray[index].importance = (data && data.account && data.account.importance)?data.account.importance:0;
@@ -99,6 +109,11 @@ module.exports = {
 				r_account.importance = account.importance;
 				r_account.label = account.label!="null"?account.label:"";
 				r_account.remoteStatus = meta.remoteStatus;
+				let Account = mongoose.model("Account");
+				Account.findOne({address: address}).exec((err, doc) => {
+					if(!err && doc)
+						r_account.remark = doc.remark;
+				});
 				if(meta.cosignatories && meta.cosignatories.length>0){
 					r_account.multisig = 1;
 					r_account.cosignatories = "";
