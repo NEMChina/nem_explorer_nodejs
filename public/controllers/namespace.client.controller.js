@@ -6,14 +6,15 @@ function NamespaceController($scope, NamespaceService){
 	$scope.loadNamespaceList = function(){
 		$scope.loadingMore = true;
 		NamespaceService.namespaceList({"page": $scope.page}, function(r_namespaceList){
-			r_namespaceList.forEach((item, index) => {
-				r_namespaceList[index].timeStamp = fmtDate(item.timeStamp);
+			for(let i in r_namespaceList){
+				let item = r_namespaceList[i];
+				r_namespaceList[i].timeStamp = fmtDate(item.timeStamp);
 				if(!item.mosaicAmount || item.mosaicAmount==0){
-					r_namespaceList[index].mosaicAmount = "";
+					r_namespaceList[i].mosaicAmount = "";
 				} else {
-					r_namespaceList[index].class = "cursorPointer";
+					r_namespaceList[i].class = "cursorPointer";
 				}
-			});
+			}
 			if($scope.namespaceList){
 				$scope.namespaceList = $scope.namespaceList.concat(r_namespaceList);
 			} else {
@@ -32,12 +33,13 @@ function NamespaceController($scope, NamespaceService){
 		}
 		let mosaicList = $scope.namespaceList[index].mosaicList;
 		if(mosaicList && mosaicList.length!=0){
-			mosaicList.forEach(mosaic => {
+			for(let i in mosaicList){
+				let mosaic = mosaicList[i];
 				if(mosaic.transferable=="true")
 					mosaic.transferable = "Yes";
 				else
 					mosaic.transferable = "No";
-			});
+			}
 			$scope.mosaicList = mosaicList;
 			$("#mosaicListModule").modal("show");
 		}

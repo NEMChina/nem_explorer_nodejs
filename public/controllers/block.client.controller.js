@@ -95,7 +95,8 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 			}
 			let txArrray = [];
 			let tx = null;
-			r_block.txes.forEach(item => {
+			for(i in r_block.txes){
+				let item = r_block.txes[i]
 				tx = {};
 				if(parseInt(height)==1){
 					tx.hash = "#";
@@ -117,7 +118,7 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 					tx.signature = item.tx.signature;
 				}
 				txArrray.push(tx);
-			});
+			}
 			if(r_block.txes.length>0){
 				$scope.showBlockTransactionsFlag = true;
 			} else {

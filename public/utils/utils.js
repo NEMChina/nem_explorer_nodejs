@@ -142,7 +142,8 @@ function showTransaction(height, hash, $scope, TXService) {
 			items.push({label: "Fee", content: fmtXEM(tx.fee)});
 			items.push({label: "Creation fee", content: fmtXEM(tx.creationFee)});
 			if(tx.mosaicDefinition && tx.mosaicDefinition.properties){
-				tx.mosaicDefinition.properties.forEach(property => {
+				for(i in tx.mosaicDefinition.properties){
+					let property = tx.mosaicDefinition.properties[i];
 					if(property.name == "initialSupply")
 						items.push({label: "", content: "Initial supply - " + property.value});
 					if(property.name == "divisibility")
@@ -151,7 +152,7 @@ function showTransaction(height, hash, $scope, TXService) {
 						items.push({label: "", content: "Supply mutable - " + property.value});
 					if(property.name == "transferable")
 						items.push({label: "", content: "Transferable - " + property.value});
-				});
+				}
 			}
 			items.push({label: "Block", content: data.height});
 		} else if(tx.type==16386){ //Changing the mosaic supply

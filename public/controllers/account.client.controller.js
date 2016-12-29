@@ -42,7 +42,7 @@ function SearchAccountController($scope, $location, AccountService, TXService){
 		account = account.replace(new RegExp(/(-)/g), '').toUpperCase();
 		$scope.searchAccount = account;
 		let params = {address: account};
-		AccountService.detail(params, data => {
+		AccountService.detail(params, function(data) {
 			if(!data || !data.address){
 				$scope.accountItems = [{label: "Not Found", content: ""}];
 				$scope.hideMore = true;
@@ -77,12 +77,13 @@ function SearchAccountController($scope, $location, AccountService, TXService){
 			if(!data.txes){
 				return;
 			}
-			data.txes.forEach(tx => {
+			for(i in data.txes){
+				let tx = data.txes[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
 				tx.amount = fmtXEM(tx.amount);
 				tx.fee = fmtXEM(tx.fee);
 				$scope.lastID = tx.id;
-			});
+			}
 			if(data.txes.length<25){
 				$scope.hideMore = true;
 			}
@@ -102,17 +103,18 @@ function SearchAccountController($scope, $location, AccountService, TXService){
 	$scope.loadMore = function(){
 		$scope.loadingMore = true;
 		let params = {address: $scope.searchAccount, id: $scope.lastID};
-		AccountService.detailTXList(params, data => {
+		AccountService.detailTXList(params, function(data) {
 			if(!data){
 				$scope.hideMore = true;
 				return;
 			}
-			data.forEach(tx => {
+			for(i in data) {
+				let tx = data[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
 				tx.amount = fmtXEM(tx.amount);
 				tx.fee = fmtXEM(tx.fee);
 				$scope.lastID = tx.id;
-			});
+			}
 			if($scope.txList){
 				$scope.txList = $scope.txList.concat(data);
 			} else {
