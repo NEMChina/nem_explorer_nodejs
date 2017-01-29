@@ -18,7 +18,7 @@
 			</tr>
 		</thead>
 		<tbody class="well well-large">
-			<tr ng-repeat="tx in txList" style="cursor:pointer;" ng-click="showTx(tx.height, tx.hash, $event)">
+			<tr ng-repeat="tx in txList" style="cursor:pointer;" ng-click="showTx(tx.height, tx.hash, $event, tx.recipient)">
 				<td ng-bind="$index+1"></td>
 				<td ng-bind="tx.timeStamp"></td>
 				<td ng-bind="tx.amount"></td>

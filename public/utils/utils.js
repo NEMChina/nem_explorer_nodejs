@@ -34,8 +34,8 @@ Date.prototype.format = function(fmt) {
 	return fmt; 
 }
 
-function showTransaction(height, hash, $scope, TXService) {
-	TXService.tx({"height": height, "hash": hash}, function(data){
+function showTransaction(height, hash, $scope, TXService, recipient) {
+	TXService.tx({"height": height, "hash": hash, "recipient": recipient}, function(data){
 		if(!data || !data.tx){
 			$scope.items = [{label: "Not Found", content: ""}];
 			return;
@@ -92,6 +92,7 @@ function showTransaction(height, hash, $scope, TXService) {
 				items.push({label: "", content: "Timestamp：" + fmtDate(tx.otherTrans.timeStamp)});
 				items.push({label: "", content: "Sender：" + tx.otherTrans.sender});
 				items.push({label: "", content: "Recipient：" + tx.otherTrans.recipient});
+				items.push({label: "", content: "Amount：" + fmtXEM(tx.otherTrans.amount)});
 				items.push({label: "", content: "Fee：" + fmtXEM(tx.otherTrans.fee)});
 				if(tx.otherTrans.modifications!=null){
 					var modifications = tx.otherTrans.modifications;

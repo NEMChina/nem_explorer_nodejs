@@ -48,6 +48,7 @@ module.exports = {
 		try {
 			let height = req.body.height;
 			let hash = req.body.hash;
+			let recipient = req.body.recipient;
 			if(!height || parseInt(height)==0){
 				let Transaction = mongoose.model('Transaction');
 				Transaction.findOne({hash: hash}).exec((err, doc) => {
@@ -84,6 +85,32 @@ module.exports = {
 								return;
 							}
 						});
+					});
+				});
+			} else if(parseInt(height)==1) {
+				let params = JSON.stringify({"height": 1});
+				nis.blockAtPublic(params, data => {
+					if(!data){
+						res.json({});
+						return;
+					}
+					data.transactions.forEach(tx => {
+						if(tx.recipient == recipient){
+							tx.tx = {};
+							tx.tx.timeStamp = tx.timeStamp;
+							tx.tx.signerAccount = address.publicKeyToAddress(tx.signer);
+							tx.tx.amount = tx.amount;
+							tx.tx.recipient = tx.recipient;
+							tx.tx.fee = tx.fee;
+							tx.tx.type = 257;
+							if(tx.message && tx.message.type){
+								tx.tx.message = {};
+								tx.tx.message.payload = message.hexToUtf8(tx.message.payload);
+							}
+							tx.height = height;
+							res.json(tx);
+							return;
+						}
 					});
 				});
 			} else {

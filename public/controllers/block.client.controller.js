@@ -38,7 +38,7 @@ function BlockController($scope, BlockService, TXService){
 			tx = {};
 			tx.hash = item.hash;
 			tx.time = fmtDate(item.tx.timeStamp);
-			tx.amount = tx.amount?fmtXEM(item.tx.amount):0;
+			tx.amount = item.tx.amount?fmtXEM(item.tx.amount):0;
 			tx.fee = fmtXEM(item.tx.fee);
 			tx.sender = item.tx.signerAccount;
 			tx.recipient = item.tx.recipient;
@@ -131,12 +131,12 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 	}
 	//load transaction detail
 	//load transaction detail
-	$scope.showTx = function(height, hash, $event){
+	$scope.showTx = function(height, hash, $event, recipient){
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
 		}
 		$("#txDetail").modal("show");
-		return showTransaction(height, hash, $scope, TXService);
+		return showTransaction(height, hash, $scope, TXService, recipient);
 	}
 }
