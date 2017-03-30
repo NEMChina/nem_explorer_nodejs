@@ -309,7 +309,7 @@ let updateAddress = (address, height) => {
  * log util
  */
 let log = (message) => {
-	console.info('===> ' + message);
+	console.info('=> ' + message);
 }
 
 module.exports = {

@@ -11,25 +11,28 @@
 				<th>#</th>
 				<th>Host</th>
 				<th>Node Name</th>
+				<th>Height</th>
 				<th>Version</th>
-				<th>Supernode</th>
 			</tr>
 		</thead>
 		<tbody class="well well-large">
 			<tr ng-repeat="node in nodeList" ng-class="{hidden:justSupernode==1&&node.superNodeID==null}">
 				<td ng-bind="$index+1"></td>
 				<td>
-					<a href="http://supernodes.nem.io/details/{{node.superNodeID}}" 
-						target="_blank" style="cursor:pointer;" ng-class="{hidden:node.superNodeID==null}" ng-bind="node.host"></a>
-					<span ng-class="{hidden:node.superNodeID!=null}" ng-bind="node.host"></span>
+					<span ng-bind="node.host"></span>
 				</td>
 				<td>
 					<a href="http://supernodes.nem.io/details/{{node.superNodeID}}" 
-						target="_blank" style="cursor:pointer;" ng-class="{hidden:node.superNodeID==null}"><span ng-bind-html="node.name | to_trusted"></span></a>
-					<span ng-class="{hidden:node.superNodeID!=null}"><span ng-bind-html="node.name | to_trusted"></span></span>
+						target="_blank" style="cursor:pointer;" ng-class="{hidden:node.superNodeID==null}">
+						<img src='views/images/sn.png' width="18" height="18"/>
+						<span ng-bind-html="node.name | to_trusted" style="margin-left:6px;"></span>
+					</a>
+					<span ng-class="{hidden:node.superNodeID!=null}">
+						<span ng-bind-html="node.name | to_trusted"></span>
+					</span>
 				</td>
+				<td ng-bind="node.height"></td>
 				<td ng-bind="node.version"></td>
-				<td><img src='views/images/yes.png' ng-class="{hidden:node.superNodeID==null}" width="20" height="20"/></td>
 			</tr>
 		</tbody>
 	</table>

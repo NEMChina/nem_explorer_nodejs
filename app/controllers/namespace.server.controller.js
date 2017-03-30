@@ -48,6 +48,8 @@ module.exports = {
 											r_mosaic.initialSupply = property.value;
 										if(property.name=='transferable')
 											r_mosaic.transferable = property.value;
+										if(property.name=='divisibility')
+											r_mosaic.divisibility = property.value;
 									});
 								}
 								r_mosaicList.push(r_mosaic);

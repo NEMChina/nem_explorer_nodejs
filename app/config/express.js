@@ -1,7 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import initData from '../utils/initData';
-import supernode from '../utils/supernode'
+import supernode from '../utils/supernode';
+import nodeSchedule from '../utils/nodeSchedule';
 
 module.exports = () => {
 	console.log('init express...');
@@ -44,6 +45,8 @@ module.exports = () => {
 	initData.init();
 	//schedule fetch data
 	supernode.scheduleFetchSupernode();
+	//schedule fetch node
+	nodeSchedule.scheduleFetchNode();
 
 	return app;
 };

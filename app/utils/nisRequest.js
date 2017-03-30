@@ -5,6 +5,10 @@ let blockHeight = function(callback) {
 	get('/chain/height', callback);
 };
 
+let blockHeightByHostAndPort = function(host, port, callback) {
+	getByHostAndPort(host, port, '/chain/height', callback);
+};
+
 let blockList = function(reqData, callback) {
 	post('/local/chain/blocks-after', reqData, callback);
 };
@@ -73,6 +77,7 @@ let mosaicListByNamespace = (namespace, callback) => {
 
 module.exports = {
 	blockHeight,
+	blockHeightByHostAndPort,
 	blockList,
 	publicKeyToAddress,
 	blockAtPublic,
@@ -90,6 +95,33 @@ let get = function(path, callback) {
 	let options = {
     	host: config.nisHost,
     	port: config.nisPort,
+	    path: path,
+	    method: 'GET'
+	};
+	let request = http.request(options, (res) => {
+		let body = "";
+		res.setEncoding('utf8');
+    	res.on('data', function (data) {
+    		body += data;
+    	});
+    	res.on('end', function (data) {
+    		callback(JSON.parse(body));
+    	});
+  	});
+  	request.on('error', function(e) { 
+	 	console.log("error: " + e.message);
+	 	callback({});
+	});
+	// post the data
+	request.write('');
+	request.end();
+}
+
+//http GET method util
+let getByHostAndPort = function(host, port, path, callback) {
+	let options = {
+    	host: host,
+    	port: port,
 	    path: path,
 	    method: 'GET'
 	};

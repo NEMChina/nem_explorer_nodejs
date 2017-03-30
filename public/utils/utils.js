@@ -35,6 +35,7 @@ Date.prototype.format = function(fmt) {
 }
 
 function showTransaction(height, hash, $scope, TXService, recipient) {
+	$scope.items = {};
 	TXService.tx({"height": height, "hash": hash, "recipient": recipient}, function(data){
 		if(!data || !data.tx){
 			$scope.items = [{label: "Not Found", content: ""}];

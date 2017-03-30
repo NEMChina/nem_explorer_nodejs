@@ -42,12 +42,14 @@
 							<th>#</th>
 							<th>Mosaic Name</th>
 							<th>Supply</th>
+							<th>Divisibility</th>
 							<th>Transferable</th>
 						</tr>
 		         		<tr ng-repeat="mosaic in mosaicList" style="line-height:20px;">
 							<td ng-bind="mosaic.no"></td>
 							<td ng-bind="mosaic.name"></td>
 							<td ng-bind="mosaic.initialSupply"></td>
+							<td ng-bind="mosaic.divisibility"></td>
 							<td ng-bind="mosaic.transferable"></td>
 						</tr>
 					</table>
