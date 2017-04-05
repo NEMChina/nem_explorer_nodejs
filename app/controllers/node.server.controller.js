@@ -1,4 +1,4 @@
-import cache from '../cache/nodeCache';
+import cache from '../cache/appCache';
 
 module.exports = {
 
@@ -8,13 +8,13 @@ module.exports = {
 	nodeList: (req, res, next) => {
 		try {
 			let r_nodeArray = [];
-			cache.cache.keys((err, keys) => {
+			cache.appCache.keys((err, keys) => {
 				if(err){
 					console.err(err);
 					res.json(r_nodeArray);
 					return;
 				}
-				cache.cache.mget(keys, (err, value) => {
+				cache.appCache.mget(keys, (err, value) => {
 					if(err){
 						console.err(err);
 						res.json(r_nodeArray);

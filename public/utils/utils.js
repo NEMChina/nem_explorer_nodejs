@@ -5,7 +5,7 @@ function fmtDate(input) {
 }
 
 function fmtXEM(input) {
-	return parseInt((input/1000000));
+	return fmtSplit(parseInt((input/1000000)));
 }
 
 function fmtPOI(input) {
@@ -14,6 +14,21 @@ function fmtPOI(input) {
 
 function fmtDiff(input) {
 	return (input/Math.pow(10, 14)*100).toFixed(2) + "%";
+}
+
+function fmtSplit(input) {
+	var text = "" + input;
+	var result = "";
+	while(true){
+		if(text.length>3){
+			result = "," + text.substring(text.length-3, text.length) + result;
+			text = text.substring(0, text.length-3);
+		} else {
+			result = text + result;
+			break;
+		}
+	}
+	return result;
 }
 
 //date format
@@ -65,7 +80,6 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 			items.push({label: "Remote", content: tx.remoteAccount});
 			items.push({label: "Fee", content: fmtXEM(tx.fee)});
 		} else if(tx.type==4097){ //Converting an account to a multisig account
-			console.info(tx);
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			items.push({label: "Type", content: "converting to be a multisig account"});
 			items.push({label: "Sender", content: tx.signerAccount});
@@ -80,21 +94,18 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 		} else if(tx.type==4098){ //Cosigning multisig transaction
 			
 		} else if(tx.type==4100){ //Initiating a multisig transaction; Adding and removing cosignatories
-			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			if(tx.otherTrans!=null && tx.otherTrans.modifications!=null){
+				items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 				items.push({label: "Type", content: "adding and removing cosignatories"});
-			} else {
-				items.push({label: "Type", content: "initiating a multisig transaction"});
-			}
-			items.push({label: "Sender", content: tx.signerAccount});
-			items.push({label: "Fee", content: fmtXEM(tx.fee)});
-			if(tx.otherTrans!=null){
+				items.push({label: "Sender", content: tx.signerAccount});
+				items.push({label: "Fee", content: fmtXEM(tx.fee)});
 				items.push({label: "Inner Message", content: ""});
 				items.push({label: "", content: "Timestamp：" + fmtDate(tx.otherTrans.timeStamp)});
 				items.push({label: "", content: "Sender：" + tx.otherTrans.sender});
 				items.push({label: "", content: "Recipient：" + tx.otherTrans.recipient});
 				items.push({label: "", content: "Amount：" + fmtXEM(tx.otherTrans.amount)});
 				items.push({label: "", content: "Fee：" + fmtXEM(tx.otherTrans.fee)});
+				items.push({label: "Block", content: data.height});
 				if(tx.otherTrans.modifications!=null){
 					var modifications = tx.otherTrans.modifications;
 					for(x in modifications){
@@ -105,9 +116,25 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 						}
 					}
 				}
-			}
-			if(tx.signatures!=null && tx.signatures.length>0){
+			} else if(tx.otherTrans!=null && tx.signatures!=null && tx.signatures.length>0){
+				items.push({label: "Timestamp", content: fmtDate(tx.otherTrans.timeStamp)});
+				items.push({label: "Type", content: "multisig transaction"});
+				items.push({label: "Inner Hash", content: data.innerHash});
+				items.push({label: "Sender", content: tx.otherTrans.sender});
+				items.push({label: "Recipient", content: tx.otherTrans.recipient});
+				items.push({label: "Amount", content: fmtXEM(tx.otherTrans.amount)});
+				items.push({label: "Fee", content: fmtXEM(tx.otherTrans.fee)});
+				items.push({label: "Block", content: data.height});
+				if(tx.otherTrans.message){
+					if(tx.otherTrans.message.type==2){
+						items.push({label: "Message(encrypted)", content: tx.otherTrans.message.payload});
+					} else {
+						items.push({label: "Message", content: tx.otherTrans.message.payload});
+					}
+				}
 				items.push({label: "Cosignatures", content: ""});
+				var tDate = fmtDate(tx.timeStamp);
+				items.push({label: "   ", content: "(" + tDate + ") " + tx.signerAccount + " (Initiator)"});
 				var signatures = tx.signatures;
 				for(x in signatures){
 					var tDate = fmtDate(signatures[x].timeStamp);

@@ -6,7 +6,7 @@ let blockHeight = function(callback) {
 };
 
 let blockHeightByHostAndPort = function(host, port, callback) {
-	getByHostAndPort(host, port, '/chain/height', callback);
+	getByHostAndPortNoError(host, port, '/chain/height', callback);
 };
 
 let blockList = function(reqData, callback) {
@@ -118,7 +118,7 @@ let get = function(path, callback) {
 }
 
 //http GET method util
-let getByHostAndPort = function(host, port, path, callback) {
+let getByHostAndPortNoError = function(host, port, path, callback) {
 	let options = {
     	host: host,
     	port: port,
@@ -136,7 +136,7 @@ let getByHostAndPort = function(host, port, path, callback) {
     	});
   	});
   	request.on('error', function(e) { 
-	 	console.log("error: " + e.message);
+	 	//console.log("error: " + e.message);
 	 	callback({});
 	});
 	// post the data

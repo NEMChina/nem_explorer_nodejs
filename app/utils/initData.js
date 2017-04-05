@@ -7,6 +7,7 @@ import messageUtil from './message';
 
 let lastLoadedHeight = 0;
 let foundAddressSet = new Set();
+let reloadFoundAddressSet = new Set();
 
 /**
  * init the blocks, transactions, account, namespace, mosaics and supernodes payout
@@ -121,7 +122,6 @@ let loadNemesisBlock = () => {
 let loadBlocks = (height, callback) => {
 	let Namespace = mongoose.model('Namespace');
 	let SupernodePayout = mongoose.model('SupernodePayout');
-	let fountAddressSet = new Set();
 	let params = JSON.stringify({"height": height});
 	nis.blockList(params, data => {
 		if(!data || !data.data || data.data.length==0)
@@ -162,18 +162,18 @@ let loadBlocks = (height, callback) => {
 					saveNamespace.creator = saveTx.sender;
 					new Namespace(saveNamespace).save(err => {
 						if(err)
-							log('<error> Block [' + block.height + '] create namespace [' + saveNamespace.name + '] : ' + err);
+							log('<error> Block [' + block.height + '] found namespace [' + saveNamespace.name + '] : ' + err);
 						else
-							log('<success> Block [' + block.height + '] create namespace [' + saveNamespace.name + ']');
+							log('<success> Block [' + block.height + '] found namespace [' + saveNamespace.name + ']');
 					});
 				}
 				let Transaction = mongoose.model('Transaction');
 				//insert the transaction into DB
 				new Transaction(saveTx).save(err => {
 					if(err) {
-						log('<error> Block ['+block.height+'] create transaction [' + (index+1) + '] : ' + err);
+						log('<error> Block ['+block.height+'] found transaction [' + (index+1) + '] : ' + err);
 					} else {
-						log('<success> Block ['+block.height+'] create transaction [' + (index+1) + ']');
+						log('<success> Block ['+block.height+'] found transaction [' + (index+1) + ']');
 					}
 				});
 				//update mosaics amount in specific namespace
@@ -203,6 +203,35 @@ let loadBlocks = (height, callback) => {
 				if(otherAccount && !foundAddressSet.has(otherAccount)) {
 					foundAddressSet.add(otherAccount);
 					updateAddress(otherAccount, block.height);
+				}
+				// update the account which is multisig transaction
+				if(tx.signatures){
+					for(var i=0;i<tx.signatures.length;i++){
+						var signatureItem = tx.signatures[i];
+						var signatureOtherAccount = signatureItem.otherAccount;
+						var signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
+						if(signatureOtherAccount && !foundAddressSet.has(signatureOtherAccount)) {
+							foundAddressSet.add(signatureOtherAccount);
+							updateAddress(signatureOtherAccount, block.height);
+						}
+						if(signatureSigner && !foundAddressSet.has(signatureSigner)) {
+							foundAddressSet.add(signatureSigner);
+							updateAddress(signatureSigner, block.height);
+						}
+					}
+				}
+				// update the account which is multisig transaction
+				if(tx.otherTrans){
+					var otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
+					var otherTransRecipient = tx.otherTrans.recipient;
+					if(otherTransSigner && !foundAddressSet.has(otherTransSigner)) {
+						foundAddressSet.add(otherTransSigner);
+						updateAddress(otherTransSigner, block.height);
+					}
+					if(otherTransRecipient && !foundAddressSet.has(otherTransRecipient)) {
+						foundAddressSet.add(otherTransRecipient);
+						updateAddress(otherTransRecipient, block.height);
+					}
 				}
 				//create supernode payout
 				if(saveTx.sender==config.supernodePayoutAccount && tx.message && tx.message.type && tx.message.type==1){
@@ -280,7 +309,7 @@ let updateAddress = (address, height) => {
 							blocks: updateAccount.blocks, 
 							label: updateAccount.label,
 							lastBlock: updateAccount.lastBlock,
-							fess: updateAccount.fess,
+							fees: updateAccount.fees,
 							timeStamp: updateAccount.timeStamp
 						}
 						Account.update({address: address}, update, (err, doc) => {
@@ -306,6 +335,86 @@ let updateAddress = (address, height) => {
 };
 
 /**
+ * reload account info (block height > 1)
+ */
+let reloadAccountInfo = (height) => {
+	let params = JSON.stringify({"height": height});
+	nis.blockList(params, data => {
+		if(!data || !data.data || data.data.length==0){
+			reloadFoundAddressSet = new Set();
+			return;
+		}
+		data.data.forEach((item, blockIndex) => {
+			let block = item.block;
+			let txes = item.txes;
+			//update the account info which is in DB
+			if(block.signer && !reloadFoundAddressSet.has(address.publicKeyToAddress(block.signer))){
+				reloadFoundAddressSet.add(address.publicKeyToAddress(block.signer));
+				updateAddress(address.publicKeyToAddress(block.signer), block.height);
+			}
+			txes.forEach((itemTx, index) => {
+				let tx = itemTx.tx;
+				//update the account info which is in DB
+				let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
+				let recipient = tx.recipient;
+				let cosignatoryAccount = tx.cosignatoryAccount?address.publicKeyToAddress(tx.cosignatoryAccount):null;
+				let otherAccount = tx.otherAccount?address.publicKeyToAddress(tx.otherAccount):null;
+				if(signer && !reloadFoundAddressSet.has(signer)) {
+					reloadFoundAddressSet.add(signer);
+					updateAddress(signer, block.height);
+				}
+				if(recipient && !reloadFoundAddressSet.has(recipient)) {
+					reloadFoundAddressSet.add(recipient);
+					updateAddress(recipient, block.height);
+				}
+				if(cosignatoryAccount && !reloadFoundAddressSet.has(cosignatoryAccount)) {
+					reloadFoundAddressSet.add(cosignatoryAccount);
+					updateAddress(cosignatoryAccount, block.height);
+				}
+				if(otherAccount && !reloadFoundAddressSet.has(otherAccount)) {
+					reloadFoundAddressSet.add(otherAccount);
+					updateAddress(otherAccount, block.height);
+				}
+				// update the account which is multisig transaction
+				if(tx.signatures){
+					for(var i=0;i<tx.signatures.length;i++){
+						var signatureItem = tx.signatures[i];
+						var signatureOtherAccount = signatureItem.otherAccount;
+						var signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
+						if(signatureOtherAccount && !reloadFoundAddressSet.has(signatureOtherAccount)) {
+							reloadFoundAddressSet.add(signatureOtherAccount);
+							updateAddress(signatureOtherAccount, block.height);
+						}
+						if(signatureSigner && !reloadFoundAddressSet.has(signatureSigner)) {
+							reloadFoundAddressSet.add(signatureSigner);
+							updateAddress(signatureSigner, block.height);
+						}
+					}
+				}
+				// update the account which is multisig transaction
+				if(tx.otherTrans){
+					var otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
+					var otherTransRecipient = tx.otherTrans.recipient;
+					if(otherTransSigner && !reloadFoundAddressSet.has(otherTransSigner)) {
+						reloadFoundAddressSet.add(otherTransSigner);
+						updateAddress(otherTransSigner, block.height);
+					}
+					if(otherTransRecipient && !reloadFoundAddressSet.has(otherTransRecipient)) {
+						reloadFoundAddressSet.add(otherTransRecipient);
+						updateAddress(otherTransRecipient, block.height);
+					}
+				}
+			});
+			//log('Start to load Block ['+block.height+']');
+			//recurse to query the next 10 blocks
+			if(data.data.length==blockIndex+1){
+				reloadAccountInfo(block.height);
+			}
+		});
+	});
+};
+
+/**
  * log util
  */
 let log = (message) => {
@@ -313,5 +422,6 @@ let log = (message) => {
 }
 
 module.exports = {
-	init
+	init,
+	reloadAccountInfo
 }

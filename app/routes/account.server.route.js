@@ -5,4 +5,5 @@ module.exports = function(app){
 	app.route('/account/harvesterList').post(AccountController.harvesterList);
 	app.route('/account/detail').post(AccountController.detail);
 	app.route('/account/detailTXList').post(AccountController.detailTXList);
+	app.route('/account/reloadAccountInfo').get(AccountController.reloadAccountInfo);
 };

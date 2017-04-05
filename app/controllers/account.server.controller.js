@@ -1,8 +1,11 @@
 import mongoose from 'mongoose';
 import nis from '../utils/nisRequest';
 import addressUtil from '../utils/address';
+import cache from '../cache/appCache';
+import init from '../utils/initData';
 
 const LISTSIZE = 100; //list size
+const UPDATETIME = 24*60*60*1000;
 
 module.exports = {
 
@@ -114,6 +117,9 @@ module.exports = {
 					if(!err && doc)
 						r_account.remark = doc.remark;
 				});
+				if(account.multisigInfo && account.multisigInfo.minCosignatories){
+					r_account.minCosignatories = account.multisigInfo.minCosignatories;
+				}
 				if(meta.cosignatories && meta.cosignatories.length>0){
 					r_account.multisig = 1;
 					r_account.cosignatories = "";
@@ -135,11 +141,20 @@ module.exports = {
 					tx.data.forEach(item => {
 						r_tx = {};
 						r_tx.id = item.meta.id;
-						r_tx.timeStamp = item.transaction.timeStamp;
-						r_tx.amount = item.transaction.amount?item.transaction.amount:0;
-						r_tx.fee = item.transaction.fee;
-						r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.signer);
-						r_tx.recipient = item.transaction.recipient;
+						if(item.transaction.type==4100 && item.transaction.otherTrans 
+							&& !item.transaction.otherTrans.modifications){ //multisig transaction
+							r_tx.timeStamp = item.transaction.otherTrans.timeStamp;
+							r_tx.amount = item.transaction.otherTrans.amount?item.transaction.otherTrans.amount:0;
+							r_tx.fee = item.transaction.otherTrans.fee;
+							r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.otherTrans.signer);
+							r_tx.recipient = item.transaction.otherTrans.recipient;
+						} else {
+							r_tx.timeStamp = item.transaction.timeStamp;
+							r_tx.amount = item.transaction.amount?item.transaction.amount:0;
+							r_tx.fee = item.transaction.fee;
+							r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.signer);
+							r_tx.recipient = item.transaction.recipient;
+						}
 						r_tx.height = item.meta.height;
 						if(item.meta.hash && item.meta.hash.data)
 							r_tx.hash = item.meta.hash.data;
@@ -185,6 +200,33 @@ module.exports = {
 					r_txList.push(r_tx);
 				});
 				res.json(r_txList);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * reload account info (in order to fix some invalid data of account)
+     */
+	reloadAccountInfo: (req, res, next) => {
+		try {
+			if(!cache || !cache.appCache || !cache.accountLastReloadTime){
+				res.json({"message": "unable to use cache"});
+				return;
+			}
+			cache.appCache.get(cache.accountLastReloadTime, (err, value) => {
+				if(err){
+					res.json({"message": "unable to use cache"});
+					return;
+				}
+				if(value && (value+UPDATETIME > new Date().getTime())){
+					res.json({"message": "this action only allow to be executed one time in 24 hours"});
+					return;
+				}
+				cache.appCache.set(cache.accountLastReloadTime, new Date().getTime());
+				init.reloadAccountInfo(1);
+				res.json({"message": "success"});
 			});
 		} catch (e) {
 			console.error(e);

@@ -111,7 +111,8 @@ function SearchAccountController($scope, $location, AccountService, TXService){
 			}
 			if(data.cosignatories!=null && data.cosignatories!=""){
 				list.push({label: "Multisig account", content: "Yes"});
-				list.push({label: "cosignatories", content: data.cosignatories});
+				list.push({label: "Minimum Cosignatories", content: ""+data.minCosignatories});
+				list.push({label: "Cosignatories", content: data.cosignatories});
 			}
 			$scope.accountItems = list;
 			//load tx list

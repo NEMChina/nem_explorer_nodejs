@@ -37,11 +37,19 @@ function BlockController($scope, BlockService, TXService){
 			let item = txes[i];
 			tx = {};
 			tx.hash = item.hash;
-			tx.time = fmtDate(item.tx.timeStamp);
-			tx.amount = item.tx.amount?fmtXEM(item.tx.amount):0;
-			tx.fee = fmtXEM(item.tx.fee);
-			tx.sender = item.tx.signerAccount;
-			tx.recipient = item.tx.recipient;
+			if(item.tx.type==4100 && item.tx.otherTrans && !item.tx.otherTrans.modifications){ //multisig transaction
+				tx.time = fmtDate(item.tx.otherTrans.timeStamp);
+				tx.amount = fmtXEM(item.tx.otherTrans.amount);
+				tx.fee = fmtXEM(item.tx.otherTrans.fee);
+				tx.sender = item.tx.otherTrans.sender;
+				tx.recipient = item.tx.otherTrans.recipient;
+			} else {
+				tx.time = fmtDate(item.tx.timeStamp);
+				tx.amount = item.tx.amount?fmtXEM(item.tx.amount):0;
+				tx.fee = fmtXEM(item.tx.fee);
+				tx.sender = item.tx.signerAccount;
+				tx.recipient = item.tx.recipient;
+			}
 			tx.height = item.tx.height;
 			tx.signature = item.tx.signature;
 			txArr.push(tx);

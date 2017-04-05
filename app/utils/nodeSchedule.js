@@ -1,7 +1,7 @@
 import https from 'https';
 import nis from './nisRequest';
 import schedule from 'node-schedule';
-import cache from '../cache/nodeCache';
+import cache from '../cache/appCache';
 import mongoose from 'mongoose';
 
 let scheduleFetchNode = () => {
@@ -55,7 +55,7 @@ let fetchNode = () => {
 							if(data && data.height){
 								r_node.height = data.height;
 							}
-							cache.cache.set(cache.cachePrefix + node.endpoint.host, r_node);
+							cache.appCache.set(cache.nodeCachePrefix + node.endpoint.host, r_node);
 						});
 					}
 				});

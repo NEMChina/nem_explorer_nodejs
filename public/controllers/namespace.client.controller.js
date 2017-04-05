@@ -35,6 +35,7 @@ function NamespaceController($scope, NamespaceService){
 		if(mosaicList && mosaicList.length!=0){
 			for(let i in mosaicList){
 				let mosaic = mosaicList[i];
+				mosaic.initialSupply = fmtSplit(mosaic.initialSupply);
 				if(mosaic.transferable=="true")
 					mosaic.transferable = "Yes";
 				else
