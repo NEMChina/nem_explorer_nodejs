@@ -5,11 +5,17 @@ function NavController($scope, $location, $rootScope){
 	$rootScope.$on('$routeChangeSuccess', function () {
 		let path = $location.path();
 		$rootScope.navClass1 = (path == "/blocklist" || path == "/s_block" || path == "/" || path == "") ? "active" : "";
+		$rootScope.navClass11 = path == "/blocklist" ? "active" : "";
 		$rootScope.navClass2 = (path == "/txlist" || path == "/s_tx") ? "active" : "";
-		$rootScope.navClass3 = (path == "/accountlist" || path == "/s_account") ? "active" : "";
-		$rootScope.navClass4 = (path == "/nodelist") ? "active" : "";
-		$rootScope.navClass5 = (path == "/supernodepayout") ? "active" : "";
-		$rootScope.navClass6 = (path == "/namespacelist") ? "active" : "";
+		$rootScope.navClass21 = path == "/txlist" ? "active" : "";
+		$rootScope.navClass3 = (path == "/accountlist" || path == "/harvesterlist" || path == "/harvestingCalculator" || path == "/s_account") ? "active" : "";
+		$rootScope.navClass31 = path == "/accountlist" ? "active" : "";
+		$rootScope.navClass32 = path == "/harvesterlist" ? "active" : "";
+		$rootScope.navClass33 = path == "/harvestingCalculator" ? "active" : "";
+		$rootScope.navClass4 = (path == "/nodelist" || path == "/supernodepayout") ? "active" : "";
+		$rootScope.navClass41 = path == "/nodelist" ? "active" : "";
+		$rootScope.navClass42 = path == "/supernodepayout" ? "active" : "";
+		$rootScope.navClass5 = path == "/namespacelist" ? "active" : "";
 	});
 
 	$scope.go = function(module) {

@@ -1,0 +1,21 @@
+<div id="content" class="container" style="padding-bottom:70px;">
+	<h3>Harvesting Calculator</h3>
+	<div style="margin-top:20px;">
+		NEM requires a vested balance of 10K XEM to activate delegated harvesting. Your unvested balance will automatically be vested at a rate of 10% per day. This means any balance higher than 10K will eventually be able to harvest. If you want to activate your rewards sooner you may want to increase your balance...
+	</div>
+	<div style="margin-top:20px;">
+		With a xem balance of  
+		<input type="text" ng-model="balance" ng-keyup="handle()" style="width:120px; margin-left:4px; margin-right:4px; padding-left:4px;"/>
+		and a vested balance of  
+		<input type="text" ng-model="currentVestedBalance" ng-keyup="handle()" style="width:120px; margin-left:4px; margin-right:4px; padding-left:4px;"/>
+	</div>
+	<div style="margin-top:20px;">
+		Target vested balance of <input type="text" ng-model="targetVestedBalance" ng-keyup="handle()" style="width:120px; margin-left:4px; margin-right:4px; padding-left:4px;"/>
+	</div>
+	<div style="margin-top:20px;">
+		<span ng-bind="message" style="color:red; font-size:16px;"></span>
+	</div>
+	<div style="margin-top:20px;">
+		<canvas id="myChart" width="550" height="250"></canvas>
+	</div>
+</div>

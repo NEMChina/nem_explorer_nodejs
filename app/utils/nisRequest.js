@@ -55,12 +55,39 @@ let harvestByAddress = (address, id, preData, callback) => {
 	});
 };
 
+let harvestByAddressInTime = (address, id, preData, time, callback) => {
+	let url = '';
+	if(id)
+		url = '/account/harvests?address='+address+'&id='+id;
+	else
+		url = '/account/harvests?address='+address;
+	get(url, data => {
+		if(data && data.data && data.data.length!=0){
+			let lastID = 0;
+			data.data.forEach(item => {
+				let timeStamp = item.timeStamp;
+				if(timeStamp<time)
+					callback(preData);
+				preData.push(item);
+				lastID = item.id;
+			});
+			//recurse to query all the harvest data
+			harvestByAddress(address, lastID, preData, callback);
+		} else {
+			callback(preData);
+		}
+	});
+};
+
 let accountTransferRecord = (address, callback) => {
 	get('/account/transfers/all?address='+address, callback);
 };
 
 let accountTransferRecordAndID = (address, id, callback) => {
-	get('/account/transfers/all?address='+address+'&id='+id, callback);
+	if(id==0)
+		get('/account/transfers/all?address='+address, callback);
+	else
+		get('/account/transfers/all?address='+address+'&id='+id, callback);
 };
 
 let heartbeat = (callback) => {
@@ -75,6 +102,39 @@ let mosaicListByNamespace = (namespace, callback) => {
 	get('/namespace/mosaic/definition/page?namespace='+namespace, callback);
 };
 
+let namespaceListByAddress = (address, callback) => {
+	get('/account/namespace/page?pageSize=100&address='+address, callback);
+};
+
+let mosaicListByAddress = (address, callback) => {
+	get('/account/mosaic/owned?address='+address, callback);
+};
+
+let mosaicDefinitionListByNamespace = (namespace, callback) => {
+	get('/namespace/mosaic/definition/page?namespace='+namespace, callback);
+};
+
+let allMosaicDefinitionListByNamespace = (namespace, id, preData, callback) => {
+	let url = '';
+	if(id)
+		url = '/namespace/mosaic/definition/page?namespace='+namespace+'&id='+id;
+	else
+		url = '/namespace/mosaic/definition/page?namespace='+namespace;
+	get(url, data => {
+		if(data && data.data && data.data.length!=0){
+			let lastID = 0;
+			for(let i in data.data){
+				let item = data.data[i];
+				preData.push(item);
+				lastID = item.meta.id;
+			}
+			allMosaicDefinitionListByNamespace(namespace, lastID, preData, callback);
+		} else {
+			callback(preData);
+		}
+	});
+};
+
 module.exports = {
 	blockHeight,
 	blockHeightByHostAndPort,
@@ -83,11 +143,16 @@ module.exports = {
 	blockAtPublic,
 	accountByAddress,
 	harvestByAddress,
+	harvestByAddressInTime,
 	accountTransferRecord,
 	accountTransferRecordAndID,
 	heartbeat,
 	nodePeerListReachable,
-	mosaicListByNamespace
+	mosaicListByNamespace,
+	namespaceListByAddress,
+	mosaicListByAddress,
+	mosaicDefinitionListByNamespace,
+	allMosaicDefinitionListByNamespace
 }
 
 //http GET method util
@@ -102,7 +167,8 @@ let get = function(path, callback) {
 		let body = "";
 		res.setEncoding('utf8');
     	res.on('data', function (data) {
-    		body += data;
+    		if(data)
+    			body += data;
     	});
     	res.on('end', function (data) {
     		callback(JSON.parse(body));
@@ -129,7 +195,8 @@ let getByHostAndPortNoError = function(host, port, path, callback) {
 		let body = "";
 		res.setEncoding('utf8');
     	res.on('data', function (data) {
-    		body += data;
+    		if(data)
+    			body += data;
     	});
     	res.on('end', function (data) {
     		callback(JSON.parse(body));
@@ -160,7 +227,8 @@ let post = function(path, reqData, callback) {
 		let body = "";
 		res.setEncoding('utf8');
     	res.on('data', function (data) {
-    		body += data;
+    		if(data)
+    			body += data;
     	});
     	res.on('end', function () {
     		callback(JSON.parse(body));

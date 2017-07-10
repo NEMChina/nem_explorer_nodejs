@@ -1,8 +1,5 @@
 <div id="content" class="container" style="padding-bottom:70px;">
-	<div class="form-group pull-right" style="width:240px;">
-    	<select class="form-control" ng-model="select" ng-options="option.key for option in selectOptions" ng-change="changeSelectOption()"></select>
-  	</div>
-	<table class="table table-striped table-hover" ng-class="{hidden:select.value!=1}">
+	<table class="table table-striped table-hover">
 		<thead>
 			<tr>
 				<th>#</th>
@@ -21,30 +18,6 @@
 				<td ng-bind="account.importance"></td>
 				<td ng-bind="account.timeStamp"></td>
 				<td ng-bind="account.remark" width="30%"></td>
-			</tr>
-		</tbody>
-	</table>
-	<table class="table table-striped table-hover" ng-class="{hidden:select.value!=2}">
-		<thead>
-			<tr>
-				<th>#</th>
-				<th>Address</th>
-				<th>Importace</th>
-				<th>Harvested Blocks</th>
-				<th>Harvested Fees</th>
-				<th>Last Harvested Block</th>
-				<th>Info</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="harvester in harvesterList">
-				<td ng-bind="$index+1"></td>
-				<td><a href="#s_account?account={{harvester.address}}" target="_blank"><span ng-bind="harvester.address"></span></a></td>
-				<td ng-bind="harvester.importance"></td>
-				<td ng-bind="harvester.blocks"></td>
-				<td ng-bind="harvester.fees"></td>
-				<td ng-bind="harvester.lastBlock"></td>
-				<td ng-bind="harvester.remark" width="30%"></td>
 			</tr>
 		</tbody>
 	</table>

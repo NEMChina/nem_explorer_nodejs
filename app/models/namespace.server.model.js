@@ -5,7 +5,8 @@ let NamespaceSchema = new mongoose.Schema({
 	mosaics: {type: Number, required: true, default: 0},
 	timeStamp: {type: Number, required: true},
 	height: {type: Number, required: true},
-	creator: String
+	creator: String,
+	mosaicNames: String
 });
 
 //init Namespace Schema

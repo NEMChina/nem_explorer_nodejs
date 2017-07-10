@@ -3,6 +3,7 @@ import nis from '../utils/nisRequest';
 import addressUtil from '../utils/address';
 import cache from '../cache/appCache';
 import init from '../utils/initData';
+import timeUtil from '../utils/timeUtil';
 
 const LISTSIZE = 100; //list size
 const UPDATETIME = 24*60*60*1000;
@@ -112,6 +113,8 @@ module.exports = {
 				r_account.importance = account.importance;
 				r_account.label = account.label!="null"?account.label:"";
 				r_account.remoteStatus = meta.remoteStatus;
+				r_account.harvestedBlocks = account.harvestedBlocks;
+				r_account.vestedBalance = account.vestedBalance;
 				let Account = mongoose.model("Account");
 				Account.findOne({address: address}).exec((err, doc) => {
 					if(!err && doc)
@@ -130,39 +133,7 @@ module.exports = {
 							r_account.cosignatories = r_account.cosignatories + "<br/>" + co.address;
 					});
 				}
-				//query transactions of this account
-				nis.accountTransferRecord(address, tx => {
-					if(!tx || !tx.data){
-						res.json(r_account);
-						return;
-					}
-					let r_txList = [];
-					let r_tx = null;
-					tx.data.forEach(item => {
-						r_tx = {};
-						r_tx.id = item.meta.id;
-						if(item.transaction.type==4100 && item.transaction.otherTrans 
-							&& !item.transaction.otherTrans.modifications){ //multisig transaction
-							r_tx.timeStamp = item.transaction.otherTrans.timeStamp;
-							r_tx.amount = item.transaction.otherTrans.amount?item.transaction.otherTrans.amount:0;
-							r_tx.fee = item.transaction.otherTrans.fee;
-							r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.otherTrans.signer);
-							r_tx.recipient = item.transaction.otherTrans.recipient;
-						} else {
-							r_tx.timeStamp = item.transaction.timeStamp;
-							r_tx.amount = item.transaction.amount?item.transaction.amount:0;
-							r_tx.fee = item.transaction.fee;
-							r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.signer);
-							r_tx.recipient = item.transaction.recipient;
-						}
-						r_tx.height = item.meta.height;
-						if(item.meta.hash && item.meta.hash.data)
-							r_tx.hash = item.meta.hash.data;
-						r_txList.push(r_tx);
-					});
-					r_account.txes = r_txList;
-					res.json(r_account);
-				});
+				res.json(r_account);
 			});
 		} catch (e) {
 			console.error(e);
@@ -187,16 +158,24 @@ module.exports = {
 				data.data.forEach(item => {
 					r_tx = {};
 					r_tx.id = item.meta.id;
-					r_tx.timeStamp = item.transaction.timeStamp;
-					r_tx.amount = item.transaction.amount;
-					r_tx.fee = item.transaction.fee;
-					r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.signer);
-					r_tx.recipient = item.transaction.recipient;
+					if(item.transaction.type==4100 && item.transaction.otherTrans 
+						&& !item.transaction.otherTrans.modifications){ //multisig transaction
+						r_tx.timeStamp = item.transaction.otherTrans.timeStamp;
+						r_tx.amount = item.transaction.otherTrans.amount?item.transaction.otherTrans.amount:0;
+						r_tx.fee = item.transaction.otherTrans.fee;
+						r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.otherTrans.signer);
+						r_tx.recipient = item.transaction.otherTrans.recipient;
+					} else {
+						r_tx.timeStamp = item.transaction.timeStamp;
+						r_tx.amount = item.transaction.amount?item.transaction.amount:0;
+						r_tx.fee = item.transaction.fee;
+						r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.signer);
+						r_tx.recipient = item.transaction.recipient;
+					}
 					r_tx.height = item.meta.height;
 					r_tx.signature = item.transaction.signature;
 					if(item.meta.hash && item.meta.hash.data)
 						r_tx.hash = item.meta.hash.data;
-
 					r_txList.push(r_tx);
 				});
 				res.json(r_txList);
@@ -227,6 +206,65 @@ module.exports = {
 				cache.appCache.set(cache.accountLastReloadTime, new Date().getTime());
 				init.reloadAccountInfo(1);
 				res.json({"message": "success"});
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * load harvested blocks
+     */
+	loadHarvestBlocks: (req, res, next) => {
+		try {
+			let address = req.body.address;
+			nis.harvestByAddress(address, null, [], harvestData => {
+				let dayTime = timeUtil.getTimeBeforeOneDayInNem();
+				let monthTime = timeUtil.getTimeBeforeOneMonthInNem();
+				let allBlocks = 0;
+				let dayBlocks = 0;
+				let monthBlocks = 0;
+				let allFee = 0;
+				let dayFee = 0;
+				let monthFee = 0;
+				for(let i in harvestData){
+					allBlocks++;
+					// for the harvested info in one day
+					if(harvestData[i].timeStamp>dayTime){
+						dayBlocks++;
+						dayFee+=harvestData[i].totalFee;
+					}
+					// for the harvested info in one month
+					if(harvestData[i].timeStamp>monthTime){
+						monthBlocks++;
+						monthFee+=harvestData[i].totalFee;
+					}
+					allBlocks++;
+					allFee+=harvestData[i].totalFee;
+				}
+				let r_harvest = {};
+				r_harvest.allBlocks = allBlocks;
+				r_harvest.dayBlocks = dayBlocks;
+				r_harvest.monthBlocks = monthBlocks;
+				r_harvest.allFee = Math.round(allFee/Math.pow(10,6));
+				r_harvest.dayFee = Math.round(dayFee/Math.pow(10,6));
+				r_harvest.monthFee = Math.round(monthFee/Math.pow(10,6));
+				// load market info
+				let market = cache.appCache.get(cache.marketPrefix);
+				if(!market){
+					res.json(r_harvest);
+					return;
+				}
+				r_harvest.allBlocksPerFee = allFee==0?0:(r_harvest.allFee/allBlocks).toFixed(2);
+				r_harvest.dayBlocksPerFee = dayFee==0?0:(r_harvest.dayFee/dayBlocks).toFixed(2);
+				r_harvest.monthBlocksPerFee = monthBlocks==0?0:(r_harvest.monthFee/monthBlocks).toFixed(2);
+				r_harvest.allBlocksPerFeeInUSD = allFee==0?0:(r_harvest.allFee/allBlocks * market.usd).toFixed(3);
+				r_harvest.dayBlocksPerFeeInUSD = dayFee==0?0:(r_harvest.dayFee/dayBlocks * market.usd).toFixed(3);
+				r_harvest.monthBlocksPerFeeInUSD = monthBlocks==0?0:(r_harvest.monthFee/monthBlocks * market.usd).toFixed(3);
+				r_harvest.allBlocksPerFeeInBTC = allFee==0?0:(r_harvest.allFee/allBlocks * market.btc).toFixed(8);
+				r_harvest.dayBlocksPerFeeInBTC = dayFee==0?0:(r_harvest.dayFee/dayBlocks * market.btc).toFixed(8);
+				r_harvest.monthBlocksPerFeeInBTC = monthBlocks==0?0:(r_harvest.monthFee/monthBlocks * market.btc).toFixed(8);
+				res.json(r_harvest);
 			});
 		} catch (e) {
 			console.error(e);

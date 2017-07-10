@@ -1,53 +1,56 @@
-angular.module("webapp").controller("NamespaceController", ["$scope", "NamespaceService", NamespaceController]);
+angular.module("webapp").controller("NamespaceController", ["$scope", "$timeout", "NamespaceService", NamespaceController]);
 
-function NamespaceController($scope, NamespaceService){
-	$scope.page = 1;
-	$scope.hideMore = false;
+function NamespaceController($scope, $timeout, NamespaceService){
 	$scope.loadNamespaceList = function(){
-		$scope.loadingMore = true;
-		NamespaceService.namespaceList({"page": $scope.page}, function(r_namespaceList){
+		NamespaceService.namespaceList(function(r_namespaceList){
 			for(let i in r_namespaceList){
 				let item = r_namespaceList[i];
 				r_namespaceList[i].timeStamp = fmtDate(item.timeStamp);
+				if(r_namespaceList[i].mosaic)
+					r_namespaceList[i].mosaic.initialSupply = fmtSplit(r_namespaceList[i].mosaic.initialSupply);
 				if(!item.mosaicAmount || item.mosaicAmount==0){
 					r_namespaceList[i].mosaicAmount = "";
 				} else {
 					r_namespaceList[i].class = "cursorPointer";
 				}
 			}
-			if($scope.namespaceList){
-				$scope.namespaceList = $scope.namespaceList.concat(r_namespaceList);
-			} else {
-				$scope.namespaceList = r_namespaceList;
-			}
-			if(r_namespaceList.length==0 || r_namespaceList.length<100){
-				$scope.hideMore = true;
-			}
-			$scope.loadingMore = false;
+			$scope.namespaceList = r_namespaceList;
 		});
+		// load dataTable
+		$timeout(function() {
+			$('#namespaceTable').DataTable({
+		    	"paging": false,
+		        "ordering": false,
+		        "searching": true,
+		        "columnDefs": [
+					{"searchable": false, "targets": 0},
+					{"searchable": false, "targets": 3},
+					{"searchable": false, "targets": 4},
+					{"searchable": false, "targets": 5}
+				]
+	    	});
+		}, 1000);
 	};
-	$scope.showMosaicList = function(index, $event){
+	$scope.showMosaicList = function(index, $event, namespace, mosaicAmount){
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
 		}
-		let mosaicList = $scope.namespaceList[index].mosaicList;
-		if(mosaicList && mosaicList.length!=0){
-			for(let i in mosaicList){
-				let mosaic = mosaicList[i];
-				mosaic.initialSupply = fmtSplit(mosaic.initialSupply);
+		if(!mosaicAmount || mosaicAmount==0){
+			return;
+		}
+		$scope.selectedNamespace = namespace;
+		NamespaceService.mosaicListByNamespace({"namespace": namespace}, function(r_mosaicList){
+			for(let i in r_mosaicList){
+				let mosaic = r_mosaicList[i];
 				if(mosaic.transferable=="true")
 					mosaic.transferable = "Yes";
 				else
 					mosaic.transferable = "No";
 			}
-			$scope.mosaicList = mosaicList;
+			$scope.mosaicList = r_mosaicList;
 			$("#mosaicListModule").modal("show");
-		}
-	};
-	$scope.loadMore = function(){
-		$scope.page++;
-		$scope.loadNamespaceList();
+		});
 	};
 	$scope.loadNamespaceList();
 }

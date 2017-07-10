@@ -4,7 +4,8 @@
 			<input type="checkbox" ng-model="justMosaic" value="1"> Only included Mosaics
 		</label>
   	</div>
-	<table class="table table-striped table-hover">
+  	<div class="clearfix"></div>
+	<table class="table table-striped table-hover" id="namespaceTable">
 		<thead>
 			<tr>
 				<th>#</th>
@@ -16,9 +17,10 @@
 		</thead>
 		<tbody class="well well-large">
 			<tr ng-repeat="namespace in namespaceList" ng-class="{hidden:justMosaic==1&&namespace.mosaicAmount==''}" 
-				ng-click="showMosaicList($index, $event)">
+				ng-click="showMosaicList($index, $event, namespace.name, namespace.mosaicAmount)">
 				<td class="{{namespace.class}}" ng-bind="$index+1"></td>
 				<td class="{{namespace.class}}" ng-bind="namespace.name"></td>
+				<td class="{{namespace.class}}" ng-bind="namespace.mosaicNames" ng-class="{hidden:1==1}"></td>
 				<td class="{{namespace.class}}"><a href="#s_account?account={{namespace.creator}}" target="_blank"><span class="noDetail" ng-bind="namespace.creator"></span></a></td>
 				<td class="{{namespace.class}}" ng-bind="namespace.timeStamp"></td>
 				<td class="{{namespace.class}}">
@@ -34,7 +36,10 @@
 	    	<div class="modal-content">
 	        	<div class="modal-header">
 	            	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-	            	<h5 class="modal-title"><b>Mosaic List</b></h5>
+	            	<h5 class="modal-title">
+	            		<b>Mosaic List</b>
+	            		( Namespace: <b><span ng-bind="selectedNamespace"></span></b> )
+	            	</h5>
 		         </div>
 		         <div class="modal-body">
 		         	<table class="table table-striped table-hover">
@@ -57,5 +62,4 @@
 			</div>
 		</div>
 	</div>
-	<button type="button" class="btn btn-default btn-sm btn-block" ng-class="{hidden:hideMore, disabled:loadingMore}" ng-click="loadMore()">Load more</button>
 </div>

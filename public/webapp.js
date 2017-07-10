@@ -26,6 +26,14 @@ webapp.config(function($routeProvider) {
             templateUrl: 'accountlist.html',
             controller: 'AccountController'
         })
+        .when('/harvesterlist', {
+            templateUrl: 'harvesterlist.html',
+            controller: 'HarvesterController'
+        })
+        .when('/harvestingCalculator', {
+            templateUrl: 'harvestingCalculator.html',
+            controller: 'HarvestingCalculatorController'
+        })
         .when('/blocklist', {
             templateUrl: 'blocklist.html',
             controller: 'BlockController'

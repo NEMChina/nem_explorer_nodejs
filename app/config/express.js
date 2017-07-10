@@ -1,8 +1,10 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import initData from '../utils/initData';
-import supernode from '../utils/supernode';
-import nodeSchedule from '../utils/nodeSchedule';
+import supernodeSchedule from '../schedule/supernodeSchedule';
+import nodeScheduleSchedule from '../schedule/nodeSchedule';
+import coinmarketcapSchedule from '../schedule/coinmarketcapSchedule';
+import mosaicSchedule from '../schedule/mosaicSchedule';
 
 module.exports = () => {
 	console.log('init express...');
@@ -16,6 +18,7 @@ module.exports = () => {
 	require('../routes/node.server.route')(app);
 	require('../routes/namespace.server.route')(app);
 	require('../routes/supernode.server.route')(app);
+	require('../routes/market.server.route')(app);
 
 	app.get('/', (req, res) => {
 		res.redirect('/blocklist.html');
@@ -44,9 +47,12 @@ module.exports = () => {
 	//init data
 	initData.init();
 	//schedule fetch data
-	supernode.scheduleFetchSupernode();
+	supernodeSchedule.scheduleFetchSupernode();
 	//schedule fetch node
-	nodeSchedule.scheduleFetchNode();
-
+	nodeScheduleSchedule.scheduleFetchNode();
+	//schedule fetch price from coinmarketcap
+	coinmarketcapSchedule.scheduleFetchPrice();
+	//schedule check mosaic from namespace
+	mosaicSchedule.scheduleCheckMosaic();
 	return app;
 };

@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<title>NEM - BlockChain Explorer</title>
 	<link href="views/css/bootstrap.css" rel="stylesheet">
+	<link href="views/css/dataTables.bootstrap.min.css" rel="stylesheet">
 	<link href="views/css/nemchina_explorer.css" rel="stylesheet">
 	<link rel="shortcut icon" href="views/images/icon.ico" type="image/x-icon">
 </head>
@@ -11,21 +12,54 @@
 <div id="header" class="container">
     <div id="navigation" class="row top-buffer-10" ng-controller="NavController">
         <div class="col-xs-12">
-        	<div class="pull-left margin-right-20"><a href="#blocklist"><img src="views/images/nem.png" width="99" height="33"></a></div>
+        	<div class="pull-left" style="margin-right:10px;"><a href="#blocklist"><img src="views/images/nem.png" width="99" height="33"></a></div>
         	<div class="pull-right form-group bottom-buffer-10">
 		        <form class="form-inline" role="form">
-		        	<input id="searchInput" type="text" style="width:300px;" class="form-control" placeholder="block height / tx id / account">
+		        	<input id="searchInput" type="text" style="width:280px;" class="form-control" placeholder="block height / tx id / account">
 		  	 		<button id="search" type="button" class="btn btn-default" ng-click="search()"><span class="glyphicon glyphicon-search small"></span></button>
 		    	</form>
 		    </div>
-          	<div class="pull-right btn-group margin-right-20">
-                <button class="btn btn-default navi" ng-class="navClass1" ng-click="go('#blocklist')">Blocks</button>
-	            <button class="btn btn-default navi" ng-class="navClass2" ng-click="go('#txlist')">Transactions</button>
-	            <button class="btn btn-default navi" ng-class="navClass3" ng-click="go('#accountlist')">Accounts</button>
-	            <button class="btn btn-default navi" ng-class="navClass4" ng-click="go('#nodelist')">Nodes</button>
-	            <button class="btn btn-default navi" ng-class="navClass5" ng-click="go('#supernodepayout')">Supernodes Reward</button>
-	            <button class="btn btn-default navi" ng-class="navClass6" ng-click="go('#namespacelist')">Namespace & Mosaic</button>
+          	<div class="navbar navbar-static-top pull-left">
+  		        <ul class="nav navbar-nav" style="font-size:14px;">
+  		            <li class="dropdown">
+  		                <a href="javascript:void(0);" ng-class="navClass1" class="dropdown-toggle" data-toggle="dropdown">
+  		                    BLOCKS <b class="caret"></b>
+  		                </a>
+  		                <ul class="dropdown-menu">
+  		                    <li><a ng-class="navClass11" href="#/blocklist">Recent Blocks</a></li>
+  		                </ul>
+  		            </li>
+  		            <li class="dropdown">
+  		                <a href="javascript:void(0);" ng-class="navClass2" class="dropdown-toggle" data-toggle="dropdown">
+  		                    TRANSACTIONS <b class="caret"></b>
+  		                </a>
+  		                <ul class="dropdown-menu">
+  		                    <li><a ng-class="navClass21" href="#/txlist">Recent Transactions</a></li>
+  		                </ul>
+  		            </li>
+  		            <li class="dropdown">
+  		                <a href="javascript:void(0);" ng-class="navClass3" class="dropdown-toggle" data-toggle="dropdown">
+  		                    ACCOUNTS <b class="caret"></b>
+  		                </a>
+  		                <ul class="dropdown-menu">
+  		                    <li><a ng-class="navClass31" href="#/accountlist">Rich List</a></li>
+  		                    <li><a ng-class="navClass32" href="#/harvesterlist">Harvester List</a></li>
+  		                    <li><a ng-class="navClass33" href="#/harvestingCalculator">Harvesting Calculator</a></li>
+  		                </ul>
+  		            </li>
+  		            <li class="dropdown">
+  		                <a href="javascript:void(0);" ng-class="navClass4" class="dropdown-toggle" data-toggle="dropdown">
+  		                    NODES <b class="caret"></b>
+  		                </a>
+  		                <ul class="dropdown-menu">
+  		                    <li><a ng-class="navClass41" href="#/nodelist">Node List</a></li>
+  		                    <li><a ng-class="navClass42" href="#/supernodepayout">Supernode Reward</a></li>
+  		                </ul>
+  		            </li>
+  		            <li><a ng-class="navClass5" href="#/namespacelist">NAMESPACE & MOSAIC</a></li>
+  		        </ul>
             </div>
+            <div class="clearfix"></div>
         </div>
     </div>
     <div id="warning" class="alert alert-warning hidden">
@@ -35,11 +69,18 @@
 </div>
 <div ng-view></div>
 <footer class="footer navbar-fixed-bottom">
-	<div class="container">
+	<div class="container" ng-controller="FooterController">
 		<p>
-			&nbsp;&nbsp; <a href="http://nem.io" target="_blank">NEM IO</a> 
+			Links:
+			<a href="http://nem.io" target="_blank">NEM IO</a> 
 			&nbsp;&nbsp; <a href="https://forum.nem.io/" target="_blank">NEM Fourm</a> 
 			&nbsp;&nbsp; <a href="https://supernodes.nem.io/" target="_blank">NEM Supernodes</a> 
+			&nbsp;&nbsp; &nbsp;&nbsp; 
+			Market Cap:
+			<span ng-bind="marketCap"></span>
+			&nbsp;&nbsp;
+			Price:
+			<span ng-bind="price"></span>
 		</p>
 	</div>
 </footer>
@@ -49,6 +90,9 @@
 <script type="text/javascript" src="views/scripts/angular-animate.min.js"></script>
 <script type="text/javascript" src="views/scripts/angular-route.min.js"></script>
 <script type="text/javascript" src="views/scripts/xbbcode.js"></script>
+<script type="text/javascript" src="views/scripts/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="views/scripts/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript" src="views/scripts/Chart.bundle.min.js"></script>
 <script type="text/javascript" src="webapp.js"></script>
 <script type="text/javascript" src="utils/utils.js"></script>
 <script type="text/javascript" src="services/account.client.service.js"></script>
@@ -57,6 +101,7 @@
 <script type="text/javascript" src="services/node.client.service.js"></script>
 <script type="text/javascript" src="services/supernode.client.service.js"></script>
 <script type="text/javascript" src="services/tx.client.service.js"></script>
+<script type="text/javascript" src="services/footer.client.service.js"></script>
 <script type="text/javascript" src="controllers/account.client.controller.js"></script>
 <script type="text/javascript" src="controllers/block.client.controller.js"></script>
 <script type="text/javascript" src="controllers/namespace.client.controller.js"></script>
@@ -64,5 +109,7 @@
 <script type="text/javascript" src="controllers/node.client.controller.js"></script>
 <script type="text/javascript" src="controllers/supernode.client.controller.js"></script>
 <script type="text/javascript" src="controllers/tx.client.controller.js"></script>
+<script type="text/javascript" src="controllers/footer.client.controller.js"></script>
+<script type="text/javascript" src="controllers/harvest.client.controller.js"></script>
 </body>
 </html>

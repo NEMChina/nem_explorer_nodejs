@@ -6,4 +6,5 @@ module.exports = function(app){
 	app.route('/account/detail').post(AccountController.detail);
 	app.route('/account/detailTXList').post(AccountController.detailTXList);
 	app.route('/account/reloadAccountInfo').get(AccountController.reloadAccountInfo);
+	app.route('/account/loadHarvestBlocks').post(AccountController.loadHarvestBlocks);
 };

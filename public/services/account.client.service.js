@@ -21,6 +21,11 @@ function AccountService($http){
 			$http.post("/account/detailTXList", params).success(function(data){
 				callback(data);
 			});
+		},
+		loadHarvestBlocks: function(params, callback) {
+			$http.post("/account/loadHarvestBlocks", params).success(function(data){
+				callback(data);
+			});
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import https from 'https';
-import nis from './nisRequest';
+import nis from '../utils/nisRequest';
 import schedule from 'node-schedule';
 import cache from '../cache/appCache';
 import mongoose from 'mongoose';
@@ -20,7 +20,6 @@ let fetchNode = () => {
 	try {
 		nis.nodePeerListReachable(data => {
 			if(!data || !data.data){
-				res.json([]);
 				return;
 			}
 			//collect all the supernodes
@@ -30,7 +29,6 @@ let fetchNode = () => {
 			Supernode.find().exec((err, doc) => {
 				if(err){
 					console.error(err);
-					res.json(r_nodeArray);
 					return;
 				}
 				doc.forEach(item => {

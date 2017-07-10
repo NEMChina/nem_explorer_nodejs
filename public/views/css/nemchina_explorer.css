@@ -17,3 +17,13 @@
 .cursorPointer{
 	cursor: pointer;
 }
+.active{
+	background-color: #EEEEEE;
+}
+.dropdown{
+	padding-right: 2px;
+}
+.navbar-nav > li > a {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
