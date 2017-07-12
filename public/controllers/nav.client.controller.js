@@ -4,10 +4,17 @@ function NavController($scope, $location, $rootScope){
 
 	$rootScope.$on('$routeChangeSuccess', function () {
 		let path = $location.path();
+		let absUrl = $location.absUrl();
 		$rootScope.navClass1 = (path == "/blocklist" || path == "/s_block" || path == "/" || path == "") ? "active" : "";
-		$rootScope.navClass11 = path == "/blocklist" ? "active" : "";
+		$rootScope.navClass11 = (path == "/blocklist" || path == "/" || path == "") ? "active" : "";
 		$rootScope.navClass2 = (path == "/txlist" || path == "/s_tx") ? "active" : "";
 		$rootScope.navClass21 = path == "/txlist" ? "active" : "";
+		$rootScope.navClass23 = absUrl.indexOf("transfer") != -1 ? "active" : "";
+		$rootScope.navClass24 = absUrl.indexOf("importance") != -1 ? "active" : "";
+		$rootScope.navClass25 = absUrl.indexOf("multisig") != -1 ? "active" : "";
+		$rootScope.navClass26 = absUrl.indexOf("namespace") != -1 ? "active" : "";
+		$rootScope.navClass27 = absUrl.indexOf("mosaic") != -1 ? "active" : "";
+		$rootScope.navClass28 = absUrl.indexOf("apostille") != -1 ? "active" : "";
 		$rootScope.navClass3 = (path == "/accountlist" || path == "/harvesterlist" || path == "/harvestingCalculator" || path == "/s_account") ? "active" : "";
 		$rootScope.navClass31 = path == "/accountlist" ? "active" : "";
 		$rootScope.navClass32 = path == "/harvesterlist" ? "active" : "";

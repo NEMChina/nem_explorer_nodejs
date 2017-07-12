@@ -10,7 +10,7 @@ let TransactionSchema = new mongoose.Schema({
 	timeStamp: {type: Number, index:true, required: true},
 	deadline: {type: Number, required: true},
 	signature: {type: String, required: true},
-	type: {type: Number, required: true}
+	type: {type: Number, index: true, required: true}
 });
 
 TransactionSchema.index({height: -1, timeStamp: -1});

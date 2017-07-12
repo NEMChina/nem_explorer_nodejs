@@ -4,10 +4,10 @@
 			<tr>
 				<th>#</th>
 				<th>Address</th>
-				<th>Importace</th>
 				<th>Harvested Blocks</th>
 				<th>Harvested Fees</th>
 				<th>Last Harvested Block</th>
+				<th>Importace</th>
 				<th>Info</th>
 			</tr>
 		</thead>
@@ -15,10 +15,10 @@
 			<tr ng-repeat="harvester in harvesterList">
 				<td ng-bind="$index+1"></td>
 				<td><a href="#s_account?account={{harvester.address}}" target="_blank"><span ng-bind="harvester.address"></span></a></td>
-				<td ng-bind="harvester.importance"></td>
 				<td ng-bind="harvester.blocks"></td>
 				<td ng-bind="harvester.fees"></td>
 				<td ng-bind="harvester.lastBlock"></td>
+				<td ng-bind="harvester.importance"></td>
 				<td ng-bind="harvester.remark" width="30%"></td>
 			</tr>
 		</tbody>

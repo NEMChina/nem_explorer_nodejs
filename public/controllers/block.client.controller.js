@@ -1,7 +1,7 @@
-angular.module("webapp").controller("BlockController", ["$scope", "BlockService", "TXService", BlockController]);
+angular.module("webapp").controller("BlockController", ["$scope", "$timeout", "BlockService", "TXService", BlockController]);
 angular.module("webapp").controller("SearchBlockController", ["$scope", "$location", "BlockService", "TXService", SearchBlockController]);
 
-function BlockController($scope, BlockService, TXService){
+function BlockController($scope, $timeout, BlockService, TXService){
 	$scope.page = 1;
 	$scope.blockList = [];
 	$scope.loadBlockList = function(){

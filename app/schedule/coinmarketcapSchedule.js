@@ -20,7 +20,12 @@ let fetchPrice = () => {
 	httpsGet(URL, html => {
 		if(!html)
 			return;
-		let result = JSON.parse(html);
+		let result = null;
+		try{
+			result = JSON.parse(html);
+		} catch (e) {
+			console.error(e);
+		}
 		if(!result || result.length==0)
 			return;
 		let market = result[0];

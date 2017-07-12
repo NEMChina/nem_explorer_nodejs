@@ -5,6 +5,7 @@
 				<th>Timestamp</th>
 				<th>Sender / Recipient</th>
 				<th>Block Height</th>
+				<th>Type</th>
 				<th>Amount</th>
 				<th>Fee</th>
 			</tr>
@@ -13,10 +14,11 @@
 			<tr ng-repeat="tx in txList" style="cursor:pointer;" ng-click="showTx($index, $event)">
 				<td ng-bind="tx.timeStamp"></td>
 				<td>
-					<a href="#s_account?account={{tx.sender}}" target="_blank"><span class="noDetail" ng-bind="tx.sender"></span></a><br/>
-					<a href="#s_account?account={{tx.recipient}}" target="_blank"><span class="noDetail" ng-bind="tx.recipient"></span></a>
+					<a href="#s_account?account={{tx.sender}}" target="_blank"><span class="noDetail" ng-bind="tx.sender"></span></a>&nbsp;<br/>
+					<a href="#s_account?account={{tx.recipient}}" target="_blank"><span class="noDetail" ng-bind="tx.recipient"></span></a>&nbsp;
 				</td>
 				<td><a href="#s_block?height={{tx.height}}" target="_blank"><span class="noDetail" ng-bind="tx.height"></span></a></td>
+				<td ng-bind="tx.typeName"></td>
 				<td ng-bind="tx.amount"></td>
 				<td ng-bind="tx.fee"></td>
 			</tr>

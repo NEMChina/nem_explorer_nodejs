@@ -1,16 +1,35 @@
-angular.module("webapp").controller("TXController", ["$scope", "TXService", TXController]);
+angular.module("webapp").controller("TXController", ["$scope", "$location", "TXService", TXController]);
 angular.module("webapp").controller("SearchTXController", ["$scope", "$location", "TXService", SearchTXController]);
 
-function TXController($scope, TXService){
+function TXController($scope, $location, TXService){
+	let type = "";
+	let absUrl = $location.absUrl();
+	let reg = /type=([a-z]+)/;
+	if(absUrl && absUrl.match(reg) && absUrl.match(reg).length==2){
+		type = absUrl.match(reg)[1];
+	}
 	$scope.page = 1;
 	$scope.loadTXList = function(){
-		TXService.txList({"page": $scope.page}, function(r_txList){
+		TXService.txList({"page": $scope.page, "type": type}, function(r_txList){
 			$scope.txList = r_txList;
 			for(let i in $scope.txList){
 				let tx = $scope.txList[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
 				tx.amount = fmtXEM(tx.amount);
 				tx.fee = fmtXEM(tx.fee);
+				tx.TypeName = "";
+				if(tx.type==257)
+					tx.typeName = "transfer";
+				if(tx.type==2049)
+					tx.typeName = "importance";
+				if(tx.type==4097 || tx.type==4098 || tx.type==4099 || tx.type==4100)
+					tx.typeName = "multisig";
+				if(tx.type==8193)
+					tx.typeName = "namespace";
+				if(tx.type==16385 || tx.type==16386)
+					tx.typeName = "mosaic";
+				if(tx.type==10001)
+					tx.typeName = "apostille";
 			}
 		});
 	}

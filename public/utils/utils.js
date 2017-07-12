@@ -62,13 +62,17 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 		items.push({label: "Hash", content: hash});
 		if(tx.type==257){ //Initiating a transfer transaction
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
-			items.push({label: "Type", content: "transfer"});
+			// apostille or not
+			if(tx.message && tx.message.payload.indexOf("HEX:")==0)
+				items.push({label: "Type", content: "apostille"});
+			else
+				items.push({label: "Type", content: "transfer"});
 			items.push({label: "Sender", content: tx.signerAccount});
 			items.push({label: "Recipient", content: tx.recipient});
 			items.push({label: "Amount", content: fmtXEM(tx.amount)});
 			items.push({label: "Fee", content: fmtXEM(tx.fee)});
 			items.push({label: "Block", content: data.height});
-			if(tx.message.type==2){
+			if(tx.message && tx.message.type==2){
 				items.push({label: "Message(encrypted)", content: tx.message.payload});
 			} else {
 				items.push({label: "Message", content: tx.message.payload});

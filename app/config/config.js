@@ -5,7 +5,8 @@ const config = {
 	nisPort: '7890',
 	supernodeHost: 'https://supernodes.nem.io',
 	supernodePayoutAccount: 'NCPAYOUTH2BGEGT3Q7K75PV27QKMVNN2IZRVZWMD',
-	nisInitStartBlock: 0 //default 0
+	apostilleAccount: 'NCZSJHLTIMESERVBVKOW6US64YDZG2PFGQCSV23J',
+	nisInitStartBlock: 1000000 //default 0
 }
 
 module.exports = config;

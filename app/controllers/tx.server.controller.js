@@ -14,7 +14,32 @@ module.exports = {
 		try {
 			let Transaction = mongoose.model('Transaction');
 			let skip = (req.body.page-1)*TXLISTSIZE;
-			Transaction.find().sort({height: -1, timeStamp: -1}).skip(skip).limit(TXLISTSIZE).exec((err, doc) => {
+			let type = req.body.type;
+			let conditions = {};
+			console.info(type);
+			if(type=="transfer")
+				conditions.type = 257;
+			else if(type=="importance")
+				conditions.type = 2049;
+			else if(type=="multisig"){
+				conditions = [];
+				conditions.push({type: 4097});
+				conditions.push({type: 4098});
+				conditions.push({type: 4099});
+				conditions.push({type: 4100});
+				conditions = {"$or": conditions};
+			}
+			else if(type=="namespace")
+				conditions.type = 8193;
+			else if(type=="mosaic"){
+				conditions = [];
+				conditions.push({type: 16385});
+				conditions.push({type: 16386});
+				conditions = {"$or": conditions};
+			}
+			else if(type=="apostille")
+				conditions.type = 10001;
+			Transaction.find(conditions).sort({height: -1, timeStamp: -1}).skip(skip).limit(TXLISTSIZE).exec((err, doc) => {
 				if(err) {
 					console.info(err);
 					return res.json([]);

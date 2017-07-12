@@ -137,6 +137,7 @@ let loadBlocks = (height, callback) => {
 			let saveTx = {};
 			txes.forEach((itemTx, index) => {
 				let tx = itemTx.tx;
+				saveTx = {};
 				saveTx.hash = itemTx.hash;
 				saveTx.height = block.height;
 				saveTx.sender = tx.signer?address.publicKeyToAddress(tx.signer):'';
@@ -166,6 +167,13 @@ let loadBlocks = (height, callback) => {
 						else
 							log('<success> Block [' + block.height + '] found namespace [' + saveNamespace.name + ']');
 					});
+				}
+				// check if apostille
+				if(tx.type==257 && saveTx.recipient==config.apostilleAccount && tx.message && tx.message.type && tx.message.type==1){
+					let message = messageUtil.hexToUtf8(tx.message.payload);
+					if(message.indexOf('HEX:')==0){
+						saveTx.type = 10001;
+					}
 				}
 				let Transaction = mongoose.model('Transaction');
 				//insert the transaction into DB
@@ -206,10 +214,10 @@ let loadBlocks = (height, callback) => {
 				}
 				// update the account which is multisig transaction
 				if(tx.signatures){
-					for(var i=0;i<tx.signatures.length;i++){
-						var signatureItem = tx.signatures[i];
-						var signatureOtherAccount = signatureItem.otherAccount;
-						var signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
+					for(let i=0;i<tx.signatures.length;i++){
+						let signatureItem = tx.signatures[i];
+						let signatureOtherAccount = signatureItem.otherAccount;
+						let signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
 						if(signatureOtherAccount && !foundAddressSet.has(signatureOtherAccount)) {
 							foundAddressSet.add(signatureOtherAccount);
 							updateAddress(signatureOtherAccount, block.height);
@@ -222,8 +230,8 @@ let loadBlocks = (height, callback) => {
 				}
 				// update the account which is multisig transaction
 				if(tx.otherTrans){
-					var otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
-					var otherTransRecipient = tx.otherTrans.recipient;
+					let otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
+					let otherTransRecipient = tx.otherTrans.recipient;
 					if(otherTransSigner && !foundAddressSet.has(otherTransSigner)) {
 						foundAddressSet.add(otherTransSigner);
 						updateAddress(otherTransSigner, block.height);
@@ -272,7 +280,7 @@ let updateAddress = (address, height) => {
 	nis.accountByAddress(address, data => {
 		if(!data || !data.account) {
 			log('<error> Block [' + height + '] query acccount [' + address + '] from NIS');
-			return
+			return;
 		}
 		let updateAccount = {};
 		updateAccount.address = address;
