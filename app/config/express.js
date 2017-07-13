@@ -19,6 +19,7 @@ module.exports = () => {
 	require('../routes/namespace.server.route')(app);
 	require('../routes/supernode.server.route')(app);
 	require('../routes/market.server.route')(app);
+	require('../routes/sys.server.route')(app);
 
 	app.get('/', (req, res) => {
 		res.redirect('/blocklist.html');

@@ -63,7 +63,7 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 		if(tx.type==257){ //Initiating a transfer transaction
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			// apostille or not
-			if(tx.message && tx.message.payload.indexOf("HEX:")==0)
+			if(tx.message && tx.message.payload && tx.message.payload.indexOf("HEX:")==0)
 				items.push({label: "Type", content: "apostille"});
 			else
 				items.push({label: "Type", content: "transfer"});
