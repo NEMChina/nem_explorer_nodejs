@@ -1,4 +1,4 @@
-Note: current version is 1.2.2, please reload the db again (delete db and init again) due to some new features if you're going to update the explorer. 
+### Note: current version is 1.2.2, please reload the db again (delete db and initialize again) due to some new features if you're going to update the explorer. 
 
 ## NEM Blockchain Explorer (Node.js) ##
 
