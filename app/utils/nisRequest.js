@@ -135,6 +135,38 @@ let allMosaicDefinitionListByNamespace = (namespace, id, preData, callback) => {
 	});
 };
 
+let accountUnconfirmedTransactions = (address, callback) => {
+	get('/account/unconfirmedTransactions?address='+address, callback);
+};
+
+let checkUncomfirmedTransactionStatus = (address, id, timeStamp, signature, callback) => {
+	let url = '';
+	if(id)
+		url = '/account/transfers/all?address='+address+'&id='+id;
+	else
+		url = '/account/transfers/all?address='+address;
+	get(url, data => {
+		if(data && data.data && data.data.length!=0){
+			let lastID = 0;
+			for(let i in data.data){
+				let item = data.data[i];
+				if(item.transaction && item.transaction.signature && item.transaction.signature==signature){
+					callback(true);
+					return;
+				}
+				if(item.transaction && item.transaction.timeStamp && item.transaction.timeStamp<timeStamp){
+					callback(false);
+					return;
+				}
+				lastID = item.meta.id;
+			}
+			checkUncomfirmedTransactionStatus(address, lastID, timeStamp, signature, callback);
+		} else {
+			callback(false);
+		}
+	});
+};
+
 module.exports = {
 	blockHeight,
 	blockHeightByHostAndPort,
@@ -152,7 +184,9 @@ module.exports = {
 	namespaceListByAddress,
 	mosaicListByAddress,
 	mosaicDefinitionListByNamespace,
-	allMosaicDefinitionListByNamespace
+	allMosaicDefinitionListByNamespace,
+	accountUnconfirmedTransactions,
+	checkUncomfirmedTransactionStatus
 }
 
 //http GET method util
@@ -199,7 +233,13 @@ let getByHostAndPortNoError = function(host, port, path, callback) {
     			body += data;
     	});
     	res.on('end', function (data) {
-    		callback(JSON.parse(body));
+    		let result = {};
+    		try{
+    			result = JSON.parse(body);
+    		} catch (e){
+    			
+    		}
+    		callback(result);
     	});
   	});
   	request.on('error', function(e) { 
@@ -231,7 +271,13 @@ let post = function(path, reqData, callback) {
     			body += data;
     	});
     	res.on('end', function () {
-    		callback(JSON.parse(body));
+    		let result = {};
+    		try{
+    			result = JSON.parse(body);
+    		} catch (e){
+    			
+    		}
+    		callback(result);
     	});
   	});
   	request.on('error', function(e) { 

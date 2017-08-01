@@ -1,10 +1,14 @@
+import http from 'http';
 import express from 'express';
 import bodyParser from 'body-parser';
+import config from './config';
 import initData from '../utils/initData';
 import supernodeSchedule from '../schedule/supernodeSchedule';
 import nodeScheduleSchedule from '../schedule/nodeSchedule';
 import coinmarketcapSchedule from '../schedule/coinmarketcapSchedule';
 import mosaicSchedule from '../schedule/mosaicSchedule';
+import wsForClient from '../websocket/wsForClient';
+import wsForServer from '../websocket/wsForServer';
 
 module.exports = () => {
 	console.log('init express...');
@@ -45,15 +49,27 @@ module.exports = () => {
 		}
 	});
 
-	//init data
+	let server = http.createServer(app);
+	// init data
 	initData.init();
-	//schedule fetch data
+	// schedule fetch data
 	supernodeSchedule.scheduleFetchSupernode();
-	//schedule fetch node
+	// schedule fetch node
 	nodeScheduleSchedule.scheduleFetchNode();
-	//schedule fetch price from coinmarketcap
+	// schedule fetch price from coinmarketcap
 	coinmarketcapSchedule.scheduleFetchPrice();
-	//schedule check mosaic from namespace
+	// schedule check mosaic from namespace
 	mosaicSchedule.scheduleCheckMosaic();
+
+	// websocket
+	wsForServer.transaction();
+	wsForServer.unconfirmedTransaction();
+	wsForServer.cleanHistoryUnconfirmedWhenInit();
+	wsForClient.initUnconfirmedTransactionWS(server);
+	
+	server.listen(config.port, function(){
+		console.log('app started, listening on port:', config.port);
+	});
+
 	return app;
 };

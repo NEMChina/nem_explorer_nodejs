@@ -11,6 +11,11 @@ function TXService($http){
 			$http.post("/tx/tx", params).success(function(data){
 				callback(data);
 			});
+		},
+		unconfirmedTXList: function(callback) {
+			$http.post("/tx/unconfirmedTXList").success(function(data){
+				callback(data);
+			});
 		}
 	}
 }

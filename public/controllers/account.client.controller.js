@@ -64,7 +64,7 @@ function SearchAccountController($scope, $location, AccountService, NamespaceSer
 			}
 			if(data.cosignatories!=null && data.cosignatories!=""){
 				list.push({label: "Multisig account", content: "Yes"});
-				list.push({label: "Minimum cosignatories", content: ""+data.minCosignatories});
+				list.push({label: "Min signatures", content: ""+data.minCosignatories});
 				list.push({label: "Cosignatories", content: data.cosignatories});
 			}
 			$scope.accountItems = list;

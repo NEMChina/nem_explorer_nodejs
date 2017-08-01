@@ -96,7 +96,6 @@ module.exports = {
 					r_mosaic.namespace = data_mosaic.data[i].mosaicId.namespaceId;
 					r_mosaic.id = data_mosaic.data[i].mosaicId.name;
 					r_mosaicList.push(r_mosaic);
-					console.info(r_mosaic.quantity);
 				}
 				let quantityFixCount = 0;
 				for(let i in r_mosaicList){
@@ -104,7 +103,6 @@ module.exports = {
 						for(let j in data_definition){
 							if(data_definition[j].mosaic.id.name==r_mosaicList[i].id){
 								let divisibility = 0;
-								console.info(data_definition[j].mosaic);
 								for(let k in data_definition[j].mosaic.properties){
 									if(data_definition[j].mosaic.properties[k].name=="divisibility"){
 										divisibility = data_definition[j].mosaic.properties[k].value;

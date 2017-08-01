@@ -50,6 +50,10 @@ webapp.config(function($routeProvider) {
             templateUrl: 'txlist.html',
             controller: 'TXController'
         })
+        .when('/unconfirmedtxlist', {
+            templateUrl: 'unconfirmedtxlist.html',
+            controller: 'UnconfirmedTXController'
+        })
         .when('/supernodepayout', {
             templateUrl: 'supernodepayout.html',
             controller: 'SupernodeController'

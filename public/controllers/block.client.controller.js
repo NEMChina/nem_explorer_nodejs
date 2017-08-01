@@ -69,7 +69,6 @@ function BlockController($scope, $timeout, BlockService, TXService){
 		}
 		$("#txDetail").modal("show");
 		return showTransaction(height, hash, $scope, TXService);
-		
 	}
 	$scope.loadBlockList();
 }

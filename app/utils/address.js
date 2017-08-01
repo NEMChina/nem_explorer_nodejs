@@ -1,5 +1,6 @@
 import CryptoJS from 'crypto-js';
 import convert from './convert';
+import config from '../config/config';
 
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
@@ -15,7 +16,7 @@ let publicKeyToAddress = publicKey => {
         outputLength: 256
     });
     let hash2 = CryptoJS.RIPEMD160(hash);
-    let networkPrefix = 68; //Main Network
+    let networkPrefix = config.network; //Main Network
     let versionPrefixedRipemd160Hash = networkPrefix + CryptoJS.enc.Hex.stringify(hash2);
     let tempHash = CryptoJS.SHA3(CryptoJS.enc.Hex.parse(versionPrefixedRipemd160Hash), {
         outputLength: 256
