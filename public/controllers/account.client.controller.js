@@ -161,9 +161,9 @@ function SearchAccountController($scope, $location, AccountService, NamespaceSer
 				$scope.harvestItems = newList;
 				return;
 			}
-			let all = "total blocks: "+data.allBlocks+",  &nbsp;&nbsp;&nbsp;&nbsp;total fee: "+data.allFee+" xem,  &nbsp;&nbsp;&nbsp;&nbsp;per block "+data.allBlocksPerFee+" xem ("+data.allBlocksPerFeeInUSD+" usd) ("+data.allBlocksPerFeeInBTC+" btc)";
-			let day = "total blocks: "+data.dayBlocks+",  &nbsp;&nbsp;&nbsp;&nbsp;total fee: "+data.dayFee+" xem,  &nbsp;&nbsp;&nbsp;&nbsp;per block "+data.dayBlocksPerFee+" xem ("+data.dayBlocksPerFeeInUSD+" usd) ("+data.dayBlocksPerFeeInBTC+" btc)";
-			let month = "total blocks: "+data.dayBlocks+",  &nbsp;&nbsp;&nbsp;&nbsp;total fee: "+data.monthFee+" xem,  &nbsp;&nbsp;&nbsp;&nbsp;per block "+data.monthBlocksPerFee+" xem ("+data.monthBlocksPerFeeInUSD+" usd) ("+data.monthBlocksPerFeeInBTC+" btc)";
+			let all = "total blocks: "+data.allBlocks+",  &nbsp;&nbsp;&nbsp;&nbsp;total fee: "+data.allFee+" xem,  &nbsp;&nbsp;&nbsp;&nbsp;avg per block "+data.allBlocksPerFee+" xem ("+data.allBlocksPerFeeInUSD+" usd) ("+data.allBlocksPerFeeInBTC+" btc)";
+			let day = "total blocks: "+data.dayBlocks+",  &nbsp;&nbsp;&nbsp;&nbsp;total fee: "+data.dayFee+" xem,  &nbsp;&nbsp;&nbsp;&nbsp;avg per block "+data.dayBlocksPerFee+" xem ("+data.dayBlocksPerFeeInUSD+" usd) ("+data.dayBlocksPerFeeInBTC+" btc)";
+			let month = "total blocks: "+data.monthBlocks+",  &nbsp;&nbsp;&nbsp;&nbsp;total fee: "+data.monthFee+" xem,  &nbsp;&nbsp;&nbsp;&nbsp;avg per block "+data.monthBlocksPerFee+" xem ("+data.monthBlocksPerFeeInUSD+" usd) ("+data.monthBlocksPerFeeInBTC+" btc)";
 			newList.push({label: "Harvested blocks (all)", content: all});
 			newList.push({label: "Harvested blocks (1 day)", content: day});
 			newList.push({label: "Harvested blocks (1 month)", content: month});

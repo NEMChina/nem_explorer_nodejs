@@ -8,7 +8,6 @@ import nodeScheduleSchedule from '../schedule/nodeSchedule';
 import coinmarketcapSchedule from '../schedule/coinmarketcapSchedule';
 import mosaicSchedule from '../schedule/mosaicSchedule';
 import wsForClient from '../websocket/wsForClient';
-import wsForServer from '../websocket/wsForServer';
 
 module.exports = () => {
 	console.log('init express...');
@@ -62,9 +61,6 @@ module.exports = () => {
 	mosaicSchedule.scheduleCheckMosaic();
 
 	// websocket
-	wsForServer.transaction();
-	wsForServer.unconfirmedTransaction();
-	wsForServer.cleanHistoryUnconfirmedWhenInit();
 	wsForClient.initUnconfirmedTransactionWS(server);
 	
 	server.listen(config.port, function(){

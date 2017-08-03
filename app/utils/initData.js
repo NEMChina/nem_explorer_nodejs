@@ -5,7 +5,7 @@ import schedule from 'node-schedule';
 import config from '../config/config';
 import messageUtil from './message';
 import timeUtil from './timeUtil';
-import channels from '../websocket/channels';
+import wsForServer from '../websocket/wsForServer';
 
 let lastLoadedHeight = 0;
 let foundAddressSet = new Set();
@@ -48,7 +48,7 @@ let init = (server) => {
 				// schedule update transactions
 				loadBlocks(heightDB, data => {
 					lastLoadedHeight = data;
-					//schdule scan the new block after init finished (every 30 seconds)
+					// schdule scan the new block after init finished (every 30 seconds)
 					let scheduleRule = new schedule.RecurrenceRule();
 					scheduleRule.second = [1];
 					schedule.scheduleJob(scheduleRule, () => {
@@ -57,6 +57,12 @@ let init = (server) => {
 							lastLoadedHeight = data;
 						});
 					});
+					// websocket update transactions
+					wsForServer.transaction((height, callback)=>{
+						loadBlocks(height, callback);
+					});
+					wsForServer.unconfirmedTransaction();
+					wsForServer.cleanHistoryUnconfirmedWhenInit();
 				});
 			});
 		});
@@ -72,9 +78,12 @@ let loadNemesisBlock = () => {
 	nis.blockAtPublic(params, data => {
 		if(!data) return log('<error>: get nothing from NemesisBlock');
 		let txes = data.transactions;
-		let saveTx = {};
-		txes.forEach((tx, index) => {
-			saveTx.hash = '#NemesisBlock#'+(index+1);
+		let saveTxArr = [];
+		let saveTx;
+		for(let i in txes){
+			let tx = txes[i];
+			saveTx = {};
+			saveTx.hash = '#NemesisBlock#'+(i+1);
 			saveTx.height = 1;
 			saveTx.sender = tx.signer?address.publicKeyToAddress(tx.signer):'';
 			saveTx.recipient = '';
@@ -86,13 +95,8 @@ let loadNemesisBlock = () => {
 			saveTx.deadline = tx.deadline?tx.deadline:0;
 			saveTx.signature = tx.signature?tx.signature:'';
 			saveTx.type = tx.type?tx.type:0;
-			//insert the transaction into DB
-			new Transaction(saveTx).save(err => {
-				if(err)
-					log('<error> Block [1] create transaction [' + index + '] : ' + err);
-				else
-					log('<success> Block [1] create transaction [' + index + ']');
-			});
+			saveTxArr.push(saveTx);
+			
 			//update the account info which is in DB
 			let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
 			let recipient = tx.recipient;
@@ -102,6 +106,13 @@ let loadNemesisBlock = () => {
 			updateAddress(recipient, 1);
 			updateAddress(cosignatoryAccount,1 );
 			updateAddress(otherAccount, 1);
+		}
+		//insert the transaction into DB
+		Transaction.insertMany(saveTxArr, err => {
+			if(err)
+				log('<error> Block [1] create transactions all [' + saveTxArr.length + '] : ' + err);
+			else
+				log('<success> Block [1] create transactions all [' + saveTxArr.length + ']');
 		});
 	});
 };
@@ -122,7 +133,7 @@ let loadBlocks = (height, callback) => {
 			//update the account info which is in DB
 			if(block.signer)
 				updateAddress(address.publicKeyToAddress(block.signer), block.height);
-			let saveTx = {};
+			let saveTx;
 			txes.forEach((itemTx, index) => {
 				let tx = itemTx.tx;
 				saveTx = {};
@@ -249,9 +260,8 @@ let loadBlocks = (height, callback) => {
  * update the account info in DB
  */
 let updateAddress = (address, height) => {
-	if(!address || foundAddressSet.has(address)) {
+	if(!address || foundAddressSet.has(address)) 
 		return;
-	}
 	foundAddressSet.add(address);
 	let Account = mongoose.model('Account');
 	let AccountRemark = mongoose.model('AccountRemark');

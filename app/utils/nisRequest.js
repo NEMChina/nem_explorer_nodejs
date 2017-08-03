@@ -154,10 +154,6 @@ let checkUncomfirmedTransactionStatus = (address, id, timeStamp, signature, call
 					callback(true);
 					return;
 				}
-				if(item.transaction && item.transaction.timeStamp && item.transaction.timeStamp<timeStamp){
-					callback(false);
-					return;
-				}
 				lastID = item.meta.id;
 			}
 			checkUncomfirmedTransactionStatus(address, lastID, timeStamp, signature, callback);

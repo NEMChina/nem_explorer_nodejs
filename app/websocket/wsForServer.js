@@ -2,7 +2,6 @@ import config from '../config/config';
 import channels from './channels';
 import SockJSClient from 'sockjs-client';
 import Stomp from 'stompjs';
-import initData from '../utils/initData';
 import nis from '../utils/nisRequest';
 import wsForClient from './wsForClient';
 import timeUtil from '../utils/timeUtil';
@@ -28,7 +27,7 @@ let subscribe = (channel, callback) => {
 /**
  * update transaction from websocket
  */
-let transaction = () => {
+let transaction = (callback) => {
 	subscribe(channels.blocks, data => {
 		if(!data)
 			return;
@@ -36,7 +35,7 @@ let transaction = () => {
 		if(!block || !block.height || !block.signature)
 			return;
 		// save new transaction into DB
-		initData.loadBlocks(block.height-1, data => {});
+		callback(block.height-1, data => {});
 		// remove unconfirmed transaction from DB
 		let params = JSON.stringify({"height": block.height});
 		nis.blockAtPublic(params, data => {

@@ -15,21 +15,21 @@ function NamespaceController($scope, $timeout, NamespaceService){
 				}
 			}
 			$scope.namespaceList = r_namespaceList;
+			// load dataTable
+			$timeout(function() {
+				$('#namespaceTable').DataTable({
+			    	"paging": false,
+			        "ordering": false,
+			        "searching": true,
+			        "columnDefs": [
+						{"searchable": false, "targets": 0},
+						{"searchable": false, "targets": 3},
+						{"searchable": false, "targets": 4},
+						{"searchable": false, "targets": 5}
+					]
+		    	});
+			}, 1000);
 		});
-		// load dataTable
-		$timeout(function() {
-			$('#namespaceTable').DataTable({
-		    	"paging": false,
-		        "ordering": false,
-		        "searching": true,
-		        "columnDefs": [
-					{"searchable": false, "targets": 0},
-					{"searchable": false, "targets": 3},
-					{"searchable": false, "targets": 4},
-					{"searchable": false, "targets": 5}
-				]
-	    	});
-		}, 1000);
 	};
 	$scope.showMosaicList = function(index, $event, namespace, mosaicAmount){
 		//just skip the action when click from <a>
