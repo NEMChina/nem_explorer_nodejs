@@ -6,7 +6,8 @@ let SupernodePayoutAccountSchema = new mongoose.Schema({
 	recipient: {type: String, required: true},
 	amount: {type: Number, required: true},
 	fee: {type: Number, required: true},
-	timeStamp: {type: Number, required: true}
+	timeStamp: {type: Number, required: true},
+	supernodeName: {type: String}
 });
 
 //init SupernodePayout Schema

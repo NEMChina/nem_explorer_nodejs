@@ -18,6 +18,13 @@ function SupernodeController($scope, SupernodeService){
 				payout.amount = fmtXEM(payout.amount);
 				payout.fee = fmtXEM(payout.fee);
 				payout.timeStamp = fmtDate(payout.timeStamp);
+				if(payout.supernodeName){
+					payout.supernodeName = XBBCODE.process({
+						text: payout.supernodeName,
+						removeMisalignedTags: true,
+						addInLineBreaks: false
+					}).html;
+				}
 			}
 			$scope.payoutList = r_payoutList;
 		});

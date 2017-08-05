@@ -17,13 +17,32 @@ module.exports = {
 				res.json([]);
 				return
 			}
-			let SupernodePayout = mongoose.model('SupernodePayout');
-			SupernodePayout.find({round: round}).sort({timeStamp: 1}).exec((err, doc) => {
-				if(err){
+			// query supernode info ( name <-> address )
+			let Supernode = mongoose.model('Supernode');
+			Supernode.find({}, {name: 1, payoutAddress: 1}).exec((err, supernodes) => {
+				if(err || !supernodes){
 					res.json([]);
 					return;
 				}
-				res.json(doc);
+				let supernodeMap = new Map();
+				for(let i in supernodes){
+					if(!supernodes[i].name || !supernodes[i].payoutAddress){
+						continue;
+					}
+					supernodeMap.set(supernodes[i].payoutAddress, supernodes[i].name);
+				}
+				let SupernodePayout = mongoose.model('SupernodePayout');
+				SupernodePayout.find({round: round}).sort({timeStamp: 1}).exec((err, payouts) => {
+					if(err || !payouts){
+						res.json([]);
+						return;
+					}
+					for(let i in payouts){
+						if(supernodeMap.get(payouts[i].recipient))
+							payouts[i].supernodeName = supernodeMap.get(payouts[i].recipient);
+					}
+					res.json(payouts);
+				});
 			});
 		} catch (e) {
 			console.error(e);

@@ -132,13 +132,14 @@ let unconfirmedTransaction = () => {
 			UnconfirmedTransaction.find({otherHash: unconfirmed.otherHash.data}, (err, docs) => {
 				if(err || !docs)
 					return;
+				let cosignDate = unconfirmed.timeStamp;
 				for(let i in docs){
 					let item = docs[i];
 					let unconfirmed = jsonUtil.parse(item.detail);
 					if(!unconfirmed)
 						return;
 					unconfirmed.signed.push(signer);
-					unconfirmed.signedDate.push(unconfirmed.timeStamp);
+					unconfirmed.signedDate.push(cosignDate);
 					let newUnSigned = [];
 					for(let j in unconfirmed.unSigned)
 						if(unconfirmed.unSigned[j]!=signer)

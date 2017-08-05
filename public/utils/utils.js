@@ -146,11 +146,14 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 			for(let i in tx.signatures)
 				items.push({label: "	", content: tx.signatures[i].sender + " (" + fmtDate(tx.signatures[i].timeStamp) + ")"});
 			if(tx.otherTrans && tx.otherTrans.type==4097){
+				console.info(tx);
 				items.push({label: "", content: ""});
 				items.push({label: "Modifications", content: ""});
 				if(tx.otherTrans.minCosignatories && tx.otherTrans.minCosignatories.relativeChange){
 					let minSigned = tx.signatures.length+1;
 					let minSignedChange = minSigned + tx.otherTrans.minCosignatories.relativeChange;
+					if(minSignedChange==0)
+						minSignedChange += " (convert to be normal account from multisig account)";
 					items.push({label: "Min signatures", content: minSigned + " -> " + minSignedChange});
 				}
 				let modifications = tx.otherTrans.modifications;
@@ -321,8 +324,12 @@ function showUnconfirmedTransaction(tx, $scope) {
 			items.push({label: "", content: ""});
 			items.push({label: "Modifications", content: ""});
 			let modifications = tx.otherTrans.modifications;
-			if(tx.otherTrans.minCosignatories && tx.otherTrans.minCosignatories.relativeChange)
-				items.push({label: "Min signatures", content: tx.minSigned + " -> " + (tx.minSigned + tx.otherTrans.minCosignatories.relativeChange)});
+			if(tx.otherTrans.minCosignatories && tx.otherTrans.minCosignatories.relativeChange){
+				let minSignedChange = tx.minSigned + tx.otherTrans.minCosignatories.relativeChange;
+				if(minSignedChange==0)
+					minSignedChange += " (convert to be normal account from multisig account)";
+				items.push({label: "Min signatures", content: tx.minSigned + " -> " + minSignedChange});
+			}
 			for(let i in modifications){
 				let changeStatus = modifications[i].modificationType==2?"REMOVE":"ADD";
 				if(i==0)

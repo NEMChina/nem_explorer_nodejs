@@ -11,9 +11,9 @@
 				<th>#</th>
 				<th>Timestamp</th>
 				<th>Round</th>
+				<th>Supernode Name</th>
 				<th>Sender / Recipent</th>
 				<th>Amount</th>
-				<th>Fee</th>
 			</tr>
 		</thead>
 		<tbody class="well well-large">
@@ -21,9 +21,9 @@
 				<td ng-bind="$index+1"></td>
 				<td ng-bind="payout.timeStamp"></td>
 				<td ng-bind="payout.round"></td>
+				<td ng-bind-html="payout.supernodeName|to_trusted"></td>
 				<td ng-bind-html="payout.senderAndRecipient|to_trusted"></td>
 				<td ng-bind="payout.amount"></td>
-				<td ng-bind="payout.fee"></td>
 			</tr>
 		</tbody>
 	</table>

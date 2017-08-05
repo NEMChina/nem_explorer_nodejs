@@ -6,6 +6,7 @@ const config = {
 	wsPort: '7778',
 	wsPath: '/w/messages',
 	supernodeHost: 'https://supernodes.nem.io',
+	supernodeDataUrl: 'https://supernodes.nem.io/nodes',
 	supernodePayoutAccount: 'NCPAYOUTH2BGEGT3Q7K75PV27QKMVNN2IZRVZWMD',
 	apostilleAccount: 'NCZSJHLTIMESERVBVKOW6US64YDZG2PFGQCSV23J',
 	nisInitStartBlock: 0, //default 0

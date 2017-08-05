@@ -2,6 +2,7 @@ import https from 'https';
 import config from '../config/config';
 import schedule from 'node-schedule';
 import mongoose from 'mongoose';
+import jsonUtil from '../utils/jsonUtil';
 
 let scheduleFetchSupernode = () => {
 	fetchSupernode();
@@ -16,35 +17,35 @@ let scheduleFetchSupernode = () => {
  * fetch data from supernodes.nem.io
  */
 let fetchSupernode = () => {
-	httpsGet(config.supernodeHost, html => {
-		if(!html) 
+	httpsGet(config.supernodeDataUrl, data => {
+		if(!data) 
 			return;
-		html = html.replace(new RegExp(/(\r\n)/g),''); //clean the blank lines
-		html = html.replace(new RegExp(/(>(\s)+<)/g),'><'); //clean  the blank between '>' and '<'
-		let req = /<tr><td scope=\"row\"><a href=\"details\/(\d+)\" style=\"color:#337AB7\">(\d+)<\/a><\/td><td>(.{1,50})<\/td><td><a href=\"details\/(\d+)\" style=\"color:#DD4814\">(.{1,50})<\/a><\/td><td style=\"color:(green|red)\">(Active|Deactivated)<\/td><\/tr>/;
-		let match = html.match(req);
-		let Supernode = mongoose.model('Supernode');
-		if(!match || match.length!=8){
+		data = jsonUtil.parse(data);
+		if(!data || !data.nodes)
 			return;
+		let nowDate = format(new Date(), "yyyy-MM-dd hh:mm:ss");
+		let saveNodeArr = [];
+		let SupernodePayout = mongoose.model('SupernodePayout');
+		for(let i in data.nodes){
+			let node = data.nodes[i];
+			if(!node.id || !node.alias || !node.ip)
+				continue;
+			let saveNode = {};
+			saveNode.id = node.id;
+			saveNode.name = node.alias;
+			saveNode.host = node.ip;
+			saveNode.time = nowDate;
+			saveNode.payoutAddress = node.payoutAddress;
+			saveNodeArr.push(saveNode);
 		}
-		//remove all supernode data
-		Supernode.remove({}, (err, doc) => {
-			if(err)
-				console.error(err);
-			let nowDate = format(new Date(), "yyyy-MM-dd hh:mm:ss");
-			while(match && match.length==8) {
-				let id = match[1];
-				let host = match[3];
-				let name = match[5];
-				//save the new supernode data
-				new Supernode({id: id, host: host, name: name, time: nowDate}).save(err => {
-					if(err) 
-						console.error(err);
+		if(saveNodeArr.length>0){
+			let Supernode = mongoose.model('Supernode');
+			Supernode.remove({}, (err, doc) => {
+				Supernode.insertMany(saveNodeArr, err => {
+					if(err)  console.error(err);
 				});
-				html = html.replace(match[0], '');
-				match = html.match(req);
-			}
-		});
+			});
+		}
 	});
 }
 
