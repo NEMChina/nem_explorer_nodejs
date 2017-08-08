@@ -1,4 +1,4 @@
-let webapp = angular.module("webapp", ['ngRoute', 'ngAnimate']);
+let webapp = angular.module("webapp", ['ngRoute', 'ngAnimate', 'ngCookies']);
 
 //disable the cache
 webapp.config(["$httpProvider", function($httpProvider) {

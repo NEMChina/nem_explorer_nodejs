@@ -11,6 +11,11 @@ function SupernodeService($http){
 			$http.post("/supernode/payoutRoundlist").success(function(data){
 				callback(data);
 			});
+		},
+		supernodeList: function(callback) {
+			$http.post("/supernode/supernodeList").success(function(data){
+				callback(data);
+			});
 		}
 	}
 }

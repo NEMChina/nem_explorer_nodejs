@@ -19,17 +19,19 @@ module.exports = {
 			}
 			// query supernode info ( name <-> address )
 			let Supernode = mongoose.model('Supernode');
-			Supernode.find({}, {name: 1, payoutAddress: 1}).exec((err, supernodes) => {
+			Supernode.find({}, {id:1, name: 1, payoutAddress: 1}).exec((err, supernodes) => {
 				if(err || !supernodes){
 					res.json([]);
 					return;
 				}
-				let supernodeMap = new Map();
+				let supernodeNameMap = new Map();
+				let supernodeIDMap = new Map();
 				for(let i in supernodes){
-					if(!supernodes[i].name || !supernodes[i].payoutAddress){
+					if(!supernodes[i].id || !supernodes[i].name || !supernodes[i].payoutAddress){
 						continue;
 					}
-					supernodeMap.set(supernodes[i].payoutAddress, supernodes[i].name);
+					supernodeNameMap.set(supernodes[i].payoutAddress, supernodes[i].name);
+					supernodeIDMap.set(supernodes[i].payoutAddress, supernodes[i].id);
 				}
 				let SupernodePayout = mongoose.model('SupernodePayout');
 				SupernodePayout.find({round: round}).sort({timeStamp: 1}).exec((err, payouts) => {
@@ -37,11 +39,22 @@ module.exports = {
 						res.json([]);
 						return;
 					}
+					let r_payoutList = [];
 					for(let i in payouts){
-						if(supernodeMap.get(payouts[i].recipient))
-							payouts[i].supernodeName = supernodeMap.get(payouts[i].recipient);
+						let r_payout = {};
+						r_payout.round = payouts[i].round;
+						r_payout.sender = payouts[i].sender;
+						r_payout.recipient = payouts[i].recipient;
+						r_payout.amount = payouts[i].amount;
+						r_payout.fee = payouts[i].fee;
+						r_payout.timeStamp = payouts[i].timeStamp;
+						if(supernodeNameMap.get(payouts[i].recipient))
+							r_payout.supernodeName = supernodeNameMap.get(payouts[i].recipient);
+						if(supernodeIDMap.get(payouts[i].recipient))
+							r_payout.supernodeID = supernodeIDMap.get(payouts[i].recipient);
+						r_payoutList.push(r_payout);
 					}
-					res.json(payouts);
+					res.json(r_payoutList);
 				});
 			});
 		} catch (e) {
@@ -70,6 +83,35 @@ module.exports = {
 					r_payoutRoundList.push(r_payoutRound);
 				}
 				res.json(r_payoutRoundList);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * get supernodes list
+     */
+	supernodeList: (req, res, next) => {
+		try {
+			let Supernode = mongoose.model('Supernode');
+			Supernode.find({}).exec((err, docs) => {
+				if(err || !docs){
+					res.json([]);
+					return;
+				}
+				let r_supernodeList = [];
+				let r_supernode = null;
+				for(let i in docs){
+					if(!docs[i])
+						return;
+					r_supernode = {};
+					r_supernode.id = docs[i].id;
+					r_supernode.name = docs[i].name;
+					r_supernode.payoutAddress = docs[i].payoutAddress;
+					r_supernodeList.push(r_supernode);
+				}
+				res.json(r_supernodeList);
 			});
 		} catch (e) {
 			console.error(e);
