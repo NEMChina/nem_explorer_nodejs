@@ -16,6 +16,11 @@ function SupernodeService($http){
 			$http.post("/supernode/supernodeList").success(function(data){
 				callback(data);
 			});
+		},
+		payoutListLast10Rounds: function(callback) {
+			$http.post("/supernode/payoutListLast10Rounds").success(function(data){
+				callback(data);
+			});
 		}
 	}
 }

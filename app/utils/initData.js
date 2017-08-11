@@ -79,10 +79,9 @@ let loadNemesisBlock = () => {
 		if(!data) return log('<error>: get nothing from NemesisBlock');
 		let txes = data.transactions;
 		let saveTxArr = [];
-		let saveTx;
 		for(let i in txes){
 			let tx = txes[i];
-			saveTx = {};
+			let saveTx = {};
 			saveTx.hash = '#NemesisBlock#'+(i+1);
 			saveTx.height = 1;
 			saveTx.sender = tx.signer?address.publicKeyToAddress(tx.signer):'';
@@ -96,7 +95,6 @@ let loadNemesisBlock = () => {
 			saveTx.signature = tx.signature?tx.signature:'';
 			saveTx.type = tx.type?tx.type:0;
 			saveTxArr.push(saveTx);
-			
 			//update the account info which is in DB
 			let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
 			let recipient = tx.recipient;
@@ -133,10 +131,9 @@ let loadBlocks = (height, callback) => {
 			//update the account info which is in DB
 			if(block.signer)
 				updateAddress(address.publicKeyToAddress(block.signer), block.height);
-			let saveTx;
 			txes.forEach((itemTx, index) => {
 				let tx = itemTx.tx;
-				saveTx = {};
+				let saveTx = {};
 				saveTx.hash = itemTx.hash;
 				saveTx.height = block.height;
 				saveTx.sender = tx.signer?address.publicKeyToAddress(tx.signer):'';

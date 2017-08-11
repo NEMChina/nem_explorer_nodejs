@@ -205,7 +205,7 @@ let get = function(path, callback) {
     	});
   	});
   	request.on('error', function(e) { 
-	 	console.log("error: " + e.message);
+	 	console.log("error: " + path);
 	 	callback({});
 	});
 	// post the data
@@ -276,8 +276,8 @@ let post = function(path, reqData, callback) {
     		callback(result);
     	});
   	});
-  	request.on('error', function(e) { 
-	 	console.log("error: " + e.message);
+  	request.on('error', function(e) {
+	 	console.log("error: " + path);
 	 	callback({});
 	});
 	// post the data

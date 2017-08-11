@@ -1,4 +1,5 @@
 angular.module("webapp").controller("SupernodeController", ["$scope", "$timeout", "$cookieStore", "SupernodeService", SupernodeController]);
+angular.module("webapp").controller("SupernodeCustomController", ["$scope", "$timeout", "$cookieStore", "SupernodeService", SupernodeCustomController]);
 
 function SupernodeController($scope, $timeout, $cookieStore, SupernodeService){
 	$scope.changeSelectOption = function(){
@@ -28,30 +29,7 @@ function SupernodeController($scope, $timeout, $cookieStore, SupernodeService){
 			}
 			$scope.allPayoutList = r_payoutList;
 			$scope.payoutList = r_payoutList;
-			$scope.refreshPayoutListFromCookies();
 		});
-	}
-	$scope.refreshPayoutListFromCookies = function(refreshFlag){
-		// load selected supernodes from cookie
-    	let mySupernodes = $cookieStore.get('mySupernodes');
-    	console.info(mySupernodes);
-    	if(!mySupernodes)
-    		return;
-    	let payoutList_new = [];
-    	mySupernodes = "," + mySupernodes + ",";
-    	for(let i in $scope.allPayoutList){
-    		let payout = $scope.allPayoutList[i];
-    		if(mySupernodes.indexOf(","+payout.supernodeID+",")!=-1){
-    			payoutList_new.push(payout);
-    		}
-    	}
-    	$scope.payoutList = payoutList_new;
-    	if(refreshFlag)
-    		$scope.$apply();
-	};
-	$scope.cleanMySupernodes = function(){
-		// $scope.selectedSupernodeNamesText = "";
-		// console.info($scope.datatable.rows().length);
 	};
 	SupernodeService.payoutRoundList(function(r_payoutRoundList){
 		if(!r_payoutRoundList)
@@ -60,19 +38,93 @@ function SupernodeController($scope, $timeout, $cookieStore, SupernodeService){
 		$scope.select = $scope.selectOptions[0];
 		$scope.changeSelectOption();
 	});
+}
+
+function SupernodeCustomController($scope, $timeout, $cookieStore, SupernodeService){
+	$scope.tableList = [];
+	$scope.payoutMap = new Map();
+	$scope.roundSet = new Set();
+	$scope.supernodeMap = new Map();
+	$scope.selectedSupernodeNames = [];
+	$scope.selectedSupernodeNamesText = "";
+	$scope.showWarningFlag = false;
+
+	// $cookieStore.remove("mySupernodes");
+
 	SupernodeService.supernodeList(function(data){
 		if(!data || data.length==0){
 			$scope.items = [{label: "Supernodes data Not Found", content: ""}];
 			return;
 		}
 		$scope.supernodeList = data;
-		$scope.selectedSupernodeNames = [];
-		$scope.selectedSupernodeNamesText = "";
-
-		// test (clear cookies) 
-		// $cookieStore.remove('mySupernodes');
-
+		for(let i in data){
+			$scope.supernodeMap.set(""+data[i].id, data[i].name);
+		}
+		SupernodeService.payoutListLast10Rounds(function(r_payoutList){
+			if(!r_payoutList)
+				return;
+			// load pay out data list
+			for(let i in r_payoutList) {
+				let payout = r_payoutList[i];
+				if(payout.round && !$scope.roundSet.has(payout.round))
+					$scope.roundSet.add(payout.round);
+				payout.recipient = "<a href='#s_account?account="+payout.recipient+"' target='_blank'>"+payout.recipient+"</a>";
+				payout.amount = fmtXEM(payout.amount);
+				payout.fee = fmtXEM(payout.fee);
+				payout.timeStamp = fmtDate(payout.timeStamp);
+				if(payout.supernodeName){
+					payout.supernodeName = XBBCODE.process({
+						text: payout.supernodeName,
+						removeMisalignedTags: true,
+						addInLineBreaks: false
+					}).html;
+				}
+				$scope.payoutMap.set(payout.round+"_"+payout.supernodeID, payout);
+			}
+			$scope.loadPayoutList();
+		});
 	});
+	$scope.loadPayoutList = function(refreshFlag){
+		// clean table list
+		$scope.tableList = [];
+		// load my supernodes from cookies
+		let mySupernodes = $cookieStore.get("mySupernodes")?$cookieStore.get("mySupernodes"):"";
+		let mySupernodesArr = mySupernodes.split(",");
+		if(mySupernodesArr.length==1 && mySupernodesArr[0]==""){
+			$scope.showWarningFlag = true;
+		} else {
+			$scope.roundSet.forEach(function(round){
+				let table = {};
+				let payoutList = [];
+				let realPayoutCount = 0;
+				for(let i in mySupernodesArr){
+					if(!$scope.supernodeMap.get(mySupernodesArr[i]))
+						continue;
+					let index = round + "_" + mySupernodesArr[i];
+					let payout = $scope.payoutMap.get(index);
+					let failFlag = "x";
+					if(!payout){
+						payout = {};
+						payout.recipient = failFlag;
+						payout.amount = failFlag;
+						payout.fee = failFlag;
+						payout.recipient = failFlag;
+						payout.timeStamp = failFlag;
+						payout.supernodeName = $scope.supernodeMap.get(mySupernodesArr[i]);
+					} else {
+						realPayoutCount++;
+					}
+					payoutList.push(payout);
+				}
+				table.round = (round-3) + "-" + round + " (" + realPayoutCount + "/" + payoutList.length + ")";
+				table.payoutList = payoutList;
+				$scope.tableList.push(table);
+			});
+			$scope.showWarningFlag = false;
+		}
+		if(refreshFlag)
+			$scope.$apply();
+	}
 	$scope.showManageMySupernodes = function(){
 		$("#manageMySupernodes").modal("show");
 		if(!$scope.initTableFlag){
@@ -154,8 +206,9 @@ function SupernodeController($scope, $timeout, $cookieStore, SupernodeService){
 			mySupernodes = item.id;
 		else
 			mySupernodes += "," + item.id;
+		mySupernodes = sortMySupernodes(mySupernodes);
 		$cookieStore.put("mySupernodes", mySupernodes, {"expires": expireDate.toUTCString()});
-		$scope.refreshPayoutListFromCookies(true);
+		$scope.loadPayoutList(true);
 	};
 	$scope.removeMySupernodesCookies = function(item){
 		let mySupernodes = $cookieStore.get("mySupernodes");
@@ -171,7 +224,26 @@ function SupernodeController($scope, $timeout, $cookieStore, SupernodeService){
 		}
 		if(mySupernodes.length>0)
 			mySupernodes = mySupernodes.substring(0, mySupernodes.length-1);
+		mySupernodes = sortMySupernodes(mySupernodes);
 		$cookieStore.put("mySupernodes", mySupernodes, {"expires": expireDate.toUTCString()});
-		$scope.refreshPayoutListFromCookies(true);
+		$scope.loadPayoutList(true);
 	};
+}
+
+function sortMySupernodes(mySupernodes){
+	if(!mySupernodes)
+		return;
+	mySupernodes = "" + mySupernodes;
+	let mySupernodesArr = mySupernodes.split(",");
+	mySupernodesArr.sort(sortNumber);
+	let r_mySupernodes = "";
+	for(let i in mySupernodesArr)
+		r_mySupernodes += mySupernodesArr[i] + ",";
+	if(r_mySupernodes!="")
+		r_mySupernodes = r_mySupernodes.substring(0, r_mySupernodes.length-1);
+	return r_mySupernodes;
+};
+
+function sortNumber(a, b) {
+	return a - b;
 }

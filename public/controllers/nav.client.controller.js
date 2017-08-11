@@ -21,9 +21,10 @@ function NavController($scope, $location, $rootScope){
 		$rootScope.navClass31 = path == "/accountlist" ? "active" : "";
 		$rootScope.navClass32 = path == "/harvesterlist" ? "active" : "";
 		$rootScope.navClass33 = path == "/harvestingCalculator" ? "active" : "";
-		$rootScope.navClass4 = (path == "/nodelist" || path == "/supernodepayout") ? "active" : "";
+		$rootScope.navClass4 = (path == "/nodelist" || path == "/supernodepayout" || path == "/supernodepayout_custom") ? "active" : "";
 		$rootScope.navClass41 = path == "/nodelist" ? "active" : "";
 		$rootScope.navClass42 = path == "/supernodepayout" ? "active" : "";
+		$rootScope.navClass43 = path == "/supernodepayout_custom" ? "active" : "";
 		$rootScope.navClass5 = path == "/namespacelist" ? "active" : "";
 	});
 
