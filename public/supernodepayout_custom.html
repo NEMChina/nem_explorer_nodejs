@@ -1,5 +1,6 @@
 <div id="content" class="container" style="padding-bottom:70px;">
-	<div class="pull-left">
+	<div ng-class="{hide:showLoadingFlag==false}">Loading...</div>
+	<div class="pull-left" ng-class="{hide:showButtonFlag==false}">
 		<button type="button" class="btn btn-info" ng-click="showManageMySupernodes()">Manage my supernodes</button>
 	</div>
 	<div class="clearfix"></div>

@@ -1,7 +1,7 @@
-angular.module("webapp").controller("SupernodeController", ["$scope", "$timeout", "$cookieStore", "SupernodeService", SupernodeController]);
-angular.module("webapp").controller("SupernodeCustomController", ["$scope", "$timeout", "$cookieStore", "SupernodeService", SupernodeCustomController]);
+angular.module("webapp").controller("SupernodeController", ["$scope", "SupernodeService", SupernodeController]);
+angular.module("webapp").controller("SupernodeCustomController", ["$scope", "$timeout", "$cookies", "SupernodeService", SupernodeCustomController]);
 
-function SupernodeController($scope, $timeout, $cookieStore, SupernodeService){
+function SupernodeController($scope, SupernodeService){
 	$scope.changeSelectOption = function(){
 		if(!$scope.select.value)
 			return;
@@ -40,17 +40,16 @@ function SupernodeController($scope, $timeout, $cookieStore, SupernodeService){
 	});
 }
 
-function SupernodeCustomController($scope, $timeout, $cookieStore, SupernodeService){
+function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService){
 	$scope.tableList = [];
 	$scope.payoutMap = new Map();
 	$scope.roundSet = new Set();
 	$scope.supernodeMap = new Map();
 	$scope.selectedSupernodeNames = [];
 	$scope.selectedSupernodeNamesText = "";
+	$scope.showLoadingFlag = true;
+	$scope.showButtonFlag = false;
 	$scope.showWarningFlag = false;
-
-	// $cookieStore.remove("mySupernodes");
-
 	SupernodeService.supernodeList(function(data){
 		if(!data || data.length==0){
 			$scope.items = [{label: "Supernodes data Not Found", content: ""}];
@@ -81,6 +80,8 @@ function SupernodeCustomController($scope, $timeout, $cookieStore, SupernodeServ
 				}
 				$scope.payoutMap.set(payout.round+"_"+payout.supernodeID, payout);
 			}
+			$scope.showLoadingFlag = false;
+			$scope.showButtonFlag = true;
 			$scope.loadPayoutList();
 		});
 	});
@@ -88,7 +89,8 @@ function SupernodeCustomController($scope, $timeout, $cookieStore, SupernodeServ
 		// clean table list
 		$scope.tableList = [];
 		// load my supernodes from cookies
-		let mySupernodes = $cookieStore.get("mySupernodes")?$cookieStore.get("mySupernodes"):"";
+		let mySupernodes = $cookies.get("mySupernodes")?$cookies.get("mySupernodes"):"";
+		mySupernodes = validateNumberCookies(mySupernodes, $scope.supernodeMap);
 		let mySupernodesArr = mySupernodes.split(",");
 		if(mySupernodesArr.length==1 && mySupernodesArr[0]==""){
 			$scope.showWarningFlag = true;
@@ -139,7 +141,7 @@ function SupernodeCustomController($scope, $timeout, $cookieStore, SupernodeServ
 				]
 	    	});
 	    	// load selected supernodes from cookie
-	    	let mySupernodes = $cookieStore.get('mySupernodes');
+	    	let mySupernodes = validateNumberCookies($cookies.get('mySupernodes'));
 	    	if(mySupernodes){
 	    		mySupernodes = "," + mySupernodes + ",";
 	    		for(let i in $scope.supernodeList){
@@ -199,21 +201,21 @@ function SupernodeCustomController($scope, $timeout, $cookieStore, SupernodeServ
 			$scope.$apply();
 	};
 	$scope.addMySupernodesCookies = function(item){
-		let mySupernodes = $cookieStore.get("mySupernodes");
+		let mySupernodes = validateNumberCookies($cookies.get("mySupernodes"));
 		let expireDate = new Date();
-		expireDate.setDate(expireDate.getDate() + 365);
+		expireDate.setFullYear(expireDate.getFullYear() + 1);
 		if(!mySupernodes)
 			mySupernodes = item.id;
 		else
 			mySupernodes += "," + item.id;
 		mySupernodes = sortMySupernodes(mySupernodes);
-		$cookieStore.put("mySupernodes", mySupernodes, {"expires": expireDate.toUTCString()});
+		$cookies.put("mySupernodes", mySupernodes, {expires: expireDate});
 		$scope.loadPayoutList(true);
 	};
 	$scope.removeMySupernodesCookies = function(item){
-		let mySupernodes = $cookieStore.get("mySupernodes");
+		let mySupernodes = validateNumberCookies($cookies.get("mySupernodes"));
 		let expireDate = new Date();
-		expireDate.setDate(expireDate.getDate() + 365);
+		expireDate.setFullYear(expireDate.getFullYear() + 1);
 		if(!mySupernodes)
 			return;
 		let mySupernodesArr = mySupernodes.split(",");
@@ -225,7 +227,7 @@ function SupernodeCustomController($scope, $timeout, $cookieStore, SupernodeServ
 		if(mySupernodes.length>0)
 			mySupernodes = mySupernodes.substring(0, mySupernodes.length-1);
 		mySupernodes = sortMySupernodes(mySupernodes);
-		$cookieStore.put("mySupernodes", mySupernodes, {"expires": expireDate.toUTCString()});
+		$cookies.put("mySupernodes", mySupernodes, {expires: expireDate});
 		$scope.loadPayoutList(true);
 	};
 }
@@ -242,7 +244,25 @@ function sortMySupernodes(mySupernodes){
 	if(r_mySupernodes!="")
 		r_mySupernodes = r_mySupernodes.substring(0, r_mySupernodes.length-1);
 	return r_mySupernodes;
-};
+}
+
+function validateNumberCookies(value, supernodesMap){
+	if(!value){
+		return "";
+	}
+	let arr = value.split(",");
+	let r_value = "";
+	for(let i in arr){
+		if(isNaN(Number(arr[i])))
+			continue;
+		if(supernodesMap && !supernodesMap.get(""+arr[i]))
+			continue;
+		r_value += arr[i] + ",";
+	}
+	if(r_value.length>0)
+		r_value = r_value.substring(0, r_value.length-1);
+	return r_value;
+}
 
 function sortNumber(a, b) {
 	return a - b;

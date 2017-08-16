@@ -1,5 +1,3 @@
-### Note: current version is 1.3.5, please reload the db again (delete db and initialize again) due to some new features if you're going to update the explorer. 
-
 ## NEM Blockchain Explorer (Node.js) ##
 
 The project is a blockchian explorer project which is built on NEM (https://www.nem.io). 
