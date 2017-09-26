@@ -1,20 +1,16 @@
 <div id="content" class="container" style="padding-bottom:70px;">
-	<div>
-		<span class="pull-right">Note that this page will be automatic updated <img src="views/images/connect.gif" /></span>
-		<span class="clearfix"/>
-	</div>
 	<table class="table table-striped table-hover">
 		<thead>
 			<tr>
-				<th>Timestamp / Deadline</th>
 				<th>Sender / Recipient</th>
+				<th>Timestamp / Deadline</th>
 				<th>Type</th>
-				<th>Amount</th>
-				<th>Fee</th>
+				<th>Amount / Fee</th>
+				<th>Age</th>
 			</tr>
 		</thead>
 		<tbody class="well well-large">
-			<tr ng-repeat="tx in txList" style="cursor:pointer;" ng-click="showUnconfirmedTx($index, $event)">
+			<tr ng-repeat="tx in txList" style="cursor:pointer;" ng-click="showUnconfirmedTx($index, $event)" ng-class="{success:selectedTXSign && selectedTXSign==tx.signature, fadeIn:fadeFlag}">
 				<td>
 					<span ng-bind="tx.timeStamp"></span>&nbsp;<br/>
 					<span ng-bind="tx.deadline"></span>
@@ -24,8 +20,11 @@
 					<a href="#s_account?account={{tx.recipient}}" target="_blank"><span class="noDetail" ng-bind="tx.recipient"></span></a>&nbsp;
 				</td>
 				<td ng-bind="tx.typeName"></td>
-				<td ng-bind="tx.amount"></td>
-				<td ng-bind="tx.fee"></td>
+				<td>
+					<span ng-bind="tx.amount"></span> / 
+					<span ng-bind="tx.fee"></span>
+				</td>
+				<td ng-bind="tx.age"></td>
 			</tr>
 		</tbody>
 	</table>

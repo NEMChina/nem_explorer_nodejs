@@ -7,7 +7,7 @@ import supernodeSchedule from '../schedule/supernodeSchedule';
 import nodeScheduleSchedule from '../schedule/nodeSchedule';
 import coinmarketcapSchedule from '../schedule/coinmarketcapSchedule';
 import mosaicSchedule from '../schedule/mosaicSchedule';
-import wsForClient from '../websocket/wsForClient';
+import clientWS from '../websocket/clientWS';
 
 module.exports = () => {
 	console.log('init express...');
@@ -61,7 +61,9 @@ module.exports = () => {
 	mosaicSchedule.scheduleCheckMosaic();
 
 	// websocket
-	wsForClient.initUnconfirmedTransactionWS(server);
+	clientWS.initUnconfirmedTransactionWS(server);
+	clientWS.initTransactionWS(server);
+	clientWS.initBlockWS(server);
 	
 	server.listen(config.port, function(){
 		console.log('app started, listening on port:', config.port);

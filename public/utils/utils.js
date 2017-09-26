@@ -5,7 +5,10 @@ function fmtDate(input) {
 }
 
 function fmtXEM(input) {
-	return fmtSplit(input/1000000);
+	if(isNaN(input))
+		return 0;
+	else
+		return fmtSplit(input/1000000);
 }
 
 function fmtPOI(input) {
@@ -34,6 +37,23 @@ function fmtSplit(input) {
 		}
 	}
 	return result + decimal;
+}
+
+function compareTime(nowTime, time) {
+	let second = Math.floor((nowTime - NEM_EPOCH - time*1000)/1000);
+	if(second<60)
+		return second + " s";
+	let minute = Math.floor(second / 60);
+	second = second % 60;
+	if(minute<60)
+		return minute + "m, " + second + "s";
+	let hour = Math.floor(minute / 60);
+	minute = minute % 60;
+	if(hour<24)
+		return hour + "h, " + minute + "m, " + second + "s";
+	let day = Math.floor(hour / 24);
+	hour = hour % 24;
+	return day + "d, " + hour + "h, " + minute + "m, " + second + "s";
 }
 
 //date format

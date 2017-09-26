@@ -1,32 +1,67 @@
-angular.module("webapp").controller("BlockController", ["$scope", "$timeout", "BlockService", "TXService", BlockController]);
+angular.module("webapp").controller("BlockController", ["$scope", "$timeout", "$interval", "BlockService", "TXService", BlockController]);
 angular.module("webapp").controller("SearchBlockController", ["$scope", "$location", "BlockService", "TXService", SearchBlockController]);
 
-function BlockController($scope, $timeout, BlockService, TXService){
+function BlockController($scope, $timeout, $interval, BlockService, TXService){
 	$scope.page = 1;
 	$scope.blockList = [];
+	$scope.fadeFlag = false;
 	$scope.loadBlockList = function(){
 		BlockService.blockList({"page": $scope.page}, function(r_blockList){
 			$scope.blockList = r_blockList;
 			for(let index in r_blockList){
 				let block = $scope.blockList[index];
+				block.time = block.timeStamp;
 				block.timeStamp = fmtDate(block.timeStamp);
 				block.txFee = fmtXEM(block.txFee);
 			}
+			$scope.updateAge();
+			$timeout(function(){
+				$scope.fadeFlag = true;
+			});	
 		});
+	};
+	$scope.addBlock = function(){
+		BlockService.blockList({"page": $scope.page}, function(r_blockList){
+			if(!r_blockList || r_blockList.length==0)
+				return;
+			let block = r_blockList[0];
+			block.time = block.timeStamp;
+			block.timeStamp = fmtDate(block.timeStamp);
+			block.txFee = fmtXEM(block.txFee);
+			$scope.blockList.splice(9, 1);
+			$scope.blockList.unshift(block);
+			$scope.updateAge();
+		});
+	};
+	// block age
+	$interval(function() {
+		$scope.updateAge();
+	}, 1000);
+	$scope.updateAge = function(){
+		let nowTime = new Date().getTime();
+		for(let index in $scope.blockList){
+			let block = $scope.blockList[index];
+			if(!block)
+				continue;
+			block.age = compareTime(nowTime, block.time);
+		}
 	};
 	$scope.nextPage = function(){
 		$scope.page++;
+		$scope.fadeFlag = false;
 		$scope.loadBlockList();
 	};
 	$scope.previousPage = function(){
 		if($scope.page>1){
 			$scope.page--;
+			$scope.fadeFlag = false;
 			$scope.loadBlockList();
 		}
 	};
 	$scope.showBlockTxesFlag = false;
 	$scope.showBlockTxes = function(txes, index, $event){
 		$scope.currentBlock = $scope.blockList[index];
+		$scope.selectedBlockHeight = $scope.currentBlock.height;
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
@@ -63,6 +98,7 @@ function BlockController($scope, $timeout, BlockService, TXService){
 	}
 	//load transaction detail
 	$scope.showTx = function(height, hash, $event){
+		$scope.selectedTXHash = hash;
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
@@ -71,6 +107,16 @@ function BlockController($scope, $timeout, BlockService, TXService){
 		return showTransaction(height, hash, $scope, TXService);
 	}
 	$scope.loadBlockList();
+	// websocket - new block
+	let sock = new SockJS('/ws/block');
+	sock.onmessage = function(e) {
+		if(!e || !e.data)
+			return;
+		let block = JSON.parse(e.data);
+		if(!block.height)
+			return;
+		$scope.addBlock();
+    };
 }
 
 function SearchBlockController($scope, $location, BlockService, TXService){

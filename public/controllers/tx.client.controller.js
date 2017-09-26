@@ -1,8 +1,8 @@
-angular.module("webapp").controller("TXController", ["$scope", "$location", "TXService", TXController]);
+angular.module("webapp").controller("TXController", ["$scope", "$timeout", "$interval", "$location", "TXService", TXController]);
 angular.module("webapp").controller("SearchTXController", ["$scope", "$location", "TXService", SearchTXController]);
-angular.module("webapp").controller("UnconfirmedTXController", ["$scope", "$location", "TXService", UnconfirmedTXController]);
+angular.module("webapp").controller("UnconfirmedTXController", ["$scope", "$timeout", "$interval", "$location", "TXService", UnconfirmedTXController]);
 
-function TXController($scope, $location, TXService){
+function TXController($scope, $timeout, $interval, $location, TXService){
 	let type = "";
 	let absUrl = $location.absUrl();
 	let reg = /type=([a-z]+)/;
@@ -10,49 +10,70 @@ function TXController($scope, $location, TXService){
 		type = absUrl.match(reg)[1];
 	}
 	$scope.page = 1;
+	$scope.txList = [];
+	$scope.txHashes = ",";
+	$scope.fadeFlag = false;
 	$scope.loadTXList = function(){
 		TXService.txList({"page": $scope.page, "type": type}, function(r_txList){
+			$scope.txHashes = ",";
 			$scope.txList = r_txList;
 			for(let i in $scope.txList){
-				let tx = $scope.txList[i];
-				tx.timeStamp = fmtDate(tx.timeStamp);
-				tx.amount = fmtXEM(tx.amount);
-				tx.fee = fmtXEM(tx.fee);
-				tx.typeName = "";
-				if(tx.type==257)
-					tx.typeName += "transfer | ";
-				if(tx.type==2049)
-					tx.typeName += "importance | ";
-				if(tx.type==4097)
-					tx.typeName += "aggregate | ";
-				if(tx.type==4100){
-					tx.typeName += "multisig | ";
-					if(tx.aggregateFlag==1)
-						tx.typeName += "aggregate | ";
-				}
-				if(tx.type==8193)
-					tx.typeName += "namespace | ";
-				if(tx.type==16385 || tx.type==16386 || tx.mosaicTransferFlag==1)
-					tx.typeName += "mosaic | ";
-				if(tx.apostilleFlag==1)
-					tx.typeName += "apostille | ";
-				if(tx.typeName!="" && tx.typeName.length>=2)
-					tx.typeName = tx.typeName.substring(0, tx.typeName.length-3);
+				$scope.txHashes += $scope.txList[i].hash + ",";
+				$scope.txList[i] = $scope.handleTX($scope.txList[i]);
 			}
+			$scope.updateAge();
+			$timeout(function(){
+				$scope.fadeFlag = true;
+			});	
 		});
 	}
+	$scope.addTX = function(){
+		TXService.txList({"page": $scope.page, "type": type}, function(r_txList){
+			for(let i=r_txList.length-1;i>=0;i--){
+				let tx = r_txList[i];
+				let searchHash = ","+tx.hash+",";
+				if($scope.txHashes.indexOf(searchHash)!=-1)
+					continue;
+				tx = $scope.handleTX(r_txList[i]);
+				let removeTX = $scope.txList[9];
+				let removeHash = "," + removeTX.hash + ",";
+				let addHash = "," + tx.hash + ",";
+				$scope.txHashes = $scope.txHashes.replace(removeHash, addHash);
+				$scope.txList.splice(9, 1);
+				$scope.txList.unshift(tx);
+			}
+			$scope.updateAge();
+			$timeout(function(){
+				$scope.fadeFlag = true;
+			});	
+		});
+	}
+	// tx age
+	$interval(function() {
+		$scope.updateAge();
+	}, 1000);
+	$scope.updateAge = function(){
+		let nowTime = new Date().getTime();
+		for(let index in $scope.txList){
+			let tx = $scope.txList[index];
+			tx.age = compareTime(nowTime, tx.time);
+		}
+	};
 	$scope.nextPage = function(){
 		$scope.page++;
+		$scope.fadeFlag = false;
 		$scope.loadTXList();
 	};
 	$scope.previousPage = function(){
 		if($scope.page>1){
 			$scope.page--;
+			$scope.fadeFlag = false;
 			$scope.loadTXList();
 		}
 	};
 	//load transaction detail
 	$scope.showTx = function(index, $event){;
+		$scope.selectedTXHash = $scope.txList[index].hash;
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
@@ -63,6 +84,42 @@ function TXController($scope, $location, TXService){
 		return showTransaction(height, hash, $scope, TXService);
 	};
 	$scope.loadTXList();
+	// websocket - new block
+	let sock = new SockJS('/ws/transaction');
+	sock.onmessage = function(e) {
+		if(!e || !e.data)
+			return;
+		$scope.addTX();
+    };
+    $scope.handleTX = function(tx) {
+		if(!tx)
+			return;
+		tx.time = tx.timeStamp;
+		tx.timeStamp = fmtDate(tx.timeStamp);
+		tx.amount = fmtXEM(tx.amount);
+		tx.fee = fmtXEM(tx.fee);
+		tx.typeName = "";
+		if(tx.type==257)
+			tx.typeName += "transfer | ";
+		if(tx.type==2049)
+			tx.typeName += "importance | ";
+		if(tx.type==4097)
+			tx.typeName += "aggregate | ";
+		if(tx.type==4100){
+			tx.typeName += "multisig | ";
+			if(tx.aggregateFlag==1)
+				tx.typeName += "aggregate | ";
+		}
+		if(tx.type==8193)
+			tx.typeName += "namespace | ";
+		if(tx.type==16385 || tx.type==16386 || tx.mosaicTransferFlag==1)
+			tx.typeName += "mosaic | ";
+		if(tx.apostilleFlag==1)
+			tx.typeName += "apostille | ";
+		if(tx.typeName!="" && tx.typeName.length>=2)
+			tx.typeName = tx.typeName.substring(0, tx.typeName.length-3);
+		return tx;
+	};
 }
 
 function SearchTXController($scope, $location, TXService){
@@ -77,17 +134,34 @@ function SearchTXController($scope, $location, TXService){
 	}
 }
 
-function UnconfirmedTXController($scope, $location, TXService){
+function UnconfirmedTXController($scope, $timeout, $interval, $location, TXService){
+	$scope.fadeFlag = false;
 	$scope.loadUnconfirmedTXList = function(){
 		TXService.unconfirmedTXList(function(r_txList){
 			$scope.txList = r_txList;
 			$scope.checkShowNoUnconfirmed();
 			for(let i in $scope.txList)
 				$scope.txList[i] = $scope.handleTX($scope.txList[i]);
+			$scope.updateAge();
+			$timeout(function(){
+				$scope.fadeFlag = true;
+			});
 		});
 	}
+	// tx age
+	$interval(function() {
+		$scope.updateAge();
+	}, 1000);
+	$scope.updateAge = function(){
+		let nowTime = new Date().getTime();
+		for(let index in $scope.txList){
+			let tx = $scope.txList[index];
+			tx.age = compareTime(nowTime, tx.time);
+		}
+	};
 	//load unconfirmed transaction detail
 	$scope.showUnconfirmedTx = function(index, $event){
+		$scope.selectedTXSign = $scope.txList[index].signature;
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
@@ -152,6 +226,7 @@ function UnconfirmedTXController($scope, $location, TXService){
     $scope.handleTX = function(tx) {
 		if(!tx)
 			return;
+		tx.time = tx.timeStamp;
 		tx.timeStamp = fmtDate(tx.timeStamp);
 		tx.deadline = fmtDate(tx.deadline);
 		tx.amount = isNaN(tx.amount)?0:fmtXEM(tx.amount);

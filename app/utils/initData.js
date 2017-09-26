@@ -5,7 +5,8 @@ import schedule from 'node-schedule';
 import config from '../config/config';
 import messageUtil from './message';
 import timeUtil from './timeUtil';
-import wsForServer from '../websocket/wsForServer';
+import transactionWS from '../websocket/transactionWS';
+import blockWS from '../websocket/blockWS';
 
 let lastLoadedHeight = 0;
 let foundAddressSet = new Set();
@@ -58,11 +59,12 @@ let init = (server) => {
 						});
 					});
 					// websocket update transactions
-					wsForServer.transaction((height, callback)=>{
+					transactionWS.transaction((height, callback)=>{
 						loadBlocks(height, callback);
 					});
-					wsForServer.unconfirmedTransaction();
-					wsForServer.cleanHistoryUnconfirmedWhenInit();
+					transactionWS.unconfirmedTransaction();
+					transactionWS.cleanHistoryUnconfirmedWhenInit();
+					blockWS.block();
 				});
 			});
 		});

@@ -3,7 +3,7 @@ import channels from './channels';
 import SockJSClient from 'sockjs-client';
 import Stomp from 'stompjs';
 import nis from '../utils/nisRequest';
-import wsForClient from './wsForClient';
+import clientWS from './clientWS';
 import timeUtil from '../utils/timeUtil';
 import mongoose from 'mongoose';
 import address from '../utils/address';
@@ -35,29 +35,33 @@ let transaction = (callback) => {
 		if(!block || !block.height || !block.signature)
 			return;
 		// save new transaction into DB
-		callback(block.height-1, data => {});
-		// remove unconfirmed transaction from DB
-		let params = JSON.stringify({"height": block.height});
-		nis.blockAtPublic(params, data => {
-			if(!data || !data.transactions)
-				return;
-			let transactions = data.transactions;
-			let UnconfirmedTransaction = mongoose.model('UnconfirmedTransaction');
-			for(let i in transactions){
-				if(transactions[i].signature) {
-					UnconfirmedTransaction.remove({signature: transactions[i].signature}, (err, doc) => {
-						if(err || !doc)
-							return;
-						doc = jsonUtil.parse(doc);
-						if(!doc.n || doc.n==0)
-							return;
-						// emit to client
-						emit("remove", {signature: transactions[i].signature});
-					});
+		callback(block.height-1, data => {
+			// remove unconfirmed transaction from DB
+			let params = JSON.stringify({"height": block.height});
+			nis.blockAtPublic(params, data => {
+				if(!data || !data.transactions)
+					return;
+				let transactions = data.transactions;
+				let UnconfirmedTransaction = mongoose.model('UnconfirmedTransaction');
+				for(let i in transactions){
+					if(transactions[i].signature) {
+						UnconfirmedTransaction.remove({signature: transactions[i].signature}, (err, doc) => {
+							if(err || !doc)
+								return;
+							doc = jsonUtil.parse(doc);
+							if(!doc.n || doc.n==0)
+								return;
+							// emit to client
+							emit("remove", {signature: transactions[i].signature});
+						});
+					}
 				}
-			}
+				// emit to client
+				if(transactions.length>0)
+					clientWS.emitTransaction(1);
+			});
+			removeExpiredUnconfirmedTransactionFromDB();
 		});
-		removeExpiredUnconfirmedTransactionFromDB();
 	});
 };
 
@@ -237,7 +241,7 @@ let emit = (action, item) => {
 	o.action = action;
 	if(item)
 		o.content = item;
-	wsForClient.emitUnconfirmedTransaction(o);
+	clientWS.emitUnconfirmedTransaction(o);
 }; 
 
 module.exports = {

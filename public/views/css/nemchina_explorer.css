@@ -27,3 +27,25 @@
 	padding-top: 10px;
 	padding-bottom: 10px;
 }
+.trSelected{
+    background-color: #b2dba1;
+}
+.fadeIn{
+
+}
+.fadeIn.ng-enter{
+	transition: 3s linear all;
+	-webkit-transition: 3s linear all;
+	opacity: 0;
+}
+.fadeIn.ng-enter.ng-enter-active {
+	opacity: 1;
+}
+.breadcrumb{
+	margin-top: -10px;
+	margin-bottom: 6px;
+}
+.breadcrumb > li + li:before {
+    content: "/ ";
+    padding: 0 5px;
+}
