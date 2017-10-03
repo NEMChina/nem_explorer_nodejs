@@ -7,7 +7,7 @@ function NavController($scope, $location, $rootScope){
 		let absUrl = $location.absUrl();
 		$rootScope.navClass1 = (path == "/blocklist" || path == "/s_block" || path == "/" || path == "") ? "active" : "";
 		$rootScope.navClass11 = (path == "/blocklist" || path == "/" || path == "") ? "active" : "";
-		$rootScope.navClass2 = (path == "/txlist" || path == "/s_tx") ? "active" : "";
+		$rootScope.navClass2 = (path == "/txlist" || path == "/s_tx" || path == "/unconfirmedtxlist") ? "active" : "";
 		$rootScope.navClass21 = path == "/txlist" ? "active" : "";
 		$rootScope.navClass22 = path == "/unconfirmedtxlist" ? "active" : "";
 		$rootScope.navClass23 = absUrl.indexOf("transfer") != -1 ? "active" : "";
@@ -25,7 +25,9 @@ function NavController($scope, $location, $rootScope){
 		$rootScope.navClass41 = path == "/nodelist" ? "active" : "";
 		$rootScope.navClass42 = path == "/supernodepayout" ? "active" : "";
 		$rootScope.navClass43 = path == "/supernodepayout_custom" ? "active" : "";
-		$rootScope.navClass5 = path == "/namespacelist" ? "active" : "";
+		$rootScope.navClass5 = (path == "/polllist" || path == "/namespacelist") ? "active" : "";
+		$rootScope.navClass51 = path == "/polllist" ? "active" : "";
+		$rootScope.navClass52 = path == "/namespacelist" ? "active" : "";
 	});
 
 	$scope.go = function(module) {

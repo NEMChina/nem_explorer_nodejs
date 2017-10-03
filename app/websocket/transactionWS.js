@@ -8,6 +8,7 @@ import timeUtil from '../utils/timeUtil';
 import mongoose from 'mongoose';
 import address from '../utils/address';
 import jsonUtil from '../utils/jsonUtil';
+import messageUtil from '../utils/message';
 
 const WS_URL = 'http://' + config.nisHost + ':' + config.wsPort + config.wsPath;
 
@@ -77,6 +78,11 @@ let unconfirmedTransaction = () => {
 			return;
 		let signer = address.publicKeyToAddress(unconfirmed.signer);
 		unconfirmed.sender = signer;
+		// message
+		if(unconfirmed.message && unconfirmed.message.type==1)
+			unconfirmed.message.payload = messageUtil.hexToUtf8(unconfirmed.message.payload);
+		if(unconfirmed.otherTrans && unconfirmed.otherTrans.message && unconfirmed.otherTrans.message.type==1)
+			unconfirmed.otherTrans.message.payload = messageUtil.hexToUtf8(unconfirmed.otherTrans.message.payload);
 		let UnconfirmedTransaction = mongoose.model('UnconfirmedTransaction');
 		if(unconfirmed.type==4100 && unconfirmed.otherTrans && unconfirmed.signatures){// initialize multisig transaction
 			// update inner transaction hash

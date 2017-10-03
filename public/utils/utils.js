@@ -4,6 +4,10 @@ function fmtDate(input) {
 	return new Date(input*1000 + NEM_EPOCH).format("yyyy-MM-dd hh:mm:ss");
 }
 
+function fmtSysDate(input) {
+	return new Date(input).format("yyyy-MM-dd hh:mm:ss");
+}
+
 function fmtXEM(input) {
 	if(isNaN(input))
 		return 0;

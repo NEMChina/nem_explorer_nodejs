@@ -90,6 +90,31 @@ let accountTransferRecordAndID = (address, id, callback) => {
 		get('/account/transfers/all?address='+address+'&id='+id, callback);
 };
 
+let accountTransferIncoming = (address, callback) => {
+	get('/account/transfers/incoming?address='+address, callback);
+};
+
+let accountTransferIncomingAndID = (address, id, preData, callback) => {
+	let url = '';
+	if(id)
+		url = '/account/transfers/incoming?address='+address+'&id='+id;
+	else
+		url = '/account/transfers/incoming?address='+address;
+	get(url, data => {
+		if(data && data.data && data.data.length!=0){
+			let lastID = 0;
+			data.data.forEach(item => {
+				preData.push(item);
+				lastID = item.meta.id;
+			});
+			//recurse to query all the incoming data
+			accountTransferIncomingAndID(address, lastID, preData, callback);
+		} else {
+			callback(preData);
+		}
+	});
+};
+
 let heartbeat = (callback) => {
 	get('/heartbeat', callback);
 };
@@ -163,6 +188,24 @@ let checkUncomfirmedTransactionStatus = (address, id, timeStamp, signature, call
 	});
 };
 
+let accountImportances = (callback) => {
+	get('/account/importances', callback);
+};
+
+let accountHistorical = (address, startHeight, endHeight, callback) => {
+	let url = '/account/historical/get?address=' + address + 
+		"&startHeight=" + startHeight + 
+		"&endHeight=" + endHeight + 
+		"&increment=1";
+	hugeAliceGet(url, callback);
+};
+
+let accountHistoricalBatch = (params, startHeight, endHeight, callback) => {
+	let url = '/account/historical/get/batch';
+	hugeAlicePost(url, params, callback);
+};
+
+
 module.exports = {
 	blockHeight,
 	blockHeightByHostAndPort,
@@ -174,6 +217,8 @@ module.exports = {
 	harvestByAddressInTime,
 	accountTransferRecord,
 	accountTransferRecordAndID,
+	accountTransferIncoming,
+	accountTransferIncomingAndID,
 	heartbeat,
 	nodePeerListReachable,
 	mosaicListByNamespace,
@@ -182,13 +227,44 @@ module.exports = {
 	mosaicDefinitionListByNamespace,
 	allMosaicDefinitionListByNamespace,
 	accountUnconfirmedTransactions,
-	checkUncomfirmedTransactionStatus
+	checkUncomfirmedTransactionStatus,
+	accountImportances,
+	accountHistorical,
+	accountHistoricalBatch
 }
 
 //http GET method util
 let get = function(path, callback) {
 	let options = {
     	host: config.nisHost,
+    	port: config.nisPort,
+	    path: path,
+	    method: 'GET'
+	};
+	let request = http.request(options, (res) => {
+		let body = "";
+		res.setEncoding('utf8');
+    	res.on('data', function (data) {
+    		if(data)
+    			body += data;
+    	});
+    	res.on('end', function (data) {
+    		callback(JSON.parse(body));
+    	});
+  	});
+  	request.on('error', function(e) { 
+	 	console.log("error: " + path);
+	 	callback({});
+	});
+	// post the data
+	request.write('');
+	request.end();
+}
+
+//http GET method util
+let hugeAliceGet = function(path, callback) {
+	let options = {
+    	host: config.hugeAliceNisHost,
     	port: config.nisPort,
 	    path: path,
 	    method: 'GET'
@@ -251,6 +327,44 @@ let getByHostAndPortNoError = function(host, port, path, callback) {
 let post = function(path, reqData, callback) {
 	let options = {
     	host: config.nisHost,
+    	port: config.nisPort,
+	    path: path,
+	    method: 'POST',
+	    headers: {   
+     		'Content-Type':'application/json',
+     		'Content-Length': reqData.length
+   		}
+	};
+	let request = http.request(options, (res) => {
+		let body = "";
+		res.setEncoding('utf8');
+    	res.on('data', function (data) {
+    		if(data)
+    			body += data;
+    	});
+    	res.on('end', function () {
+    		let result = {};
+    		try{
+    			result = JSON.parse(body);
+    		} catch (e){
+    			
+    		}
+    		callback(result);
+    	});
+  	});
+  	request.on('error', function(e) {
+	 	console.log("error: " + path);
+	 	callback({});
+	});
+	// post the data
+	request.write(reqData);
+	request.end();
+}
+
+//http POST method util
+let hugeAlicePost = function(path, reqData, callback) {
+	let options = {
+    	host: config.hugeAliceNisHost,
     	port: config.nisPort,
 	    path: path,
 	    method: 'POST',

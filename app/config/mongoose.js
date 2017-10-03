@@ -15,5 +15,7 @@ module.exports = () => {
 	require('../models/supernode.server.model');
 	require('../models/accountRemark.server.model');
 	require('../models/unconfirmedTransaction.server.model');
+	require('../models/poll.server.model');
+	require('../models/block.server.model');
 	return db;
 }

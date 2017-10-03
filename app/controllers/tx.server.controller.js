@@ -209,8 +209,14 @@ module.exports = {
 					if(!tx)
 						return;
 					tx.sender =  address.publicKeyToAddress(tx.signer);
-					if(tx.type==4100 && tx.otherTrans)
+					if(tx.type==4100 && tx.otherTrans){
 						tx.otherTrans.sender =  tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):'';
+						if(tx.otherTrans.message && tx.otherTrans.message.type && tx.otherTrans.message.type==1)
+							tx.otherTrans.message.payload = message.hexToUtf8(tx.otherTrans.message.payload);
+					}
+					if(tx.message && tx.message.type && tx.message.type==1){
+						tx.message.payload = message.hexToUtf8(tx.message.payload);
+					}
 					r_txArray.push(tx);
 				});
 				res.json(r_txArray);

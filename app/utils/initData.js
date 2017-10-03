@@ -7,8 +7,10 @@ import messageUtil from './message';
 import timeUtil from './timeUtil';
 import transactionWS from '../websocket/transactionWS';
 import blockWS from '../websocket/blockWS';
+import pollController from '../controllers/poll.server.controller';
 
 let lastLoadedHeight = 0;
+let blockSet = new Set();
 let foundAddressSet = new Set();
 let reloadFoundAddressSet = new Set();
 
@@ -79,6 +81,9 @@ let loadNemesisBlock = () => {
 	let params = JSON.stringify({"height": 1});
 	nis.blockAtPublic(params, data => {
 		if(!data) return log('<error>: get nothing from NemesisBlock');
+		// save block
+		saveBlock({height: 1, timeStamp: data.timeStamp});
+		// save transactions
 		let txes = data.transactions;
 		let saveTxArr = [];
 		for(let i in txes){
@@ -130,6 +135,8 @@ let loadBlocks = (height, callback) => {
 		data.data.forEach((item, blockIndex) => {
 			let block = item.block;
 			let txes = item.txes;
+			// save block
+			saveBlock(block);
 			//update the account info which is in DB
 			if(block.signer)
 				updateAddress(address.publicKeyToAddress(block.signer), block.height);
@@ -242,6 +249,11 @@ let loadBlocks = (height, callback) => {
 										console.error(err);
 								});
 							}
+						}
+						// check poll
+						if(saveTx.type==257 && saveTx.recipient==config.pollAccount && tx.message && tx.message.type && tx.message.type==1){
+							let message = messageUtil.hexToUtf8(tx.message.payload);
+							pollController.savePoll(saveTx.sender, saveTx.timeStamp, message);
 						}
 					}
 				});
@@ -382,6 +394,26 @@ let reloadAccountInfo = (height) => {
 			}
 		});
 	});
+};
+
+/**
+ * save block info
+ */
+let saveBlock = (block) => {
+	if(lastLoadedHeight==0 || !blockSet.has(block.height)){
+		let Block = mongoose.model('Block');
+		let saveBlock = {};
+		saveBlock.height = block.height;
+		saveBlock.timeStamp = block.timeStamp;
+		new Block(saveBlock).save(err => {
+			if(!err){
+				if(lastLoadedHeight!=0)
+					blockSet.add(block.height);
+			} else {
+				console.info("---" + err);
+			}
+		});
+	}
 };
 
 /**

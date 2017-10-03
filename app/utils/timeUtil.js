@@ -15,8 +15,18 @@ let getTimeBeforeOneMonthInNem = () => {
 	return Math.round((nowTime - NEM_EPOCH)/1000) - 30*24*60*60;
 }
 
+let getTimeInReal = (timeStamp) => {
+	return timeStamp*1000 + NEM_EPOCH;
+}
+
+let convertToNemTime = (time) => {
+	return Math.round((time - NEM_EPOCH)/1000);
+}
+
 module.exports = {
 	getTimeInNem,
 	getTimeBeforeOneDayInNem,
-	getTimeBeforeOneMonthInNem
+	getTimeBeforeOneMonthInNem,
+	getTimeInReal,
+	convertToNemTime
 }

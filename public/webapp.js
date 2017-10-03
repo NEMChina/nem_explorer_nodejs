@@ -62,6 +62,10 @@ webapp.config(function($routeProvider) {
             templateUrl: 'supernodepayout_custom.html',
             controller: 'SupernodeCustomController'
         })
+        .when('/polllist', {
+            templateUrl: 'polllist.html',
+            controller: 'PollController'
+        })
         .when('/s_account', {
             templateUrl: 's_account.html',
             controller: 'SearchAccountController'
