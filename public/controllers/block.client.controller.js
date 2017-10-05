@@ -185,6 +185,7 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 	//load transaction detail
 	//load transaction detail
 	$scope.showTx = function(height, hash, $event, recipient){
+		$scope.selectedTXHash = hash;
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;

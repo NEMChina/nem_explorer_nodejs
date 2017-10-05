@@ -11,7 +11,7 @@ const config = {
 	supernodePayoutAccount: 'NCPAYOUTH2BGEGT3Q7K75PV27QKMVNN2IZRVZWMD',
 	apostilleAccount: 'NCZSJHLTIMESERVBVKOW6US64YDZG2PFGQCSV23J',
 	pollAccount: 'NAZN26HYB7C5HVYVJ4SL3KBTDT773NZBAOMGRFZB',
-	nisInitStartBlock: 1200000, //default 0
+	nisInitStartBlock: 0, //default 0
 	network: 68 // 68-mainnet, 98-testnet 
 }
 

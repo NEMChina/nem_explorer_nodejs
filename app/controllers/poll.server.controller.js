@@ -223,7 +223,7 @@ module.exports = {
 								if(type=="0")
 									handlePollAsPOI(res, expiredHeight, result);
 								else if(type=="1")
-									handlePollAsWhitelist(res, result, type, whitelist);
+									handlePollAsWhitelist(res, result);
 								else
 									res.json([]);
 							}
@@ -283,18 +283,14 @@ let handlePollAsPOI = (res, height, result) => {
 	}
 };
 
-let handlePollAsWhitelist = (res, result, type, whitelist) => {
+let handlePollAsWhitelist = (res, result) => {
 	try {
 		let r = [];
 		let count = 0;
 		for(let i in result)
 			count += result[i].length;
-		for(let i in result){
-			if(count==0)
-				r.push(0);
-			else
-				r.push(parseInt(result[i].length * 100 / count));
-		}
+		for(let i in result)
+			r.push({votes:result[i].length, score: result[i].length});
 		res.json(r);
 	} catch (e) {
 		console.error(e);

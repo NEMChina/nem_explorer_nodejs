@@ -77,5 +77,8 @@ webapp.config(function($routeProvider) {
         .when('/s_tx', {
             templateUrl: 's_tx.html',
             controller: 'SearchTXController'
+        })
+        .when('/logs', {
+            templateUrl: 'logs.html'
         });
 });

@@ -16,20 +16,13 @@
         	<div class="pull-left" style="margin-right:10px;"><a href="#blocklist"><img src="views/images/nem_2.png" width="101.38" height="31"></a></div>
         	<div class="pull-right form-group bottom-buffer-10">
 		        <form class="form-inline" role="form">
-		        	<input id="searchInput" type="text" style="width:280px;" class="form-control" placeholder="block height / tx id / account">
+		        	<input id="searchInput" type="text" style="width:200px;" class="form-control" placeholder="block height / tx id / account">
 		  	 		<button id="search" type="button" class="btn btn-default" ng-click="search()"><span class="glyphicon glyphicon-search small"></span></button>
 		    	</form>
 		    </div>
           	<div class="navbar navbar-static-top pull-left">
   		        <ul class="nav navbar-nav" style="font-size:14px;">
-  		            <li class="dropdown">
-  		                <a href="javascript:void(0);" ng-class="navClass1" class="dropdown-toggle" data-toggle="dropdown">
-  		                    BLOCKS <b class="caret"></b>
-  		                </a>
-  		                <ul class="dropdown-menu">
-  		                    <li><a ng-class="navClass11" href="#/blocklist">Recent Blocks</a></li>
-  		                </ul>
-  		            </li>
+		              <li><a ng-class="navClass1" href="#/blocklist">BLOCKS</a></li>
   		            <li class="dropdown">
   		                <a href="javascript:void(0);" ng-class="navClass2" class="dropdown-toggle" data-toggle="dropdown">
   		                    TRANSACTIONS <b class="caret"></b>
@@ -67,15 +60,8 @@
                           <li><a ng-class="navClass43" href="#/supernodepayout_custom">Supernode Reward (Custom)</a></li>
   		                </ul>
   		            </li>
-                  <li class="dropdown">
-                      <a href="javascript:void(0);" ng-class="navClass5" class="dropdown-toggle" data-toggle="dropdown">
-                          OTHERS <b class="caret"></b>
-                      </a>
-                      <ul class="dropdown-menu">
-                          <li><a ng-class="navClass51" href="#/polllist">POLLS</a></li>
-                          <li><a ng-class="navClass52" href="#/namespacelist">NS & MOSAICS</a></li>
-                      </ul>
-                  </li>
+                  <li><a ng-class="navClass5" href="#/namespacelist">NS & MOSAICS</a></li>
+                  <li><a ng-class="navClass6" href="#/polllist">POLLS</a></li>
   		        </ul>
             </div>
             <div class="clearfix"></div>
@@ -102,6 +88,8 @@
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       Version:
       <span ng-bind="version"></span>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="#/logs">Logs</a>
 		</p>
 	</div>
 </footer>
