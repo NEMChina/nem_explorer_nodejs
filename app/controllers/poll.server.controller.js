@@ -193,6 +193,9 @@ module.exports = {
 								// check expired block
 								if(meta.height>expiredHeight)
 									continue;
+								// check amount
+								if(tx.amount && tx.amount!=0)
+									continue;
 								// check timeStamp
 								if(timeUtil.getTimeInReal(tx.timeStamp)>doe)
 									continue;
