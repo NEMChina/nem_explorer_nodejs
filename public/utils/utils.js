@@ -60,6 +60,14 @@ function compareTime(nowTime, time) {
 	return day + "d, " + hour + "h, " + minute + "m, " + second + "s";
 }
 
+function jsonParse(o) {
+	let result;
+	try {
+		result = JSON.parse(o);
+	} catch (e) {}
+	return result;
+}
+
 //date format
 Date.prototype.format = function(fmt) {
 	let o = {

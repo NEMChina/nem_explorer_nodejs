@@ -25,7 +25,7 @@ function NavController($scope, $location, $rootScope){
 		$rootScope.navClass42 = path == "/supernodepayout" ? "active" : "";
 		$rootScope.navClass43 = path == "/supernodepayout_custom" ? "active" : "";
 		$rootScope.navClass5 = path == "/namespacelist" ? "active" : "";
-		$rootScope.navClass6 = path == "/polllist" ? "active" : "";
+		$rootScope.navClass6 = (path == "/polllist" || path == "/poll") ? "active" : "";
 	});
 
 	$scope.go = function(module) {

@@ -64,6 +64,10 @@ webapp.config(function($routeProvider) {
         })
         .when('/polllist', {
             templateUrl: 'polllist.html',
+            controller: 'PollListController'
+        })
+        .when('/poll', {
+            templateUrl: 'poll.html',
             controller: 'PollController'
         })
         .when('/s_account', {

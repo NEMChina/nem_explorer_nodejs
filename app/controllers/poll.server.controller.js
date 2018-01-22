@@ -117,9 +117,33 @@ module.exports = {
 	},
 
 	/**
-     * query answers
+     * get poll detail from poll id
      */
-	pollAnswers: (req, res, next) => {
+	poll: (req, res, next) => {
+		try {
+			let id = req.body.id;
+			if(!id){
+				res.json([]);
+				return;
+			}
+			let Poll = mongoose.model('Poll');
+			let sid = mongoose.Types.ObjectId(id);
+			Poll.findOne({_id: sid}).exec((err, doc) => {
+				if(err) {
+					res.json({});
+					return;
+				}
+				res.json(doc);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * query result
+     */
+	pollResult: (req, res, next) => {
 		try {
 			let id = req.body.id;
 			if(!id){
@@ -134,10 +158,7 @@ module.exports = {
 					return;
 				}
 				let addresses = doc.addresses;
-				let whitelist = doc.whitelist;
-				let multiple = doc.multiple;
 				let type = doc.type;
-				let doe = doc.doe;
 				if(!addresses && !type){
 					res.json([]);
 					return;
@@ -154,147 +175,214 @@ module.exports = {
 					res.json([]);
 					return;
 				}
-				let whitelistSet = new Set();
-				if(type=="1"){
-					// validate whitelist
-					whitelist = jsonUtil.parse(whitelist);
-					if(!whitelist){
-						res.json([]);
-						return;
-					}
-					for(let i in whitelist)
-						whitelistSet.add(whitelist[i]);
-				}
-				// query the expired block height (if the poll is ended)
-				let Block = mongoose.model('Block');
-				let expiredTime = timeUtil.convertToNemTime(doe);
-				Block.findOne({timeStamp: {$lte: expiredTime}}).sort({height: -1}).exec((err, block) => {
-					if(err || !block || !block.height){
-						res.json([]);
-						return;
-					}
-					let expiredHeight = block.height;
-					let result = [];
-					let recordSet = new Set();
-					let count = 0;
-					for(let i in addresses){
-						result[i] = [];
-						let address = addresses[i];
-						nis.accountTransferIncomingAndID(address, null, [], data => {
-							let resultByAddress = [];
-							if(!data)
-								return;
-							for(let i in data){
-								if(!data[i].transaction){
-									continue;
-								}
-								let meta = data[i].meta;
-								let tx = data[i].transaction;
-								// check expired block
-								if(meta.height>expiredHeight)
-									continue;
-								// check amount
-								if(tx.amount && tx.amount!=0)
-									continue;
-								// check timeStamp
-								if(timeUtil.getTimeInReal(tx.timeStamp)>doe)
-									continue;
-								let sender = "";
-								if(tx.otherTrans && tx.otherTrans.signer){
-									sender = addressUtil.publicKeyToAddress(tx.otherTrans.signer);
-								} else {
-									sender = addressUtil.publicKeyToAddress(tx.signer);
-								}
-								if(multiple==0 && recordSet.has(sender)){
-									continue;
-								}
-								if(multiple==1 && recordSet.has(""+i+"_"+sender)){
-									continue;
-								}
-								if(type=="1" && !whitelistSet.has(sender)){ // white list
-									continue;
-								}
-								if(multiple==1)
-									recordSet.add(""+i+"_"+sender);
-								else
-									recordSet.add(sender);
-								resultByAddress.push(sender);
-							}
-							result[i] = resultByAddress;
-							count++;
-							if(count==addresses.length){
-								if(type=="0")
-									handlePollAsPOI(res, expiredHeight, result);
-								else if(type=="1")
-									handlePollAsWhitelist(res, result);
-								else
-									res.json([]);
-							}
-						});
-					}
-				});
+				if(type=="0")
+					pollResultWithPOI(res, doc);
+				else if(type=="1")
+					pollResultWithWhitelist(res, doc);
+				else
+					res.json([]);
 			});
 		} catch (e) {
 			console.error(e);
 		}
-	},
+	}
 }
 
-let flag = 0;
-
-let handlePollAsPOI = (res, height, result) => {
+/**
+ * handle the poi poll
+ */
+let pollResultWithPOI = (res, doc) => {
 	try {
-		let r = [];
-		let addresses = [];
-		for(let i in result){
-			for(let j in result[i]){
-				addresses.push({'account':result[i][j]});
-			}
-		}
-		let params = {};
-		params.accounts = addresses;
-		params.startHeight = height;
-		params.endHeight = height;
-		params.incrementBy = 1;
-		params = JSON.stringify(params);
-		// query all address importance
-		nis.accountHistoricalBatch(params, height, height, data => {
-			if(!data || !data.data){
-				res.json(r);
+		let optionAddresses = doc.addresses;
+		let multiple = doc.multiple;
+		let type = doc.type;
+		let doe = doc.doe;
+		// query the expired block height (if the poll is ended)
+		let Block = mongoose.model('Block');
+		let expiredTime = timeUtil.convertToNemTime(doe);
+		Block.findOne({timeStamp: {$lte: expiredTime}}).sort({height: -1}).exec((err, block) => {
+			if(err || !block || !block.height){
+				res.json([]);
 				return;
 			}
-			let map = new Map();
-			for(let i in data.data){
-				if(!data.data[i] || !data.data[i].data|| !data.data[i].data.length>0)
-					continue;
-				let item = data.data[i].data[0];
-				if(item && item.address && item.importance)
-					map.set(item.address, item.importance);
+			let expiredHeight = block.height;
+			let allVoteAddressChechSet = new Set();
+			let voteArr = [];
+			let count = 0;
+			optionAddresses = jsonUtil.parse(optionAddresses);
+			for(let i in optionAddresses){
+				let voteItemArr = [];
+				let optionAddress = optionAddresses[i];
+				nis.accountTransferIncomingAndID(optionAddress, null, [], data => {
+					if(!data)
+						return;
+					for(let i in data){
+						if(!data[i].transaction){
+							continue;
+						}
+						let meta = data[i].meta;
+						let tx = data[i].transaction;
+						// check expired block
+						if(meta.height>expiredHeight)
+							continue;
+						// check amount
+						if(tx.amount && tx.amount!=0)
+							continue;
+						// check timeStamp
+						if(timeUtil.getTimeInReal(tx.timeStamp)>doe)
+							continue;
+						let sender = "";
+						if(tx.otherTrans && tx.otherTrans.signer){
+							sender = addressUtil.publicKeyToAddress(tx.otherTrans.signer);
+						} else {
+							sender = addressUtil.publicKeyToAddress(tx.signer);
+						}
+						if(multiple==0 && allVoteAddressChechSet.has(sender)){
+							continue;
+						}
+						if(multiple==1 && allVoteAddressChechSet.has(""+i+"_"+sender)){
+							continue;
+						}
+						if(multiple==1)
+							allVoteAddressChechSet.add(""+i+"_"+sender);
+						else
+							allVoteAddressChechSet.add(sender);
+						let voteItem = {};
+						voteItem.addr = sender;
+						voteItem.poi = 0;
+						voteItem.time = tx.timeStamp;
+						voteItemArr.push(voteItem);
+					}
+					voteArr[i] = voteItemArr;
+					count++;
+					if(count==optionAddresses.length){
+						let r = [];
+						let voteAddresses = [];
+						for(let i in voteArr){
+							for(let j in voteArr[i]){
+								voteAddresses.push({'account':voteArr[i][j].addr});
+							}
+						}
+						let params = {};
+						params.accounts = voteAddresses;
+						params.startHeight = expiredHeight;
+						params.endHeight = expiredHeight;
+						params.incrementBy = 1;
+						params = JSON.stringify(params);
+						// query all address importance by batch
+						nis.accountHistoricalBatch(params, expiredHeight, expiredHeight, data => {
+							if(!data || !data.data){
+								res.json(r);
+								return;
+							}
+							let map = new Map();
+							for(let i in data.data){
+								if(!data.data[i] || !data.data[i].data|| !data.data[i].data.length>0)
+									continue;
+								let item = data.data[i].data[0];
+								if(item && item.address && item.importance)
+									map.set(item.address, item.importance);
+							}
+							for(let i in voteArr){
+								for(let j in voteArr[i]){
+									if(map.has(voteArr[i][j].addr))
+										voteArr[i][j].poi = map.get(voteArr[i][j].addr);
+								}
+							}
+							res.json(voteArr);
+						});
+					}
+				});
 			}
-			for(let i in result){
-				r.push({votes:result[i].length, score: 0});
-				for(let j in result[i]){
-					let address = result[i][j];
-					if(map.has(address))
-						r[i].score += map.get(address);
-				}
-			}
-			res.json(r);
 		});
 	} catch (e) {
-		console.info(e);
+		console.error(e);
 	}
 };
 
-let handlePollAsWhitelist = (res, result) => {
+/**
+ * handle the white list poll
+ */
+let pollResultWithWhitelist = (res, doc) => {
 	try {
-		let r = [];
-		let count = 0;
-		for(let i in result)
-			count += result[i].length;
-		for(let i in result)
-			r.push({votes:result[i].length, score: result[i].length});
-		res.json(r);
+		let optionAddresses = doc.addresses;
+		let whitelist = doc.whitelist;
+		let multiple = doc.multiple;
+		let type = doc.type;
+		let doe = doc.doe;
+		// collect white list
+		let whitelistSet = new Set();
+		if(type=="1"){
+			// validate whitelist
+			whitelist = jsonUtil.parse(whitelist);
+			if(!whitelist){
+				res.json([]);
+				return;
+			}
+			for(let i in whitelist)
+				whitelistSet.add(whitelist[i]);
+		}
+		// query the expired block height (if the poll is ended)
+		let Block = mongoose.model('Block');
+		let expiredTime = timeUtil.convertToNemTime(doe);
+		Block.findOne({timeStamp: {$lte: expiredTime}}).sort({height: -1}).exec((err, block) => {
+			if(err || !block || !block.height){
+				res.json([]);
+				return;
+			}
+			let expiredHeight = block.height;
+			let allVoteAddressChechSet = new Set();
+			let voteArr = [];
+			let count = 0;
+			optionAddresses = jsonUtil.parse(optionAddresses);
+			for(let i in optionAddresses){
+				let voteItemArr = [];
+				let optionAddress = optionAddresses[i];
+				nis.accountTransferIncomingAndID(optionAddress, null, [], data => {
+					if(!data)
+						return;
+					for(let i in data){
+						if(!data[i].transaction){
+							continue;
+						}
+						let meta = data[i].meta;
+						let tx = data[i].transaction;
+						// check expired block
+						if(meta.height>expiredHeight)
+							continue;
+						// check amount
+						if(tx.amount && tx.amount!=0)
+							continue;
+						// check timeStamp
+						if(timeUtil.getTimeInReal(tx.timeStamp)>doe)
+							continue;
+						let sender = "";
+						if(tx.otherTrans && tx.otherTrans.signer)
+							sender = addressUtil.publicKeyToAddress(tx.otherTrans.signer);
+						else 
+							sender = addressUtil.publicKeyToAddress(tx.signer);
+						if(multiple==0 && allVoteAddressChechSet.has(sender))
+							continue;
+						if(multiple==1 && allVoteAddressChechSet.has(""+i+"_"+sender))
+							continue;
+						if(!whitelistSet.has(sender)) // white list
+							continue;
+						if(multiple==1)
+							allVoteAddressChechSet.add(""+i+"_"+sender);
+						else
+							allVoteAddressChechSet.add(sender);
+						let voteItem = {};
+						voteItem.addr = sender;
+						voteItem.time = tx.timeStamp;
+						voteItemArr.push(voteItem);
+					}
+					voteArr[i] = voteItemArr;
+					count++;
+					if(count==optionAddresses.length)
+						res.json(voteArr);
+				});
+			}
+		});
 	} catch (e) {
 		console.error(e);
 	}

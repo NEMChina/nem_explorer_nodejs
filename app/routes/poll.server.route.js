@@ -2,5 +2,6 @@ import PollController from '../controllers/poll.server.controller';
 
 module.exports = function(app){
 	app.route('/poll/list').post(PollController.pollList);
-	app.route('/poll/answers').post(PollController.pollAnswers);
+	app.route('/poll/poll').post(PollController.poll);
+	app.route('/poll/pollResult').post(PollController.pollResult);
 };
