@@ -239,7 +239,6 @@ module.exports = {
 						monthBlocks++;
 						monthFee+=harvestData[i].totalFee;
 					}
-					allBlocks++;
 					allFee+=harvestData[i].totalFee;
 				}
 				let r_harvest = {};
