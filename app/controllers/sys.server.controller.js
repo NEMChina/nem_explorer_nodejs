@@ -14,5 +14,17 @@ module.exports = {
 		} catch (e) {
 			console.error(e);
 		}
+	},
+
+	/**
+     * get heartbeat
+     */
+	heartbeat: (req, res, next) => {
+		try {
+			let r = {"code": 1};
+			res.json(r);
+		} catch (e) {
+			console.error(e);
+		}
 	}
 }
