@@ -1,5 +1,5 @@
 angular.module("webapp").controller("AccountController", ["$scope", "AccountService", AccountController]);
-angular.module("webapp").controller("SearchAccountController", ["$scope", "$location", "AccountService", "NamespaceService", "TXService", SearchAccountController]);
+angular.module("webapp").controller("SearchAccountController", ["$scope", "$timeout", "$location", "AccountService", "NamespaceService", "TXService", SearchAccountController]);
 
 function AccountController($scope, AccountService){
 	$scope.page = 1;
@@ -31,7 +31,7 @@ function AccountController($scope, AccountService){
 	$scope.getAccountList();
 }
 
-function SearchAccountController($scope, $location, AccountService, NamespaceService, TXService){
+function SearchAccountController($scope, $timeout, $location, AccountService, NamespaceService, TXService){
 	$scope.hideMore = false;
 	var absUrl = $location.absUrl();
 	if(absUrl==null){
@@ -80,6 +80,14 @@ function SearchAccountController($scope, $location, AccountService, NamespaceSer
 			list.push({label: "Harvested blocks (1 month)", content: "loading ..."});
 			$scope.harvestItems = list;
 			$scope.loadHarvestBlocks();
+			// init tabs
+			$timeout(function() {
+				$('#optionAccountTab a').click(function (e) {
+					console.info(1111);
+			    	e.preventDefault();
+			    	$(this).tab('show');
+			  	})
+			}, 100);
 		});
 	}
 	//load transaction detail
