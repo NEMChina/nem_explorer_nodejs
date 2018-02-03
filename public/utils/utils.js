@@ -88,6 +88,7 @@ Date.prototype.format = function(fmt) {
 
 function showTransaction(height, hash, $scope, TXService, recipient) {
 	$scope.items = {};
+	$scope.txHash = hash;
 	TXService.tx({"height": height, "hash": hash, "recipient": recipient}, function(data){
 		if(!data || !data.tx){
 			$scope.items = [{label: "Not Found", content: ""}];
@@ -96,7 +97,6 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 		let tx = data.tx;
 		let items = new Array();
 		let content = "";
-		items.push({label: "Hash", content: hash});
 		if(tx.type==257){ //Initiating a transfer transaction
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			let typeName = "transfer";

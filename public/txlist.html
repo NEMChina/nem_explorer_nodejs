@@ -41,6 +41,16 @@
 		         <div class="modal-body">
 		         	<div class=".clearfix"></div>
 		         	<table>
+		         		<tr style="line-height:26px;">
+							<td style="width:140px;">
+								Hash&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+							</td>
+							<td style="width:720px;"">
+								<a href="#/s_tx?hash={{txHash}}" target="_blank">
+									<span ng-bind="txHash"></span>
+								</a>
+							</td>
+						</tr>
 		         		<tr ng-repeat="item in items" style="line-height:26px;">
 							<td style="width: 140px;"><span ng-bind="item.label"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 							<td ng-bind="item.content" style="width:720px; word-break: break-word;"></td>
