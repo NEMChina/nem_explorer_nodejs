@@ -83,7 +83,6 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			// init tabs
 			$timeout(function() {
 				$('#optionAccountTab a').click(function (e) {
-					console.info(1111);
 			    	e.preventDefault();
 			    	$(this).tab('show');
 			  	})
@@ -140,6 +139,9 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 				tx.timeStamp = fmtDate(tx.timeStamp);
 				tx.amount = tx.amount?fmtXEM(tx.amount):0;
 				tx.fee = fmtXEM(tx.fee);
+				tx.flow = 0; // 0-income, 1-outgo
+				if($scope.searchAccount==tx.sender)
+					tx.flow = 1;
 				$scope.lastID = tx.id;
 			}
 			if($scope.txList){
