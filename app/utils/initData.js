@@ -115,9 +115,9 @@ let loadNemesisBlock = () => {
 		//insert the transaction into DB
 		Transaction.insertMany(saveTxArr, err => {
 			if(err)
-				log('<error> Block [1] create transactions all [' + saveTxArr.length + '] : ' + err);
+				log('<error> Block [1] create TXs all [' + saveTxArr.length + '] : ' + err);
 			else
-				log('<success> Block [1] create transactions all [' + saveTxArr.length + ']');
+				log('<success> Block [1] create TXs all [' + saveTxArr.length + ']');
 		});
 	});
 };
@@ -163,14 +163,21 @@ let loadBlocks = (height, callback) => {
 					}
 				}
 				// check if mosaic transafer
-				if(tx.type==257 && tx.mosaics && tx.mosaics.length>0)
+				if(tx.type==257 && tx.mosaics && tx.mosaics.length>0){
 					saveTx.mosaicTransferFlag = 1;
+					saveMosaicTX(saveTx, tx.mosaics);
+				}
 				// check if multisig transaction
 				if(tx.type==4100 && tx.signatures && tx.otherTrans){
 					saveTx.amount = tx.otherTrans.amount?tx.otherTrans.amount:0;
 					saveTx.fee = tx.otherTrans.fee?tx.otherTrans.fee:0;
 					saveTx.sender = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):"";
 					saveTx.recipient = tx.otherTrans.recipient;
+					// check if mosaic transafer
+					if(tx.otherTrans.type==257 && tx.otherTrans.mosaics && tx.otherTrans.mosaics.length>0){
+						saveTx.mosaicTransferFlag = 1;
+						saveMosaicTX(saveTx, tx.otherTrans.mosaics);
+					}
 				}
 				// check if aggregate  modification transaction
 				if((tx.type==4100 && tx.otherTrans && tx.otherTrans.type==4097) || tx.type==4097)
@@ -179,7 +186,7 @@ let loadBlocks = (height, callback) => {
 				//insert the transaction into DB
 				new Transaction(saveTx).save(err => {
 					if(!err) {
-						log('<success> Block ['+block.height+'] found transaction [' + (index+1) + ']');
+						log('<success> Block ['+block.height+'] found TX [' + (index+1) + ']');
 						//create namespace
 						if(tx.type && tx.type==8193){
 							let saveNamespace = {};
@@ -193,16 +200,16 @@ let loadBlocks = (height, callback) => {
 							saveNamespace.creator = saveTx.sender;
 							new Namespace(saveNamespace).save(err => {
 								if(err)
-									log('<error> Block [' + block.height + '] found namespace [' + saveNamespace.name + '] : ' + err);
+									log('<error> Block [' + block.height + '] found NS [' + saveNamespace.name + '] : ' + err);
 								else
-									log('<success> Block [' + block.height + '] found namespace [' + saveNamespace.name + ']');
+									log('<success> Block [' + block.height + '] found NS [' + saveNamespace.name + ']');
 							});
 						}
 						//update mosaics amount in specific namespace
 						if(tx.type && tx.type==16385 && tx.mosaicDefinition && tx.mosaicDefinition.id){
 							let namespace = tx.mosaicDefinition.id.namespaceId;
 							Namespace.update({name: namespace}, {$inc: {mosaics: 1}}, (err, doc) => {
-								if(err) return log('<error> Block [' + block.height + '] update namespace ['+namespace+'] mosaic : ' + err);
+								if(err) return log('<error> Block [' + block.height + '] update NS ['+namespace+'] mosaic : ' + err);
 							});
 						}
 						//update the account info which is in DB
@@ -279,7 +286,7 @@ let updateAddress = (address, height) => {
 	//query account info from NIS
 	nis.accountByAddress(address, data => {
 		if(!data || !data.account) {
-			log('<error> Block [' + height + '] query acccount [' + address + '] from NIS');
+			log('<error> Block [' + height + '] query acc [' + address + '] from NIS');
 			return;
 		}
 		let updateAccount = {};
@@ -371,18 +378,18 @@ let reloadAccountInfo = (height) => {
 				updateAddress(otherAccount, block.height);
 				// update the account which is multisig transaction
 				if(tx.signatures){
-					for(var i=0;i<tx.signatures.length;i++){
-						var signatureItem = tx.signatures[i];
-						var signatureOtherAccount = signatureItem.otherAccount;
-						var signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
+					for(let i=0;i<tx.signatures.length;i++){
+						let signatureItem = tx.signatures[i];
+						let signatureOtherAccount = signatureItem.otherAccount;
+						let signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
 						updateAddress(signatureOtherAccount, block.height);
 						updateAddress(signatureSigner, block.height);
 					}
 				}
 				// update the account which is multisig transaction
 				if(tx.otherTrans){
-					var otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
-					var otherTransRecipient = tx.otherTrans.recipient;
+					let otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
+					let otherTransRecipient = tx.otherTrans.recipient;
 					updateAddress(otherTransSigner, block.height);
 					updateAddress(otherTransRecipient, block.height);
 				}
@@ -417,10 +424,41 @@ let saveBlock = (block) => {
 };
 
 /**
+ * save mosaic transaction
+ */
+let saveMosaicTX = (saveTx, mosaics) => {
+	let MosaicTransaction = mongoose.model('MosaicTransaction');
+	let mosaicTx;
+	for(let i in mosaics){
+		if(!mosaics[i])
+			continue;
+		let mosaicId = mosaics[i].mosaicId;
+		let quantity = mosaics[i].quantity;
+		if(!mosaicId || !mosaicId.namespaceId || !mosaicId.name || !quantity)
+			continue;
+		mosaicTx = {};
+		mosaicTx.hash = saveTx.hash;
+		mosaicTx.sender = saveTx.sender;
+		mosaicTx.recipient = saveTx.recipient;
+		mosaicTx.timeStamp = saveTx.timeStamp;
+		mosaicTx.namespace = mosaicId.namespaceId;
+		mosaicTx.mosaic = mosaicId.name;
+		mosaicTx.quantity = quantity;
+		mosaicTx.height = saveTx.height;
+		new MosaicTransaction(mosaicTx).save(err => {
+			if(err)
+				log('<error> Block [' + mosaicTx.height + '] found TX(M) [' + mosaicTx.namespace + ":" + mosaicTx.mosaic + '] : ' + err);
+			else
+				log('<success> Block [' + mosaicTx.height + '] found TX(M) [' + mosaicTx.namespace + ":" + mosaicTx.mosaic + ']');
+		});
+	}
+};
+
+/**
  * log util
  */
 let log = (message) => {
-	console.info('=> ' + message);
+	console.info(message);
 }
 
 module.exports = {

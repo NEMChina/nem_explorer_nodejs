@@ -33,6 +33,10 @@ function AccountController($scope, AccountService){
 
 function SearchAccountController($scope, $timeout, $location, AccountService, NamespaceService, TXService){
 	$scope.hideMore = false;
+	$scope.hideMore_mosaic = false;
+	$scope.lastID = 0;
+	$scope.mosaicPage = 1;
+	$scope.addressExist = false;
 	var absUrl = $location.absUrl();
 	if(absUrl==null){
 		return;
@@ -46,9 +50,9 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 		AccountService.detail(params, function(data) {
 			if(!data || !data.address){
 				$scope.accountItems = [{label: "Not Found", content: ""}];
-				$scope.hideMore = true;
 				return;
 			}
+			$scope.addressExist = true;
 			//load account detail
 			var list = [];
 			list.push({label: "Address", content: data.address});
@@ -86,6 +90,10 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			    	e.preventDefault();
 			    	$(this).tab('show');
 			  	})
+			  	$('#optionTransactionTab a').click(function (e) {
+			    	e.preventDefault();
+			    	$(this).tab('show');
+			  	})
 			}, 100);
 		});
 	}
@@ -99,8 +107,18 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 		$("#txDetail").modal("show");
 		return showTransaction(height, hash, $scope, TXService, recipient);
 	};
-	//load more transaction
-	$scope.loadMore = function(){
+	//load transaction detail
+	$scope.showMosaicTx = function(height, hash, $event, recipient){
+		$scope.selectedMosaicTXHash = hash;
+		//just skip the action when click from <a>
+		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
+			return;
+		}
+		$("#txDetail").modal("show");
+		return showTransaction(height, hash, $scope, TXService, recipient);
+	};
+	//load transactions
+	$scope.loadTransactions = function(){
 		$scope.loadingMore = true;
 		let params = {address: $scope.searchAccount, id: $scope.lastID};
 		AccountService.detailTXList(params, function(data) {
@@ -114,6 +132,9 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 				tx.amount = tx.amount?fmtXEM(tx.amount):0;
 				tx.fee = fmtXEM(tx.fee);
 				$scope.lastID = tx.id;
+				tx.flow = 0; // 0-imcoming, 1-outgoing
+				if($scope.searchAccount==tx.sender)
+					tx.flow = 1;
 			}
 			if($scope.txList){
 				$scope.txList = $scope.txList.concat(data);
@@ -126,33 +147,34 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			$scope.loadingMore = false;
 		});
 	};
-	//show transfer records
-	$scope.showTransferRecord = function(){
-		let params = {address: $scope.searchAccount, id: 0};
-		AccountService.detailTXList(params, function(data) {
+	//load mosaic transactions
+	$scope.loadMosaicTransactions = function(){
+		$scope.loadingMore_mosaic = true;
+		let params = {address: $scope.searchAccount, page: $scope.mosaicPage};
+		AccountService.detailMosaicTXList(params, function(data) {
 			if(!data){
-				$scope.hideMore = true;
+				$scope.hideMore_mosaic = true;
 				return;
 			}
 			for(i in data) {
 				let tx = data[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
-				tx.amount = tx.amount?fmtXEM(tx.amount):0;
-				tx.fee = fmtXEM(tx.fee);
-				tx.flow = 0; // 0-income, 1-outgo
+				tx.mosaicName = tx.namespace + ":" + tx.mosaic;
+				tx.quantity = fmtSplit(tx.quantity);
+				tx.flow = 0; // 0-imcoming, 1-outgoing
 				if($scope.searchAccount==tx.sender)
 					tx.flow = 1;
-				$scope.lastID = tx.id;
 			}
-			if($scope.txList){
-				$scope.txList = $scope.txList.concat(data);
+			if($scope.mosaicTXList){
+				$scope.mosaicTXList = $scope.mosaicTXList.concat(data);
 			} else {
-				$scope.txList = data;
+				$scope.mosaicTXList = data;
 			}
 			if(data.length==0 || data.length<25){
-				$scope.hideMore = true;
+				$scope.hideMore_mosaic = true;
 			}
-			$scope.loadingMore = false;
+			$scope.loadingMore_mosaic = false;
+			$scope.mosaicPage = $scope.mosaicPage + 1;
 		});
 	};
 	//load harvest info
@@ -203,7 +225,8 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			$scope.mosaicList = data;
 		});
 	};
-	$scope.showTransferRecord();
+	$scope.loadTransactions();
+	$scope.loadMosaicTransactions();
 	$scope.showNamespace();
 	$scope.showMosaic();
 }

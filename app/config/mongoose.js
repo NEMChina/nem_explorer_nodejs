@@ -17,5 +17,6 @@ module.exports = () => {
 	require('../models/unconfirmedTransaction.server.model');
 	require('../models/poll.server.model');
 	require('../models/block.server.model');
+	require('../models/mosaicTransaction.server.model');
 	return db;
 }

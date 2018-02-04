@@ -1,6 +1,8 @@
 import http from 'http';
 import config from '../config/config';
 
+const transferMosaicQueryCount = 25;
+
 let blockHeight = function(callback) {
 	get('/chain/height', callback);
 };
@@ -115,6 +117,39 @@ let accountTransferIncomingAndID = (address, id, preData, callback) => {
 	});
 };
 
+let accountTransferMosaicAndID = (address, id, preData, callback) => {
+	let url = '';
+	if(id)
+		url = '/account/transfers/all?address='+address+'&id='+id;
+	else
+		url = '/account/transfers/all?address='+address;
+	get(url, data => {
+		if(data || data.data || data.data.length==0)
+			callback(preData);
+		let lastID = 0;
+		for(let i in data.data){
+			let item = data.data[i];
+			if(!item || !item.transaction)
+				continue;
+			if(item.transaction.mosaics && item.transaction.mosaics>0){
+				preData.push(item);
+				lastID = item.meta.id;
+			} else if(item.transaction.type==4100 && item.transaction.otherTrans 
+				&& !item.transaction.otherTrans.modifications){
+				let otherTrans = item.transaction.otherTrans;
+				if(otherTrans.mosaics && otherTrans.mosaics>0){
+					preData.push(item);
+					lastID = item.meta.id;
+				}
+			}
+			if(preData.length>=transferMosaicQueryCount)
+				callback(preData);
+		}
+		//recurse to query all the incoming data
+		accountTransferMosaicAndID(address, lastID, preData, callback);
+	});
+};
+
 let heartbeat = (callback) => {
 	get('/heartbeat', callback);
 };
@@ -219,6 +254,7 @@ module.exports = {
 	accountTransferRecordAndID,
 	accountTransferIncoming,
 	accountTransferIncomingAndID,
+	accountTransferMosaicAndID,
 	heartbeat,
 	nodePeerListReachable,
 	mosaicListByNamespace,

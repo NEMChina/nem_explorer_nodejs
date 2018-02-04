@@ -6,6 +6,7 @@ import init from '../utils/initData';
 import timeUtil from '../utils/timeUtil';
 
 const LISTSIZE = 100; //list size
+const MOSIALISTSIZE = 25;
 const UPDATETIME = 24*60*60*1000;
 
 module.exports = {
@@ -147,6 +148,8 @@ module.exports = {
 		try {
 			let address = req.body.address;
 			let id = req.body.id;
+			if(!id)
+				id = 0;
 			address = address.replace(new RegExp(/(-)/g), '');
 			let r_txList = [];
 			nis.accountTransferRecordAndID(address, id, data => {
@@ -179,6 +182,47 @@ module.exports = {
 					r_txList.push(r_tx);
 				});
 				res.json(r_txList);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * get mosaic transactions belong this account
+     */
+	detailMosaicTXList: (req, res, next) => {
+		try{
+			let address = req.body.address;
+			let page = 1;
+			if(req.body.page){
+				page = parseInt(req.body.page);
+			}
+			address = address.replace(new RegExp(/(-)/g), '');
+			let MosaicTransaction = mongoose.model('MosaicTransaction');
+			MosaicTransaction.find({"$or":[{sender:address}, {recipient: address}]}).sort({timeStamp: -1}).skip(MOSIALISTSIZE*(page-1)).limit(MOSIALISTSIZE).exec((err, doc) => {
+				if(err) {
+					console.info(err);
+					return res.json([]);
+				}
+				let r_mosaicArray = [];
+				let r_mosaic = null;
+				let count = 0;
+				for(let i in doc){
+					let m = doc[i];
+					if(!m)
+						continue;
+					r_mosaic = {};
+					r_mosaic.hash = m.hash;
+					r_mosaic.sender = m.sender;
+					r_mosaic.recipient = m.recipient;
+					r_mosaic.timeStamp = m.timeStamp;
+					r_mosaic.namespace = m.namespace;
+					r_mosaic.mosaic = m.mosaic;
+					r_mosaic.quantity = m.quantity;
+					r_mosaicArray.push(r_mosaic);
+				}
+				res.json(r_mosaicArray);
 			});
 		} catch (e) {
 			console.error(e);

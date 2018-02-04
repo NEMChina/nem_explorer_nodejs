@@ -22,6 +22,11 @@ function AccountService($http){
 				callback(data);
 			});
 		},
+		detailMosaicTXList: function(params, callback) {
+			$http.post("/account/detailMosaicTXList", params).success(function(data){
+				callback(data);
+			});
+		},
 		loadHarvestBlocks: function(params, callback) {
 			$http.post("/account/loadHarvestBlocks", params).success(function(data){
 				callback(data);
