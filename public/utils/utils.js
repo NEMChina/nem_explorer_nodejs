@@ -43,6 +43,14 @@ function fmtSplit(input) {
 	return result + decimal;
 }
 
+function fixNumber(input) {
+	let reg = /^([0-9,])+(\.)[0-9]{2}[0-9]+$/;
+	if(reg.test(input))
+		return input.substring(0, input.indexOf(".")+3) + "..";
+	else
+		return input;
+}
+
 function compareTime(nowTime, time) {
 	let second = Math.floor((nowTime - NEM_EPOCH - time*1000)/1000);
 	if(second<60)

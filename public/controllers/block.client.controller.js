@@ -156,8 +156,8 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 				if(parseInt(height)==1){
 					tx.hash = "#";
 					tx.time = fmtDate(item.timeStamp);
-					tx.amount = item.amount?fmtXEM(item.amount):0;
-					tx.fee = fmtXEM(item.fee);
+					tx.amount = item.amount?fixNumber(fmtXEM(item.amount)):0;
+					tx.fee = fixNumber(fmtXEM(item.fee));
 					tx.sender = item.signerAccount;
 					tx.recipient = item.recipient;
 					tx.height = item.height;
@@ -165,8 +165,8 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 				} else {
 					tx.hash = item.hash;
 					tx.time = fmtDate(item.tx.timeStamp);
-					tx.amount = item.tx.amount?fmtXEM(item.tx.amount):0;
-					tx.fee = fmtXEM(item.tx.fee);
+					tx.amount = item.tx.amount?fixNumber(fmtXEM(item.tx.amount)):0;
+					tx.fee = fixNumber(fmtXEM(item.tx.fee));
 					tx.sender = item.tx.signerAccount;
 					tx.recipient = item.tx.recipient;
 					tx.height = item.tx.height;

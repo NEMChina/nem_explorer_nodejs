@@ -9,7 +9,7 @@ function AccountController($scope, AccountService){
 			for(let i in r_accountList){
 				let account = r_accountList[i];
 				account.timeStamp = fmtDate(account.timeStamp);
-				account.balance = fmtXEM(account.balance);
+				account.balance = fixNumber(fmtXEM(account.balance));
 				account.importance = fmtPOI(account.importance);
 			}
 			if($scope.accountList){
@@ -130,7 +130,8 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 				let tx = data[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
 				tx.amount = tx.amount?fmtXEM(tx.amount):0;
-				tx.fee = fmtXEM(tx.fee);
+				tx.amount = fixNumber(tx.amount);
+				tx.fee = fixNumber(fmtXEM(tx.fee));
 				$scope.lastID = tx.id;
 				tx.flow = 0; // 0-imcoming, 1-outgoing
 				if($scope.searchAccount==tx.sender)
