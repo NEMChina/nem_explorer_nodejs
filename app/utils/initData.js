@@ -14,6 +14,14 @@ let blockSet = new Set();
 let foundAddressSet = new Set();
 let reloadFoundAddressSet = new Set();
 
+let Block;
+let Account;
+let Namespace;
+let Transaction;
+let AccountRemark;
+let SupernodePayout;
+let MosaicTransaction;
+
 /**
  * init the blocks, transactions, account, namespace, mosaics and supernodes payout
  * data will be saving into the MongoDB
@@ -25,13 +33,20 @@ let init = (server) => {
 			console.info('Error: Please make sure NIS has been started and blocks loading has been finished.');
 			throw new Error('NIS error');
 		}
+		// init mongodb models
+		Block = mongoose.model('Block');
+		Account = mongoose.model('Account');
+		Namespace = mongoose.model('Namespace');
+		Transaction = mongoose.model('Transaction');
+		AccountRemark = mongoose.model('AccountRemark');
+		SupernodePayout = mongoose.model('SupernodePayout');
+		MosaicTransaction = mongoose.model('MosaicTransaction');
 		nis.blockHeight((height) => {
 			//query max block height from NIS
 			let heightNIS = height.height;
 			log('height from NIS is ' + heightNIS);
 			if(heightNIS<1) 
 				return;
-			let Transaction = mongoose.model('Transaction');
 			//query max block height from DB
 			Transaction.findOne().sort('-height').exec((err, doc) => {
 				if(err) 
@@ -77,7 +92,6 @@ let init = (server) => {
  * load NemesisBlock (block height is 1)
  */
 let loadNemesisBlock = () => {
-	let Transaction = mongoose.model('Transaction');
 	let params = JSON.stringify({"height": 1});
 	nis.blockAtPublic(params, data => {
 		if(!data) return log('<error>: get nothing from NemesisBlock');
@@ -126,8 +140,6 @@ let loadNemesisBlock = () => {
  * load the blocks (block height > 1)
  */
 let loadBlocks = (height, callback) => {
-	let Namespace = mongoose.model('Namespace');
-	let SupernodePayout = mongoose.model('SupernodePayout');
 	let params = JSON.stringify({"height": height});
 	nis.blockList(params, data => {
 		if(!data || !data.data || data.data.length==0)
@@ -182,7 +194,6 @@ let loadBlocks = (height, callback) => {
 				// check if aggregate  modification transaction
 				if((tx.type==4100 && tx.otherTrans && tx.otherTrans.type==4097) || tx.type==4097)
 					saveTx.aggregateFlag = 1;
-				let Transaction = mongoose.model('Transaction');
 				//insert the transaction into DB
 				new Transaction(saveTx).save(err => {
 					if(!err) {
@@ -281,8 +292,6 @@ let updateAddress = (address, height) => {
 	if(!address || foundAddressSet.has(address)) 
 		return;
 	foundAddressSet.add(address);
-	let Account = mongoose.model('Account');
-	let AccountRemark = mongoose.model('AccountRemark');
 	//query account info from NIS
 	nis.accountByAddress(address, data => {
 		if(!data || !data.account) {
@@ -408,7 +417,6 @@ let reloadAccountInfo = (height) => {
  */
 let saveBlock = (block) => {
 	if(lastLoadedHeight==0 || !blockSet.has(block.height)){
-		let Block = mongoose.model('Block');
 		let saveBlock = {};
 		saveBlock.height = block.height;
 		saveBlock.timeStamp = block.timeStamp;
@@ -427,8 +435,9 @@ let saveBlock = (block) => {
  * save mosaic transaction
  */
 let saveMosaicTX = (saveTx, mosaics) => {
-	let MosaicTransaction = mongoose.model('MosaicTransaction');
 	let mosaicTx;
+	let mosaicTxArr = [];
+	let height = 0;
 	for(let i in mosaics){
 		if(!mosaics[i])
 			continue;
@@ -444,12 +453,16 @@ let saveMosaicTX = (saveTx, mosaics) => {
 		mosaicTx.namespace = mosaicId.namespaceId;
 		mosaicTx.mosaic = mosaicId.name;
 		mosaicTx.quantity = quantity;
-		mosaicTx.height = saveTx.height;
-		new MosaicTransaction(mosaicTx).save(err => {
+		height = saveTx.height;
+		mosaicTxArr.push(mosaicTx);
+	}
+	if(mosaicTxArr.length>0){
+		// insert mosaics into DB by batch
+		MosaicTransaction.insertMany(mosaicTxArr, err => {
 			if(err)
-				log('<error> Block [' + mosaicTx.height + '] found TX(M) [' + mosaicTx.namespace + ":" + mosaicTx.mosaic + '] : ' + err);
+				log('<error> Block [' + height + '] found TX(M) count [' + mosaicTxArr.length + '] : ' + err);
 			else
-				log('<success> Block [' + mosaicTx.height + '] found TX(M) [' + mosaicTx.namespace + ":" + mosaicTx.mosaic + ']');
+				log('<success> Block [' + height + '] found TX(M) count [' + mosaicTxArr.length + ']');
 		});
 	}
 };
