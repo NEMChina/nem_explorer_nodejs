@@ -1,12 +1,15 @@
 import mongoose from 'mongoose';
 
 let NamespaceSchema = new mongoose.Schema({
-	name: {type: String, required: true, unique: true},
-	mosaics: {type: Number, required: true, default: 0},
-	timeStamp: {type: Number, required: true},
+	name: {type: String, required: true},
+	rootName: {type: String},
+	creator: {type: String, required: true},
 	height: {type: Number, required: true},
-	creator: String,
-	mosaicNames: String
+	timeStamp: {type: Number, required: true},
+	expiredTime: {type: Number, required: true},
+	subNamespaces: {type: String}, 
+	mosaics: {type: Number, required: true, default: 0},
+	mosaicNames: {type: String},
 });
 
 //init Namespace Schema
