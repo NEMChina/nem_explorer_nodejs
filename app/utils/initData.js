@@ -170,9 +170,8 @@ let loadBlocks = (height, callback) => {
 				// check if apostille
 				if(tx.type==257 && saveTx.recipient==config.apostilleAccount && tx.message && tx.message.type && tx.message.type==1){
 					let message = messageUtil.hexToUtf8(tx.message.payload);
-					if(message.indexOf('HEX:')==0){
+					if(message.indexOf('HEX:')==0)
 						saveTx.apostilleFlag = 1;
-					}
 				}
 				// check if mosaic transafer
 				if(tx.type==257 && tx.mosaics && tx.mosaics.length>0){
@@ -198,31 +197,14 @@ let loadBlocks = (height, callback) => {
 				new Transaction(saveTx).save(err => {
 					if(!err) {
 						log('<success> Block ['+block.height+'] found TX [' + (index+1) + ']');
-						//create namespace
-						if(tx.type && tx.type==8193){
-							let saveNamespace = {};
-							if(!tx.parent || tx.parent=="null")
-								saveNamespace.name = tx.newPart;
-							else 
-								saveNamespace.name = tx.parent + '.' + tx.newPart;
-							saveNamespace.mosaics = 0;
-							saveNamespace.timeStamp = saveTx.timeStamp;
-							saveNamespace.height = saveTx.height;
-							saveNamespace.creator = saveTx.sender;
-							new Namespace(saveNamespace).save(err => {
-								if(err)
-									log('<error> Block [' + block.height + '] found NS [' + saveNamespace.name + '] : ' + err);
-								else
-									log('<success> Block [' + block.height + '] found NS [' + saveNamespace.name + ']');
-							});
-						}
+						//save namespace
+						saveNamespace(saveTx, tx);
 						//update mosaics amount in specific namespace
-						if(tx.type && tx.type==16385 && tx.mosaicDefinition && tx.mosaicDefinition.id){
-							let namespace = tx.mosaicDefinition.id.namespaceId;
-							Namespace.update({name: namespace}, {$inc: {mosaics: 1}}, (err, doc) => {
-								if(err) return log('<error> Block [' + block.height + '] update NS ['+namespace+'] mosaic : ' + err);
-							});
-						}
+						updateNamespaceMosaics(saveTx, tx);
+						// save supernode payout
+						saveSupernodePayout(saveTx, tx);
+						// save poll
+						savePoll(saveTx, tx);
 						//update the account info which is in DB
 						let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
 						let recipient = tx.recipient;
@@ -248,30 +230,6 @@ let loadBlocks = (height, callback) => {
 							let otherTransRecipient = tx.otherTrans.recipient;
 							updateAddress(otherTransSigner, block.height);
 							updateAddress(otherTransRecipient, block.height);
-						}
-						//create supernode payout
-						if(saveTx.sender==config.supernodePayoutAccount && tx.message && tx.message.type && tx.message.type==1){
-							let message = messageUtil.hexToUtf8(tx.message.payload);
-							let regExp = /Node rewards payout: round (\d+)-(\d+)/;
-							let match = message.match(regExp);
-							if(match && match.length>0){
-								let payout = {};
-								payout.round = match[2];
-								payout.sender = config.supernodePayoutAccount;
-								payout.recipient = saveTx.recipient;
-								payout.amount = saveTx.amount;
-								payout.fee = saveTx.fee;
-								payout.timeStamp = saveTx.timeStamp;
-								new SupernodePayout(payout).save(err => {
-									if(err)
-										console.error(err);
-								});
-							}
-						}
-						// check poll
-						if(saveTx.type==257 && saveTx.recipient==config.pollAccount && tx.message && tx.message.type && tx.message.type==1){
-							let message = messageUtil.hexToUtf8(tx.message.payload);
-							pollController.savePoll(saveTx.sender, saveTx.timeStamp, message);
 						}
 					}
 				});
@@ -465,6 +423,76 @@ let saveMosaicTX = (saveTx, mosaics) => {
 				log('<success> Block [' + height + '] found TX(M) count [' + mosaicTxArr.length + ']');
 		});
 	}
+};
+
+/**
+ * save namespace
+ */
+let saveNamespace = (saveTx, tx) => {
+	if(!tx.type || tx.type!=8193)
+		return;
+	let saveNamespace = {};
+	if(!tx.parent || tx.parent=="null")
+		saveNamespace.name = tx.newPart;
+	else 
+		saveNamespace.name = tx.parent + '.' + tx.newPart;
+	saveNamespace.mosaics = 0;
+	saveNamespace.timeStamp = saveTx.timeStamp;
+	saveNamespace.height = saveTx.height;
+	saveNamespace.creator = saveTx.sender;
+	new Namespace(saveNamespace).save(err => {
+		if(err)
+			log('<error> Block [' + saveTx.height + '] found NS [' + saveNamespace.name + '] : ' + err);
+		else
+			log('<success> Block [' + saveTx.height + '] found NS [' + saveNamespace.name + ']');
+	});
+};
+
+/**
+ * update namespace mosaics
+ */
+let updateNamespaceMosaics = (saveTx, tx) => {
+	if(!tx.type || tx.type!=16385 || !tx.mosaicDefinition || !tx.mosaicDefinition.id)
+		return;
+	let namespace = tx.mosaicDefinition.id.namespaceId;
+	Namespace.update({name: namespace}, {$inc: {mosaics: 1}}, (err, doc) => {
+		if(err) 
+			log('<error> Block [' + saveTx.height + '] update NS ['+namespace+'] mosaic : ' + err);
+	});
+};
+
+/**
+ * save supernode payout
+ */
+let saveSupernodePayout = (saveTx, tx) => {
+	if(saveTx.sender!=config.supernodePayoutAccount || !tx.message || !tx.message.type || tx.message.type!=1){
+		return;
+	let message = messageUtil.hexToUtf8(tx.message.payload);
+	let regExp = /Node rewards payout: round (\d+)-(\d+)/;
+	let match = message.match(regExp);
+	if(match && match.length>0){
+		let payout = {};
+		payout.round = match[2];
+		payout.sender = config.supernodePayoutAccount;
+		payout.recipient = saveTx.recipient;
+		payout.amount = saveTx.amount;
+		payout.fee = saveTx.fee;
+		payout.timeStamp = saveTx.timeStamp;
+		new SupernodePayout(payout).save(err => {
+			if(err)
+				console.error(err);
+		});
+	}
+};
+
+/**
+ * save poll
+ */
+let savePoll = (saveTx, tx) => {
+	if(saveTx.type!=257 || saveTx.recipient!=config.pollAccount || !tx.message || !tx.message.type || tx.message.type!=1)
+		return;	
+	let message = messageUtil.hexToUtf8(tx.message.payload);
+	pollController.savePoll(saveTx.sender, saveTx.timeStamp, message);
 };
 
 /**
