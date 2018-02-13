@@ -1,16 +1,16 @@
+import dbUtil from './dbUtil';
 import nis from './nisRequest';
 import address from './address';
-import schedule from 'node-schedule';
-import config from '../config/config';
-import messageUtil from './message';
 import timeUtil from './timeUtil';
-import dbUtil from './dbUtil';
-import transactionWS from '../websocket/transactionWS';
+import messageUtil from './message';
+import schedule from 'node-schedule';
+import cache from '../cache/appCache';
+import config from '../config/config';
 import blockWS from '../websocket/blockWS';
+import transactionWS from '../websocket/transactionWS';
 import pollController from '../controllers/poll.server.controller';
 
 let lastLoadedHeight = 0;
-let blockSet = new Set();
 let foundAddressSet = new Set();
 let reloadFoundAddressSet = new Set();
 
@@ -57,6 +57,9 @@ let init = (server) => {
 							lastLoadedHeight = data;
 						});
 					});
+					// init cache
+					cache.appCache.set(cache.saveBlockPrefix, new Set());
+					cache.appCache.set(cache.saveTransactionPrefix, new Set());
 					// websocket update transactions
 					transactionWS.transaction((height, callback)=>{
 						loadBlocks(height, callback);
@@ -211,7 +214,7 @@ let loadBlocks = (height, callback) => {
 					updateAddress(otherTransRecipient, block.height);
 				}
 				//insert the transaction into DB
-				dbUtil.saveTransaction(saveTx, index+1);
+				saveTransaction(saveTx, index+1);
 			});
 			//recurse to query the next 10 blocks
 			if(data.data.length==blockIndex+1)
@@ -342,13 +345,29 @@ let reloadAccountInfo = (height) => {
  * save block info
  */
 let saveBlock = (block) => {
-	if(blockSet.has(block.height)){
+	let setCache = cache.appCache.get(cache.saveBlockPrefix);
+	if(!setCache || setCache.has(block.height))
 		return;
-	}
 	let saveBlock = {};
 	saveBlock.height = block.height;
 	saveBlock.timeStamp = block.timeStamp;
 	dbUtil.saveBlock(saveBlock);
+	// update cache
+	setCache.add(block.height);
+	cache.appCache.set(cache.saveBlockPrefix, setCache);
+};
+
+/**
+ * save Transaction info
+ */
+let saveTransaction = (saveTx, index) => {
+	let setCache = cache.appCache.get(cache.saveTransactionPrefix);
+	if(!setCache || setCache.has(saveTx.height + "_" + index))
+		return;
+	dbUtil.saveTransaction(saveTx, index);
+	// update cache
+	setCache.add(saveTx.height + "_" + index);
+	cache.appCache.set(cache.saveTransactionPrefix, setCache);
 };
 
 /**
@@ -405,7 +424,7 @@ let saveNamespace = (saveTx, tx) => {
 			}
 		});
 	} else { // sub namespace
-		saveNamespace.name = tx.parent + '.' + tx.newPart;
+		saveNamespace.namespace = tx.parent + '.' + tx.newPart;
 		saveNamespace.rootNamespace = tx.parent.substring(0, tx.parent.indexOf("."));
 		// save sub namespace
 		dbUtil.saveNamespace(saveNamespace);
@@ -437,10 +456,18 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 				mosaic.divisibility = property.value;
 			if(property.name=="initialSupply")
 				mosaic.initialSupply = property.value;
-			if(property.name=="supplyMutable")
-				mosaic.supplyMutable = property.value;
-			if(property.name=="transferable")
-				mosaic.transferable = property.value;
+			if(property.name=="supplyMutable"){
+				if(property.value=="false")
+					mosaic.supplyMutable = 0;
+				else if(property.value=="true")
+					mosaic.supplyMutable = 1;
+			}
+			if(property.name=="transferable"){
+				if(property.value=="false")
+					mosaic.transferable = 0;
+				else if(property.value=="true")
+					mosaic.transferable = 1;
+			}
 		}
 		// mosaic levy
 		if(tx.mosaicDefinition.levy){
