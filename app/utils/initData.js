@@ -1,26 +1,17 @@
 import nis from './nisRequest';
 import address from './address';
-import mongoose from 'mongoose';
 import schedule from 'node-schedule';
 import config from '../config/config';
 import messageUtil from './message';
 import timeUtil from './timeUtil';
+import dbUtil from './dbUtil';
 import transactionWS from '../websocket/transactionWS';
 import blockWS from '../websocket/blockWS';
 import pollController from '../controllers/poll.server.controller';
 
 let lastLoadedHeight = 0;
-let blockSet = new Set();
 let foundAddressSet = new Set();
 let reloadFoundAddressSet = new Set();
-
-let Block;
-let Account;
-let Namespace;
-let Transaction;
-let AccountRemark;
-let SupernodePayout;
-let MosaicTransaction;
 
 /**
  * init the blocks, transactions, account, namespace, mosaics and supernodes payout
@@ -33,14 +24,6 @@ let init = (server) => {
 			console.info('Error: Please make sure NIS has been started and blocks loading has been finished.');
 			throw new Error('NIS error');
 		}
-		// init mongodb models
-		Block = mongoose.model('Block');
-		Account = mongoose.model('Account');
-		Namespace = mongoose.model('Namespace');
-		Transaction = mongoose.model('Transaction');
-		AccountRemark = mongoose.model('AccountRemark');
-		SupernodePayout = mongoose.model('SupernodePayout');
-		MosaicTransaction = mongoose.model('MosaicTransaction');
 		nis.blockHeight((height) => {
 			//query max block height from NIS
 			let heightNIS = height.height;
@@ -48,9 +31,7 @@ let init = (server) => {
 			if(heightNIS<1) 
 				return;
 			//query max block height from DB
-			Transaction.findOne().sort('-height').exec((err, doc) => {
-				if(err) 
-					return log('<error> query max height from DB: ' + err);
+			dbUtil.findOneTransactionSortHeight(doc => {
 				let heightDB = 0;
 				if(doc && doc.height) 
 					heightDB = doc.height;
@@ -126,13 +107,8 @@ let loadNemesisBlock = () => {
 			updateAddress(cosignatoryAccount,1 );
 			updateAddress(otherAccount, 1);
 		}
-		//insert the transaction into DB
-		Transaction.insertMany(saveTxArr, err => {
-			if(err)
-				log('<error> Block [1] create TXs all [' + saveTxArr.length + '] : ' + err);
-			else
-				log('<success> Block [1] create TXs all [' + saveTxArr.length + ']');
-		});
+		//save the transaction into DB by batch
+		dbUtil.saveTransactionByBatch(saveTxArr);
 	});
 };
 
@@ -193,52 +169,46 @@ let loadBlocks = (height, callback) => {
 				// check if aggregate  modification transaction
 				if((tx.type==4100 && tx.otherTrans && tx.otherTrans.type==4097) || tx.type==4097)
 					saveTx.aggregateFlag = 1;
-				//insert the transaction into DB
-				new Transaction(saveTx).save(err => {
-					if(!err) {
-						log('<success> Block ['+block.height+'] found TX [' + (index+1) + ']');
-						//save namespace
-						saveNamespace(saveTx, tx);
-						//update mosaics amount in specific namespace
-						updateNamespaceMosaics(saveTx, tx);
-						// save supernode payout
-						saveSupernodePayout(saveTx, tx);
-						// save poll
-						savePoll(saveTx, tx);
-						//update the account info which is in DB
-						let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
-						let recipient = tx.recipient;
-						let cosignatoryAccount = tx.cosignatoryAccount?address.publicKeyToAddress(tx.cosignatoryAccount):null;
-						let otherAccount = tx.otherAccount?address.publicKeyToAddress(tx.otherAccount):null;
-						updateAddress(signer, block.height);
-						updateAddress(recipient, block.height);
-						updateAddress(cosignatoryAccount, block.height);
-						updateAddress(otherAccount, block.height);
-						// update the account which is multisig transaction
-						if(tx.signatures){
-							for(let i=0;i<tx.signatures.length;i++){
-								let signatureItem = tx.signatures[i];
-								let signatureOtherAccount = signatureItem.otherAccount;
-								let signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
-								updateAddress(signatureOtherAccount, block.height);
-								updateAddress(signatureSigner, block.height);
-							}
-						}
-						// update the account which is multisig transaction
-						if(tx.otherTrans){
-							let otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
-							let otherTransRecipient = tx.otherTrans.recipient;
-							updateAddress(otherTransSigner, block.height);
-							updateAddress(otherTransRecipient, block.height);
-						}
+				//save namespace
+				saveNamespace(saveTx, tx);
+				//update mosaics amount in specific namespace
+				updateNamespaceMosaics(saveTx, tx);
+				// save supernode payout
+				saveSupernodePayout(saveTx, tx);
+				// save poll
+				savePoll(saveTx, tx);
+				//update the account info which is in DB
+				let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
+				let recipient = tx.recipient;
+				let cosignatoryAccount = tx.cosignatoryAccount?address.publicKeyToAddress(tx.cosignatoryAccount):null;
+				let otherAccount = tx.otherAccount?address.publicKeyToAddress(tx.otherAccount):null;
+				updateAddress(signer, block.height);
+				updateAddress(recipient, block.height);
+				updateAddress(cosignatoryAccount, block.height);
+				updateAddress(otherAccount, block.height);
+				// update the account which is multisig transaction
+				if(tx.signatures){
+					for(let i=0;i<tx.signatures.length;i++){
+						let signatureItem = tx.signatures[i];
+						let signatureOtherAccount = signatureItem.otherAccount;
+						let signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
+						updateAddress(signatureOtherAccount, block.height);
+						updateAddress(signatureSigner, block.height);
 					}
-				});
+				}
+				// update the account which is multisig transaction
+				if(tx.otherTrans){
+					let otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
+					let otherTransRecipient = tx.otherTrans.recipient;
+					updateAddress(otherTransSigner, block.height);
+					updateAddress(otherTransRecipient, block.height);
+				}
+				//insert the transaction into DB
+				dbUtil.saveTransaction(saveTx, index+1);
 			});
-			//log('Start to load Block ['+block.height+']');
 			//recurse to query the next 10 blocks
-			if(data.data.length==blockIndex+1){
+			if(data.data.length==blockIndex+1)
 				loadBlocks(block.height, callback);
-			}
 		});
 	});
 };
@@ -265,6 +235,7 @@ let updateAddress = (address, height) => {
 		updateAccount.lastBlock = 0;
 		updateAccount.fees = 0;
 		updateAccount.timeStamp = 0;
+		updateAccount.height = height;
 		//query account harvest info from NIS
 		nis.harvestByAddress(address, null, [], data => {
 			let fees = 0;
@@ -278,36 +249,26 @@ let updateAddress = (address, height) => {
 			nis.accountTransferRecord(address, data => {
 				if(data && data.data && data.data.length>0)
 					 updateAccount.timeStamp = data.data[0].transaction.timeStamp;
-				//save or update account
-				Account.findOne({address: address}, (err, addr) => {
-					if(err){
-						log('<error> Block [' + height + '] query ['+address+'] before saving/updating: ' + err);
-						return;
-					}
+				dbUtil.findOneAccount(address, addr => {
 					if(addr){ //update
 						let update = {
+							address: address,
 							publicKey: updateAccount.publicKey, 
 							balance: updateAccount.balance, 
 							blocks: updateAccount.blocks, 
 							label: updateAccount.label,
 							lastBlock: updateAccount.lastBlock,
 							fees: updateAccount.fees,
-							timeStamp: updateAccount.timeStamp
+							timeStamp: updateAccount.timeStamp,
+							height: height
 						}
-						Account.update({address: address}, update, (err, doc) => {
-							if(err) log('<error> Block [' + height + '] update ['+address+']: ' + err);
-							else log('<success> Block [' + height + '] update ['+address+']');
-						});
+						dbUtil.updateAccount(update);
 					} else { //save
 						//query the account remark and save the entity
-						AccountRemark.findOne({address: updateAccount.address}).exec((err, remark) => {
-							if(!err && remark){
+						dbUtil.findOneAccountRemark(updateAccount, remark => {
+							if(remark)
 								updateAccount.remark = remark.remark;
-							}
-							new Account(updateAccount).save((err, doc) => {
-								if(err) log('<error> Block [' + height + '] save ['+address+']: ' + err);
-								else log('<success> Block [' + height + '] save ['+address+']');
-							});
+							dbUtil.saveAccount(updateAccount);
 						});
 					}
 				});
@@ -374,19 +335,10 @@ let reloadAccountInfo = (height) => {
  * save block info
  */
 let saveBlock = (block) => {
-	if(lastLoadedHeight==0 || !blockSet.has(block.height)){
-		let saveBlock = {};
-		saveBlock.height = block.height;
-		saveBlock.timeStamp = block.timeStamp;
-		new Block(saveBlock).save(err => {
-			if(!err){
-				if(lastLoadedHeight!=0)
-					blockSet.add(block.height);
-			} else {
-				console.info("---" + err);
-			}
-		});
-	}
+	let saveBlock = {};
+	saveBlock.height = block.height;
+	saveBlock.timeStamp = block.timeStamp;
+	dbUtil.saveBlock(saveBlock);
 };
 
 /**
@@ -414,15 +366,9 @@ let saveMosaicTX = (saveTx, mosaics) => {
 		height = saveTx.height;
 		mosaicTxArr.push(mosaicTx);
 	}
-	if(mosaicTxArr.length>0){
-		// insert mosaics into DB by batch
-		MosaicTransaction.insertMany(mosaicTxArr, err => {
-			if(err)
-				log('<error> Block [' + height + '] found TX(M) count [' + mosaicTxArr.length + '] : ' + err);
-			else
-				log('<success> Block [' + height + '] found TX(M) count [' + mosaicTxArr.length + ']');
-		});
-	}
+	// insert mosaics into DB by batch
+	if(mosaicTxArr.length>0)
+		dbUtil.saveMosaicTransactionByBatch(mosaicTxArr, height);
 };
 
 /**
@@ -432,20 +378,30 @@ let saveNamespace = (saveTx, tx) => {
 	if(!tx.type || tx.type!=8193)
 		return;
 	let saveNamespace = {};
-	if(!tx.parent || tx.parent=="null")
-		saveNamespace.name = tx.newPart;
-	else 
-		saveNamespace.name = tx.parent + '.' + tx.newPart;
-	saveNamespace.mosaics = 0;
-	saveNamespace.timeStamp = saveTx.timeStamp;
-	saveNamespace.height = saveTx.height;
 	saveNamespace.creator = saveTx.sender;
-	new Namespace(saveNamespace).save(err => {
-		if(err)
-			log('<error> Block [' + saveTx.height + '] found NS [' + saveNamespace.name + '] : ' + err);
-		else
-			log('<success> Block [' + saveTx.height + '] found NS [' + saveNamespace.name + ']');
-	});
+	saveNamespace.height = saveTx.height;
+	saveNamespace.timeStamp = saveTx.timeStamp;
+	saveNamespace.mosaics = 0;
+	saveNamespace.expiredTime = timeUtil.getYearAddOneTimeInNem(saveTx.timeStamp);
+	if(!tx.parent || tx.parent=="null"){ // root namespace
+		saveNamespace.namespace = tx.newPart;
+		// check if renew
+		dbUtil.findOneNamespace(saveNamespace, doc => {
+			if(!doc){ // new namespace
+				dbUtil.saveNamespace(saveNamespace);
+			} else { // renew namespace
+				let expiredTime = timeUtil.getYearAddOneTimeInNem(doc.expiredTime);
+				dbUtil.updateNamespaceExpiredTime(saveNamespace, expiredTime);
+			}
+		});
+	} else { // sub namespace
+		saveNamespace.name = tx.parent + '.' + tx.newPart;
+		saveNamespace.rootNamespace = tx.parent.substring(0, tx.parent.indexOf("."));
+		// save sub namespace
+		dbUtil.saveNamespace(saveNamespace);
+		// update parent namespace
+		dbUtil.updateParentNamespace(saveNamespace, tx.parent);
+	}
 };
 
 /**
@@ -455,10 +411,7 @@ let updateNamespaceMosaics = (saveTx, tx) => {
 	if(!tx.type || tx.type!=16385 || !tx.mosaicDefinition || !tx.mosaicDefinition.id)
 		return;
 	let namespace = tx.mosaicDefinition.id.namespaceId;
-	Namespace.update({name: namespace}, {$inc: {mosaics: 1}}, (err, doc) => {
-		if(err) 
-			log('<error> Block [' + saveTx.height + '] update NS ['+namespace+'] mosaic : ' + err);
-	});
+	dbUtil.updateNamespaceMosaics(namespace);
 };
 
 /**
@@ -478,10 +431,7 @@ let saveSupernodePayout = (saveTx, tx) => {
 		payout.amount = saveTx.amount;
 		payout.fee = saveTx.fee;
 		payout.timeStamp = saveTx.timeStamp;
-		new SupernodePayout(payout).save(err => {
-			if(err)
-				console.error(err);
-		});
+		dbUtil.saveSupernodePayout(payout);
 	}
 };
 

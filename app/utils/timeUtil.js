@@ -1,5 +1,3 @@
-const NEM_EPOCH = Date.UTC(2015, 2, 29, 0, 6, 25, 0);
-
 let getTimeInNem = () => {
 	let nowTime = new Date().getTime();
 	return Math.round((nowTime - NEM_EPOCH)/1000);
@@ -23,10 +21,17 @@ let convertToNemTime = (time) => {
 	return Math.round((time - NEM_EPOCH)/1000);
 }
 
+let getYearAddOneTimeInNem = (timeStamp) => {
+	let time = new Date(timeStamp*1000 + NEM_EPOCH);
+	time.setFullYear(time.getFullYear()+1);
+	return (time.getTime()-NEM_EPOCH)/1000;
+}
+
 module.exports = {
 	getTimeInNem,
 	getTimeBeforeOneDayInNem,
 	getTimeBeforeOneMonthInNem,
 	getTimeInReal,
-	convertToNemTime
+	convertToNemTime,
+	getYearAddOneTimeInNem
 }
