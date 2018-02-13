@@ -10,6 +10,7 @@ import blockWS from '../websocket/blockWS';
 import pollController from '../controllers/poll.server.controller';
 
 let lastLoadedHeight = 0;
+let blockSet = new Set();
 let foundAddressSet = new Set();
 let reloadFoundAddressSet = new Set();
 
@@ -165,19 +166,25 @@ let loadBlocks = (height, callback) => {
 						saveTx.mosaicTransferFlag = 1;
 						saveMosaicTX(saveTx, tx.otherTrans.mosaics);
 					}
+					// save namespace
+					saveNamespace(saveTx, tx.otherTrans);
+					// save or update mosaic
+					saveOrUpdateMosaic(saveTx, tx.otherTrans);
+					// save poll
+					savePoll(saveTx, tx.otherTrans);
 				}
 				// check if aggregate  modification transaction
 				if((tx.type==4100 && tx.otherTrans && tx.otherTrans.type==4097) || tx.type==4097)
 					saveTx.aggregateFlag = 1;
-				//save namespace
+				// save namespace
 				saveNamespace(saveTx, tx);
-				//update mosaics amount in specific namespace
-				updateNamespaceMosaics(saveTx, tx);
+				// save or update mosaic
+				saveOrUpdateMosaic(saveTx, tx);
 				// save supernode payout
 				saveSupernodePayout(saveTx, tx);
 				// save poll
 				savePoll(saveTx, tx);
-				//update the account info which is in DB
+				// update the account info which is in DB
 				let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
 				let recipient = tx.recipient;
 				let cosignatoryAccount = tx.cosignatoryAccount?address.publicKeyToAddress(tx.cosignatoryAccount):null;
@@ -335,6 +342,9 @@ let reloadAccountInfo = (height) => {
  * save block info
  */
 let saveBlock = (block) => {
+	if(blockSet.has(block.height)){
+		return;
+	}
 	let saveBlock = {};
 	saveBlock.height = block.height;
 	saveBlock.timeStamp = block.timeStamp;
@@ -380,7 +390,7 @@ let saveNamespace = (saveTx, tx) => {
 	let saveNamespace = {};
 	saveNamespace.creator = saveTx.sender;
 	saveNamespace.height = saveTx.height;
-	saveNamespace.timeStamp = saveTx.timeStamp;
+	saveNamespace.timeStamp = tx.timeStamp;
 	saveNamespace.mosaics = 0;
 	saveNamespace.expiredTime = timeUtil.getYearAddOneTimeInNem(saveTx.timeStamp);
 	if(!tx.parent || tx.parent=="null"){ // root namespace
@@ -405,20 +415,68 @@ let saveNamespace = (saveTx, tx) => {
 };
 
 /**
- * update namespace mosaics
+ * save or update mosaic
  */
-let updateNamespaceMosaics = (saveTx, tx) => {
-	if(!tx.type || tx.type!=16385 || !tx.mosaicDefinition || !tx.mosaicDefinition.id)
-		return;
-	let namespace = tx.mosaicDefinition.id.namespaceId;
-	dbUtil.updateNamespaceMosaics(namespace);
+let saveOrUpdateMosaic = (saveTx, tx) => {
+	if(tx.type && tx.type==16385 && tx.mosaicDefinition && tx.mosaicDefinition.id){ // save
+		let mosaic = {};
+		mosaic.mosaicName = tx.mosaicDefinition.id.name;
+		mosaic.namespace = tx.mosaicDefinition.id.namespaceId;
+		mosaic.description = tx.mosaicDefinition.description;
+		mosaic.timeStamp = tx.timeStamp;
+		mosaic.creator = address.publicKeyToAddress(tx.mosaicDefinition.creator);
+		mosaic.height = saveTx.height;
+		if(!tx.mosaicDefinition.properties || tx.mosaicDefinition.properties.length==0)
+			return;
+		for(let i in tx.mosaicDefinition.properties){
+			let property = tx.mosaicDefinition.properties[i];
+			if(!property || !property.name || !property.value)
+				continue;
+			// mosaic properties
+			if(property.name=="divisibility")
+				mosaic.divisibility = property.value;
+			if(property.name=="initialSupply")
+				mosaic.initialSupply = property.value;
+			if(property.name=="supplyMutable")
+				mosaic.supplyMutable = property.value;
+			if(property.name=="transferable")
+				mosaic.transferable = property.value;
+		}
+		// mosaic levy
+		if(tx.mosaicDefinition.levy){
+			let levy = tx.mosaicDefinition.levy;
+			mosaic.levyType = levy.type;
+			mosaic.recipient = levy.recipient;
+			mosaic.fee = levy.fee;
+			if(levy.mosaicId && levy.mosaicId.namespaceId && levy.mosaicId.name){
+				mosaic.levyNamespace = levy.mosaicId.namespaceId;
+				mosaic.levyMosaic = levy.mosaicId.name;
+			}
+		}
+		dbUtil.saveMosaic(mosaic);
+		// update namespace mosaics
+		dbUtil.updateNamespaceMosaics(mosaic.namespace, saveTx.height);
+	} else if (tx.type && tx.type==16386 && tx.mosaicId && tx.supplyType && tx.delta){ // update mosaic supply
+		let mosaicName = tx.mosaicId.name;
+		let namespace = tx.mosaicId.namespaceId;
+		dbUtil.findOneMosaicByMosaicNameAndNamespace(mosaicName, namespace, doc => {
+			if(!doc)
+				return;
+			let supply = doc.initialSupply;
+			if(tx.supplyType==1) // increase
+				supply += tx.delta;
+			else if(tx.supplyType==1) // decrease
+				supply -= tx.delta;
+			dbUtil.updateMosaicSupply(mosaicName, namespace, supply, saveTx.height);
+		});
+	}
 };
 
 /**
  * save supernode payout
  */
 let saveSupernodePayout = (saveTx, tx) => {
-	if(saveTx.sender!=config.supernodePayoutAccount || !tx.message || !tx.message.type || tx.message.type!=1){
+	if(saveTx.sender!=config.supernodePayoutAccount || !tx.message || !tx.message.type || tx.message.type!=1)
 		return;
 	let message = messageUtil.hexToUtf8(tx.message.payload);
 	let regExp = /Node rewards payout: round (\d+)-(\d+)/;
@@ -450,7 +508,7 @@ let savePoll = (saveTx, tx) => {
  */
 let log = (message) => {
 	console.info(message);
-}
+};
 
 module.exports = {
 	init,

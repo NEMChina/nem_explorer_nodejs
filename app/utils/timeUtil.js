@@ -1,3 +1,5 @@
+const NEM_EPOCH = Date.UTC(2015, 2, 29, 0, 6, 25, 0);
+
 let getTimeInNem = () => {
 	let nowTime = new Date().getTime();
 	return Math.round((nowTime - NEM_EPOCH)/1000);

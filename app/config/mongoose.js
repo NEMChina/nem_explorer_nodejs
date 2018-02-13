@@ -18,5 +18,6 @@ module.exports = () => {
 	require('../models/poll.server.model');
 	require('../models/block.server.model');
 	require('../models/mosaicTransaction.server.model');
+	require('../models/mosaic.server.model');
 	return db;
 }
