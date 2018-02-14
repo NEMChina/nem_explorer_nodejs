@@ -24,7 +24,10 @@ function NavController($scope, $location, $rootScope){
 		$rootScope.navClass41 = path == "/nodelist" ? "active" : "";
 		$rootScope.navClass42 = path == "/supernodepayout" ? "active" : "";
 		$rootScope.navClass43 = path == "/supernodepayout_custom" ? "active" : "";
-		$rootScope.navClass5 = path == "/namespacelist" ? "active" : "";
+		$rootScope.navClass5 = (path == "/mosaictransfer" || path == "/mosaiclist" || path == "/namespacelist") ? "active" : "";
+		$rootScope.navClass51 = path == "/mosaictransfer" ? "active" : "";
+		$rootScope.navClass52 = path == "/mosaiclist" ? "active" : "";
+		$rootScope.navClass53 = path == "/namespacelist" ? "active" : "";
 		$rootScope.navClass6 = (path == "/polllist" || path == "/poll") ? "active" : "";
 	});
 

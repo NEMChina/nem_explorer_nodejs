@@ -414,6 +414,7 @@ let saveNamespace = (saveTx, tx) => {
 	saveNamespace.expiredTime = timeUtil.getYearAddOneTimeInNem(saveTx.timeStamp);
 	if(!tx.parent || tx.parent=="null"){ // root namespace
 		saveNamespace.namespace = tx.newPart;
+		saveNamespace.rootNamespace = tx.newPart;
 		// check if renew
 		dbUtil.findOneNamespace(saveNamespace, doc => {
 			if(!doc){ // new namespace
@@ -425,11 +426,13 @@ let saveNamespace = (saveTx, tx) => {
 		});
 	} else { // sub namespace
 		saveNamespace.namespace = tx.parent + '.' + tx.newPart;
-		saveNamespace.rootNamespace = tx.parent.substring(0, tx.parent.indexOf("."));
+		saveNamespace.rootNamespace = tx.parent;
+		if(tx.parent.indexOf(".")!=-1)
+			saveNamespace.rootNamespace = tx.parent.substring(0, tx.parent.indexOf("."));
 		// save sub namespace
 		dbUtil.saveNamespace(saveNamespace);
-		// update parent namespace
-		dbUtil.updateParentNamespace(saveNamespace, tx.parent);
+		// update root namespace
+		dbUtil.updateRootNamespace(saveNamespace);
 	}
 };
 

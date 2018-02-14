@@ -1,66 +1,28 @@
 <div id="content" class="container" style="padding-bottom:70px;">
-	<div class="form-group pull-right" style="width:160px;">
-    	<label class="checkbox">
-			<input type="checkbox" ng-model="justMosaic" value="1"> Only included Mosaics
-		</label>
-  	</div>
   	<div class="clearfix"></div>
 	<table class="table table-striped table-hover" id="namespaceTable">
 		<thead>
 			<tr>
 				<th>#</th>
-				<th>Namespace</th>
+				<th>Root Namespace</th>
 				<th ng-class="{hidden:1==1}">&nbsp;</th>
 				<th>Creator</th>
 				<th>Timestamp</th>
-				<th>Mosaic</th>
+				<th>ExpiredTime</th>
 			</tr>
 		</thead>
 		<tbody class="well well-large">
-			<tr ng-repeat="namespace in namespaceList" ng-class="{hidden:justMosaic==1&&namespace.mosaicAmount==''}" 
-				ng-click="showMosaicList($index, $event, namespace.name, namespace.mosaicAmount)">
-				<td class="{{namespace.class}}" ng-bind="$index+1"></td>
-				<td class="{{namespace.class}}" ng-bind="namespace.name"></td>
-				<td class="{{namespace.class}}" ng-bind="namespace.mosaicNames" ng-class="{hidden:1==1}"></td>
-				<td class="{{namespace.class}}"><a href="#s_account?account={{namespace.creator}}" target="_blank"><span class="noDetail" ng-bind="namespace.creator"></span></a></td>
-				<td class="{{namespace.class}}" ng-bind="namespace.timeStamp"></td>
-				<td class="{{namespace.class}}">
-					<span ng-class="{hidden:namespace.mosaicAmount==''}">
-						view (<span ng-bind="namespace.mosaicAmount"></span>)
-					</span>
+			<tr ng-repeat="ns in namespaceList">
+				<td ng-bind="$index+1"></td>
+				<td>
+					<a href="#/namespace?ns={{ns.namespace}}"><span ng-bind="ns.namespace"></span></a>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 				</td>
+				<td ng-bind="ns.subNamespaces" ng-class="{hidden:1==1}"></td>
+				<td><a href="#s_account?account={{ns.creator}}" target="_blank"><span class="noDetail" ng-bind="ns.creator"></span></a></td>
+				<td ng-bind="ns.timeStamp"></td>
+				<td ng-bind="ns.expiredTime"></td>
 			</tr>
 		</tbody>
 	</table>
-	<div class="modal fade" id="mosaicListModule" tabindex="-1" role="dialog">
-		<div class="modal-dialog" style="width:800px;">
-	    	<div class="modal-content">
-	        	<div class="modal-header">
-	            	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-	            	<h5 class="modal-title">
-	            		<b>Mosaic List</b>
-	            		( Namespace: <b><span ng-bind="selectedNamespace"></span></b> )
-	            	</h5>
-		         </div>
-		         <div class="modal-body">
-		         	<table class="table table-striped table-hover">
-						<tr>
-							<th>#</th>
-							<th>Mosaic Name</th>
-							<th>Supply</th>
-							<th>Divisibility</th>
-							<th>Transferable</th>
-						</tr>
-		         		<tr ng-repeat="mosaic in mosaicList" style="line-height:20px;">
-							<td ng-bind="mosaic.no"></td>
-							<td ng-bind="mosaic.name"></td>
-							<td ng-bind="mosaic.initialSupply"></td>
-							<td ng-bind="mosaic.divisibility"></td>
-							<td ng-bind="mosaic.transferable"></td>
-						</tr>
-					</table>
-		         </div>
-			</div>
-		</div>
-	</div>
 </div>

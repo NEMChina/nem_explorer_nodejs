@@ -180,18 +180,45 @@ let updateNamespaceMosaics = (namespace, height) => {
 }
 
 /**
- * update parent namespace (update the 'subNamespaces' field)
+ * update root namespace (update the 'subNamespaces' field)
  */
-let updateParentNamespace = (namespace, parent) => {
+let updateRootNamespace = (namespace) => {
 	let Namespace = mongoose.model('Namespace');
-	findOneNamespaceByName(parent, doc => {
+	findOneNamespaceByName(namespace.rootNamespace, doc => {
 		if(!doc)
 			return;
-		let subNamespaces = doc.subNamespaces + namespace.namespace + ";";
-		Namespace.update({namespace: namespace.namespace}, {subNamespaces: subNamespaces}, (err, doc) => {
+		let subNamespaces = doc.subNamespaces?doc.subNamespaces:"";
+		subNamespaces += namespace.namespace + " ";
+		Namespace.update({namespace: doc.namespace}, {subNamespaces: subNamespaces}, (err, doc) => {
 			if(err) 
 				log('<error> Block [' + namespace.height + '] renew NS ['+namespace.namespace+'] : ' + err);
 		});
+	});
+}
+
+/**
+ * get root namspace list
+ */
+let rootNamespaceList = (callback) => {
+	let Namespace = mongoose.model('Namespace');
+	Namespace.find({$where: "this.namespace==this.rootNamespace"}).sort({timeStamp: -1}).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else
+			callback(docs);
+	});
+}
+
+/**
+ * get sub namspace list by root namespace
+ */
+let subNamespaceList = (rootNamespace, callback) => {
+	let Namespace = mongoose.model('Namespace');
+	Namespace.find({rootNamespace: rootNamespace}).sort({timeStamp: -1}).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else
+			callback(docs);
 	});
 }
 
@@ -262,7 +289,9 @@ module.exports = {
 	saveNamespace,
 	updateNamespaceExpiredTime,
 	updateNamespaceMosaics,
-	updateParentNamespace,
+	updateRootNamespace,
+	rootNamespaceList,
+	subNamespaceList,
 	saveMosaic,
 	findOneMosaicByMosaicNameAndNamespace,
 	updateMosaicSupply,

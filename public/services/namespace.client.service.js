@@ -2,8 +2,13 @@ angular.module('webapp').service('NamespaceService', ["$http", NamespaceService]
 
 function NamespaceService($http){
 	return {
-		namespaceList: function(callback) {
-			$http.post("/namespace/list").success(function(data){
+		rootNamespaceList: function(callback) {
+			$http.post("/namespace/rootNamespaceList").success(function(data){
+				callback(data);
+			});
+		},
+		subNamespaceList: function(params, callback) {
+			$http.post("/namespace/subNamespaceList", params).success(function(data){
 				callback(data);
 			});
 		},

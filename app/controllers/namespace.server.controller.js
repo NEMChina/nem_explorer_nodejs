@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import dbUtil from '../utils/dbUtil';
 import nis from '../utils/nisRequest';
 
 const LISTSIZE = 100;
@@ -6,29 +7,56 @@ const LISTSIZE = 100;
 module.exports = {
 
 	/**
-     * get namespace list (including the amount of the mosaic)
+     * get root namespace list
      */
-	namespaceList: (req, res, next) => {
+	rootNamespaceList: (req, res, next) => {
 		try {
-			let Namespace = mongoose.model('Namespace');
-			Namespace.find().sort({timeStamp: -1}).exec((err, doc) => {
-				if(err){
-					console.info(err);
-					req.json([]);
-					return;
-				}
+			dbUtil.rootNamespaceList(docs => {
+				let r_namespaceList = [];
+				let r_namespace = null;
+				let preCount = 0;
+				let executedCount = 0;
+				docs.forEach((namespace, namespaceIndex) => {
+					r_namespace = {};
+					r_namespace.namespace = namespace.namespace;
+					r_namespace.creator = namespace.creator;
+					r_namespace.timeStamp = namespace.timeStamp;
+					r_namespace.expiredTime = namespace.expiredTime;
+					r_namespace.subNamespaces = namespace.subNamespaces?namespace.subNamespaces:"";
+					r_namespaceList.push(r_namespace);
+				});
+				res.json(r_namespaceList);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * get sub namespace list by root namespace
+     */
+	subNamespaceList: (req, res, next) => {
+		try {
+			let rootNamespace = req.body.root;
+			// validate rootNamespace
+			let req = /^([a-zA-Z0-9_-])+$/;
+			if(!req.test(rootNamespace)){
+				res.json([]);
+				return;
+			}
+			dbUtil.subNamespaceList(rootNamespace, docs => {
 				let r_namespaceList = [];
 				let r_namespace = null;
 				let preCount = 0;
 				let executedCount = 0;
 				doc.forEach((namespace, namespaceIndex) => {
 					r_namespace = {};
-					r_namespace.name = namespace.name;
+					r_namespace.namespace = namespace.namespace;
+					r_namespace.height = namespace.height;
+					r_namespace.mosaics = namespace.mosaics;
 					r_namespace.creator = namespace.creator;
 					r_namespace.timeStamp = namespace.timeStamp;
-					r_namespace.mosaicAmount = namespace.mosaics;
-					r_namespace.mosaicNames = namespace.mosaicNames;
-					r_namespace.mosaicList = [];
+					r_namespace.expiredTime = namespace.expiredTime;
 					r_namespaceList.push(r_namespace);
 				});
 				res.json(r_namespaceList);

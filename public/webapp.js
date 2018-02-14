@@ -38,6 +38,14 @@ webapp.config(function($routeProvider) {
             templateUrl: 'blocklist.html',
             controller: 'BlockController'
         })
+        .when('/mosaictransfer', {
+            templateUrl: 'mosaictransfer.html',
+            controller: 'MosaicController'
+        })
+        .when('/mosaiclist', {
+            templateUrl: 'mosaiclist.html',
+            controller: 'MosicController'
+        })
         .when('/namespacelist', {
             templateUrl: 'namespacelist.html',
             controller: 'NamespaceController'
