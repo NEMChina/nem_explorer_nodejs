@@ -440,7 +440,7 @@ let saveNamespace = (saveTx, tx) => {
  * save or update mosaic
  */
 let saveOrUpdateMosaic = (saveTx, tx) => {
-	if(tx.type && tx.type==16385 && tx.mosaicDefinition && tx.mosaicDefinition.id){ // save
+	if(tx.type && tx.type==16385 && tx.mosaicDefinition && tx.mosaicDefinition.id){ // save or update
 		let mosaic = {};
 		mosaic.mosaicName = tx.mosaicDefinition.id.name;
 		mosaic.namespace = tx.mosaicDefinition.id.namespaceId;
@@ -473,7 +473,7 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 			}
 		}
 		// mosaic levy
-		if(tx.mosaicDefinition.levy){
+		if(tx.mosaicDefinition.levy && tx.mosaicDefinition.levy.type){
 			let levy = tx.mosaicDefinition.levy;
 			mosaic.levyType = levy.type;
 			mosaic.recipient = levy.recipient;
@@ -483,9 +483,19 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 				mosaic.levyMosaic = levy.mosaicId.name;
 			}
 		}
-		dbUtil.saveMosaic(mosaic);
-		// update namespace mosaics
-		dbUtil.updateNamespaceMosaics(mosaic.namespace, saveTx.height);
+		dbUtil.findOneMosaic(mosaic.mosaicName, mosaic.namespace, doc => {
+			if(!doc){ // save
+				dbUtil.saveMosaic(mosaic);
+				// update namespace mosaics
+				dbUtil.updateNamespaceMosaics(mosaic.namespace, saveTx.height);
+			} else { // update
+				mosaic.updateHeight = mosaic.height; // update height
+				mosaic.height = doc.height; // create height
+				mosaic.updateTimeStamp = mosaic.timeStamp; // update time
+				mosaic.timeStamp = doc.timeStamp; // create time
+				dbUtil.updateMosaic(mosaic);
+			}
+		});
 	} else if (tx.type && tx.type==16386 && tx.mosaicId && tx.supplyType && tx.delta){ // update mosaic supply
 		let mosaicName = tx.mosaicId.name;
 		let namespace = tx.mosaicId.namespaceId;

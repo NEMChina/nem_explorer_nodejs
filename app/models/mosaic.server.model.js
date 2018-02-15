@@ -13,9 +13,11 @@ let MosaicSchema = new mongoose.Schema({
 	levyNamespace: {type: String},
 	levyMosaic: {type: String},
 	levyFee: {type: Number},
-	timeStamp: {type: Number, required: true},
 	creator: {type: String, required: true},
-	height: {type: Number, required: true}
+	timeStamp: {type: Number, required: true},
+	updateTimeStamp: {type: Number},
+	height: {type: Number, required: true},
+	updateHeight: {type: Number}
 });
 
 //init Mosaic Schema

@@ -19,6 +19,7 @@ module.exports = () => {
 	require('../routes/tx.server.route')(app);
 	require('../routes/account.server.route')(app);
 	require('../routes/node.server.route')(app);
+	require('../routes/mosaic.server.route')(app);
 	require('../routes/namespace.server.route')(app);
 	require('../routes/supernode.server.route')(app);
 	require('../routes/market.server.route')(app);

@@ -173,7 +173,7 @@ let updateNamespaceExpiredTime = (namespace, expiredTime) => {
  */
 let updateNamespaceMosaics = (namespace, height) => {
 	let Namespace = mongoose.model('Namespace');
-	Namespace.update({name: namespace}, {$inc: {mosaics: 1}}, (err, doc) => {
+	Namespace.update({namespace: namespace}, {$inc: {mosaics: 1}}, (err, doc) => {
 		if(err) 
 			log('<error> Block [' + height + '] update NS ['+namespace+'] mosaic : ' + err);
 	});
@@ -239,13 +239,52 @@ let namespaceListbyNamespace = (ns, callback) => {
 /**
  * save mosaic into DB
  */
-let saveMosaic = (mosaic) => {
+let saveMosaic = (m) => {
 	let Mosaic = mongoose.model('Mosaic');
-	new Mosaic(mosaic).save(err => {
+	new Mosaic(m).save(err => {
 		if(err)
-			log('<error> Block [' + mosaic.height + '] save Mosaic [' + mosaic.mosaicName + '] : ' + err);
+			log('<error> Block [' + m.height + '] save Mosaic [' + m.mosaicName + '] : ' + err);
 		else
-			log('<success> Block [' + mosaic.height + '] save Mosaic [' + mosaic.mosaicName + ']');
+			log('<success> Block [' + m.height + '] save Mosaic [' + m.mosaicName + ']');
+	});
+}
+
+/**
+ * update mosaic into DB
+ */
+let updateMosaic = (m) => {
+	let Mosaic = mongoose.model('Mosaic');
+	Mosaic.update({mosaicName:m.mosaicName, namespace:m.namespace}, m, err => {
+		if(err)
+			log('<error> Block [' + m.height + '] save Mosaic [' + m.mosaicName + '] : ' + err);
+		else
+			log('<success> Block [' + m.height + '] save Mosaic [' + m.mosaicName + ']');
+	});
+}
+
+/**
+ * find one mosaic by mosaic name and namespace
+ */
+let findOneMosaic = (mosaic, namespace, callback) => {
+	let Mosaic = mongoose.model('Mosaic');
+	Mosaic.findOne({mosaicName: mosaic, namespace, namespace}).exec((err, doc) => {
+		if(err || !doc)
+			return callback(null);
+		else 
+			return callback(doc);
+	});
+}
+
+/**
+ * get mosaic list by namespace
+ */
+let mosaicListByNamespace = (ns, callback) => {
+	let Mosaic = mongoose.model('Mosaic');
+	Mosaic.find({namespace: ns}).sort({timeStamp: -1}).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else
+			callback(docs);
 	});
 }
 
@@ -307,7 +346,10 @@ module.exports = {
 	rootNamespaceList,
 	subNamespaceList,
 	namespaceListbyNamespace,
+	findOneMosaic,
 	saveMosaic,
+	updateMosaic,
+	mosaicListByNamespace,
 	findOneMosaicByMosaicNameAndNamespace,
 	updateMosaicSupply,
 	saveSupernodePayout
