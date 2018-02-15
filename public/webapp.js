@@ -48,6 +48,10 @@ webapp.config(function($routeProvider) {
         })
         .when('/namespacelist', {
             templateUrl: 'namespacelist.html',
+            controller: 'NamespaceListController'
+        })
+        .when('/namespace', {
+            templateUrl: 'namespace.html',
             controller: 'NamespaceController'
         })
         .when('/nodelist', {

@@ -12,20 +12,10 @@ module.exports = {
 	rootNamespaceList: (req, res, next) => {
 		try {
 			dbUtil.rootNamespaceList(docs => {
-				let r_namespaceList = [];
-				let r_namespace = null;
-				let preCount = 0;
-				let executedCount = 0;
-				docs.forEach((namespace, namespaceIndex) => {
-					r_namespace = {};
-					r_namespace.namespace = namespace.namespace;
-					r_namespace.creator = namespace.creator;
-					r_namespace.timeStamp = namespace.timeStamp;
-					r_namespace.expiredTime = namespace.expiredTime;
-					r_namespace.subNamespaces = namespace.subNamespaces?namespace.subNamespaces:"";
-					r_namespaceList.push(r_namespace);
+				docs.forEach((item, index) => {
+					item.subNamespaces = item.subNamespaces?item.subNamespaces:"";
 				});
-				res.json(r_namespaceList);
+				res.json(docs);
 			});
 		} catch (e) {
 			console.error(e);
@@ -39,27 +29,33 @@ module.exports = {
 		try {
 			let rootNamespace = req.body.root;
 			// validate rootNamespace
-			let req = /^([a-zA-Z0-9_-])+$/;
-			if(!req.test(rootNamespace)){
+			let reg = /^([a-zA-Z0-9_-])+$/;
+			if(!reg.test(rootNamespace)){
 				res.json([]);
 				return;
 			}
 			dbUtil.subNamespaceList(rootNamespace, docs => {
-				let r_namespaceList = [];
-				let r_namespace = null;
-				let preCount = 0;
-				let executedCount = 0;
-				doc.forEach((namespace, namespaceIndex) => {
-					r_namespace = {};
-					r_namespace.namespace = namespace.namespace;
-					r_namespace.height = namespace.height;
-					r_namespace.mosaics = namespace.mosaics;
-					r_namespace.creator = namespace.creator;
-					r_namespace.timeStamp = namespace.timeStamp;
-					r_namespace.expiredTime = namespace.expiredTime;
-					r_namespaceList.push(r_namespace);
-				});
-				res.json(r_namespaceList);
+				res.json(docs);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * get namespace and sub namespace list
+     */
+	namespaceListbyNamespace: (req, res, next) => {
+		try {
+			let namespace = req.body.ns;
+			// validate rootNamespace
+			let reg = /^[a-zA-Z0-9_-]+((\.)[a-zA-Z0-9_-]+)*$/;
+			if(!reg.test(namespace)){
+				res.json([]);
+				return;
+			}
+			dbUtil.namespaceListbyNamespace(namespace, docs => {
+				res.json(docs);
 			});
 		} catch (e) {
 			console.error(e);

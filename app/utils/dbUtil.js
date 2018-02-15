@@ -223,6 +223,20 @@ let subNamespaceList = (rootNamespace, callback) => {
 }
 
 /**
+ * get namespace and sub namespace list
+ */
+let namespaceListbyNamespace = (ns, callback) => {
+	let Namespace = mongoose.model('Namespace');
+	let regex = "^" + ns;
+	Namespace.find({namespace: {$regex: regex}}).sort({namespace: 1}).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else
+			callback(docs);
+	});
+}
+
+/**
  * save mosaic into DB
  */
 let saveMosaic = (mosaic) => {
@@ -292,6 +306,7 @@ module.exports = {
 	updateRootNamespace,
 	rootNamespaceList,
 	subNamespaceList,
+	namespaceListbyNamespace,
 	saveMosaic,
 	findOneMosaicByMosaicNameAndNamespace,
 	updateMosaicSupply,

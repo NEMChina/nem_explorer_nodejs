@@ -1,0 +1,57 @@
+<div id="content" class="container" style="padding-top:10px;padding-bottom:70px;">
+	<h4>Namespace Detail</h4>
+	<table class="table table-striped table-hover well well-large">
+		<tr>
+			<td width="190">Namespace</td>
+			<td>
+		    	<select class="form-control" ng-model="select" ng-options="item.namespace for item in namespaceList" ng-change="changeSelectOption()" style="width: 400px;height: 30px;font-weight: bold;font-size:16px;"></select>
+			</td>
+		</tr>
+		<tr>
+			<td>Creator</td>
+			<td ng-bind="select.creator"></td>
+		</tr>
+		<tr>
+			<td>CreateTime</td>
+			<td ng-bind="select.timeStamp"></td>
+		</tr>
+		<tr>
+			<td>ExpiredTime</td>
+			<td ng-bind="select.expiredTime"></td>
+		</tr>
+		<tr>
+			<td>Height</td>
+			<td ng-bind="select.height"></td>
+		</tr>
+	</table>
+	<ul class="nav nav-tabs" role="tablist" id="tab" style="margin-top: 40px;" ng-class="{hidden:!select}">
+		<li role="presentation" class="active">
+			<a href="#mosaics" role="tab" data-toggle="tab">
+				<span style="font-weight: bold;">Mosaics</span>
+			</a>
+		</li>
+	</ul>
+	<div class="tab-content" ng-class="{hidden:!select}">
+		<div role="tabpanel" class="tab-pane active" id="mosaics">
+			<table class="table table-striped table-hover">
+				<thead>
+					<tr>
+						<td>#</td>
+						<td>Mosaic</td>
+						<td>Quantity</td>
+					</tr>
+				</thead>
+				<tbody class="well well-large">
+					<tr ng-class="{hidden:mosaicList&&mosaicList.length>0}">
+						<td colspan="3">Nothing to show</td>
+					</tr>
+					<tr ng-repeat="m in mosaicList">
+						<td ng-bind="$index+1"></td>
+						<td ng-bind="m.mosaic"></td>
+						<td ng-bind="m.quantity"></td>
+					</tr>
+				</tboby>
+			</table>
+		</div>
+	</div>
+</div>

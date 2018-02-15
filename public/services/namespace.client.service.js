@@ -12,6 +12,11 @@ function NamespaceService($http){
 				callback(data);
 			});
 		},
+		namespaceListbyNamespace: function(params, callback) {
+			$http.post("/namespace/namespaceListbyNamespace", params).success(function(data){
+				callback(data);
+			});
+		},
 		namespaceListByAddress: function(params, callback) {
 			$http.post("/namespace/namespaceListByAddress", params).success(function(data){
 				callback(data);
