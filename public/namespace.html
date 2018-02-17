@@ -47,7 +47,7 @@
 				</thead>
 				<tbody class="well well-large">
 					<tr ng-class="{hidden:mosaicList&&mosaicList.length>0}">
-						<td colspan="3">Nothing to show</td>
+						<td colspan="5">Nothing to show</td>
 					</tr>
 					<tr ng-repeat="m in mosaicList" style="cursor:pointer;" ng-click="showMosaic($index, $event)" ng-class="{success:selectedMosaicIndex==$index}">
 						<td ng-bind="$index+1"></td>

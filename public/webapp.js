@@ -44,7 +44,7 @@ webapp.config(function($routeProvider) {
         })
         .when('/mosaiclist', {
             templateUrl: 'mosaiclist.html',
-            controller: 'MosicController'
+            controller: 'MosaicListController'
         })
         .when('/namespacelist', {
             templateUrl: 'namespacelist.html',

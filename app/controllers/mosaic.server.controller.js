@@ -17,9 +17,19 @@ module.exports = {
 				return;
 			}
 			dbUtil.mosaicListByNamespace(ns, docs => {
-				// docs.forEach((item, index) => {
-				// 	item.subNamespaces = item.subNamespaces?item.subNamespaces:"";
-				// });
+				res.json(docs);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * get mosaic list
+     */
+	mosaicList: (req, res, next) => {
+		try {
+			dbUtil.mosaicList(docs => {
 				res.json(docs);
 			});
 		} catch (e) {

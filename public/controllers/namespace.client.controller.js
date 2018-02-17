@@ -8,20 +8,6 @@ function NamespaceListController($scope, $timeout, NamespaceService){
 			r.expiredTime = fmtDate(r.expiredTime);
 		});
 		$scope.namespaceList = r_namespaceList;
-		// load dataTable
-		$timeout(function() {
-			$('#namespaceTable').DataTable({
-		    	"paging": false,
-		        "ordering": false,
-		        "searching": true,
-		        "columnDefs": [
-					{"searchable": false, "targets": 0},
-					{"searchable": false, "targets": 3},
-					{"searchable": false, "targets": 4},
-					{"searchable": false, "targets": 5}
-				]
-	    	});
-		}, 500);
 	});
 }
 

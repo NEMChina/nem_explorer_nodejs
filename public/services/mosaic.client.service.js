@@ -6,6 +6,11 @@ function MosaicService($http){
 			$http.post("/mosaic/mosaicListByNamespace", params).success(function(data){
 				callback(data);
 			});
+		},
+		mosaicList: function(callback) {
+			$http.post("/mosaic/mosaicList").success(function(data){
+				callback(data);
+			});
 		}
 	}
 }

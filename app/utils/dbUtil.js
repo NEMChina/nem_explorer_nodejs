@@ -289,6 +289,19 @@ let mosaicListByNamespace = (ns, callback) => {
 }
 
 /**
+ * get mosaic list
+ */
+let mosaicList = (callback) => {
+	let Mosaic = mongoose.model('Mosaic');
+	Mosaic.find().sort({timeStamp: -1}).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else
+			callback(docs);
+	});
+}
+
+/**
  * query one mosaic info by mosaic name and namespace from DB
  */
 let findOneMosaicByMosaicNameAndNamespace = (mosaicName, namespace, callback) => {
@@ -350,6 +363,7 @@ module.exports = {
 	saveMosaic,
 	updateMosaic,
 	mosaicListByNamespace,
+	mosaicList,
 	findOneMosaicByMosaicNameAndNamespace,
 	updateMosaicSupply,
 	saveSupernodePayout

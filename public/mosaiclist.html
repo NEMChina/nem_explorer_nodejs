@@ -1,0 +1,28 @@
+<div id="content" class="container" style="padding-bottom:70px;">
+  	<div class="clearfix"></div>
+	<table class="table table-striped table-hover" id="mosaicTable">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>Mosaic</th>
+				<th>Supply (Divisibility)</th>
+				<th>CreateTime</th>
+			</tr>
+		</thead>
+		<tbody class="well well-large">
+			<tr ng-repeat="m in mosaicList">
+				<td ng-bind="$index+1"></td>
+				<td>
+					<a href="#/mosaic?m={{m.mosaicName}}&ns={{m.namespace}}">
+						<span ng-bind="m.namespace"></span>:<span ng-bind="m.mosaicName"></span>
+					</a>
+				</td>
+				<td>
+					<span ng-bind="m.initialSupply"></span>
+					(<span ng-bind="m.divisibility"></span>)
+				</td>
+				<td ng-bind="m.timeStamp"></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
