@@ -3,6 +3,7 @@ import config from '../config/config';
 import nis from '../utils/nisRequest';
 import address from '../utils/address';
 import message from '../utils/message';
+import dbUtil from '../utils/dbUtil';
 
 const TXLISTSIZE = 10;
 
@@ -107,8 +108,9 @@ module.exports = {
 								}
 								checkApostilleAndMosaicTransferFromTX(tx);
 								tx.height = height;
-								res.json(tx);
-								return;
+								formatMosaicDivisibility(tx, () => {
+									res.json(tx);
+								});
 							}
 						});
 					});
@@ -173,8 +175,9 @@ module.exports = {
 							}
 							checkApostilleAndMosaicTransferFromTX(tx);
 							tx.height = height;
-							res.json(tx);
-							return;
+							formatMosaicDivisibility(tx, () => {
+								res.json(tx);
+							});
 						}
 					});
 				});
@@ -237,4 +240,23 @@ let checkApostilleAndMosaicTransferFromTX = (tx) => {
 	// check if mosaic transafer
 	if(tx.tx.type==257 && tx.tx.mosaics && tx.tx.mosaics.length>0)
 		tx.tx.mosaicTransferFlag = 1;
+};
+
+let formatMosaicDivisibility = (tx, callback) => {
+	if(tx.tx.mosaics){
+		let count = 0;
+		tx.tx.mosaics.forEach(mosaic => {
+			let m = mosaic.mosaicId.name;
+			let ns = mosaic.mosaicId.namespaceId;
+			let div = 1;
+			dbUtil.findOneMosaic(m, ns, doc => {
+				if(doc.divisibility && doc.divisibility>1)
+					div = Math.pow(10, doc.divisibility);
+				mosaic.quantity = mosaic.quantity / div;
+				count++;
+				if(count==tx.tx.mosaics.length)
+					callback();
+			});
+		});
+	}
 };

@@ -40,11 +40,15 @@ webapp.config(function($routeProvider) {
         })
         .when('/mosaictransfer', {
             templateUrl: 'mosaictransfer.html',
-            controller: 'MosaicController'
+            controller: 'MosaicTransferController'
         })
         .when('/mosaiclist', {
             templateUrl: 'mosaiclist.html',
             controller: 'MosaicListController'
+        })
+        .when('/mosaic', {
+            templateUrl: 'mosaic.html',
+            controller: 'MosaicController'
         })
         .when('/namespacelist', {
             templateUrl: 'namespacelist.html',

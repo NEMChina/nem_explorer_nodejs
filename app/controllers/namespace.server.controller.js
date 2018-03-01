@@ -158,6 +158,12 @@ module.exports = {
 				res.json([]);
 				return;
 			}
+			// validate namespace
+			let reg = /^[a-zA-Z0-9_-]+((\.)[a-zA-Z0-9_-]+)*$/;
+			if(!reg.test(namespace)){
+				res.json([]);
+				return;
+			}
 			nis.allMosaicDefinitionListByNamespace(namespace, null, [], data => {
 				if(!data){
 					res.json([]);

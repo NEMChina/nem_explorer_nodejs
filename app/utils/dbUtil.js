@@ -302,6 +302,19 @@ let mosaicList = (callback) => {
 }
 
 /**
+ * get mosaic transfer list
+ */
+let mosaicTransferList = (m, ns, page, limit, callback) => {
+	let MosaicTransaction = mongoose.model('MosaicTransaction');
+	MosaicTransaction.find({mosaic:m, namespace: ns}).sort({timeStamp: -1}).skip((page-1)*limit).limit(limit).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else
+			callback(docs);
+	});
+}
+
+/**
  * query one mosaic info by mosaic name and namespace from DB
  */
 let findOneMosaicByMosaicNameAndNamespace = (mosaicName, namespace, callback) => {
@@ -364,6 +377,7 @@ module.exports = {
 	updateMosaic,
 	mosaicListByNamespace,
 	mosaicList,
+	mosaicTransferList,
 	findOneMosaicByMosaicNameAndNamespace,
 	updateMosaicSupply,
 	saveSupernodePayout
