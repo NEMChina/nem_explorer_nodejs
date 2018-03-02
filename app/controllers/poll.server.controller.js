@@ -50,12 +50,20 @@ module.exports = {
 				} else if(m.indexOf("options:{")==0){
 					m = m.replace("options:", "");
 					let options = jsonUtil.parse(m);
-					if(!options || !options.strings || !options.addresses)
+					if(!options || !options.strings)
 						continue;
-					poll.strings = JSON.stringify(options.strings);
-					poll.addresses = options.addresses;
-					poll.addresses.sort();
-					poll.addresses = JSON.stringify(poll.addresses);
+					if(options.addresses){ // version 1
+						poll.strings = JSON.stringify(options.strings);
+						poll.addresses = options.addresses;
+						poll.addresses.sort();
+						poll.addresses = JSON.stringify(poll.addresses);
+					} else if(options.link){ // version 2
+						poll.addresses = options.strings.map(optionStr => {
+							return options.link[optionStr];
+						});
+						poll.strings = JSON.stringify(options.strings);
+						poll.addresses = JSON.stringify(poll.addresses);
+					}
 				} else if(m.indexOf("whitelist:[")==0 && poll.type==1){
 					m = m.replace("whitelist:", "");
 					let whitelist = jsonUtil.parse(m);
@@ -64,6 +72,15 @@ module.exports = {
 					poll.whitelist = JSON.stringify(whitelist);
 				}
 			}
+			console.info('111111111111111111111111111111111111111111111');
+			console.info('111111111111111111111111111111111111111111111');
+			console.info('111111111111111111111111111111111111111111111');
+			console.info(poll.multiple);
+			console.info(poll.strings);
+			console.info(poll.addresses);
+			console.info('111111111111111111111111111111111111111111111');
+			console.info('111111111111111111111111111111111111111111111');
+			console.info('111111111111111111111111111111111111111111111');
 			if(!reg.test(poll.multiple) || !poll.strings || !poll.addresses)
 				return;
 			// save poll

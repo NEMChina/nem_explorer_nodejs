@@ -110,6 +110,7 @@ module.exports = {
 								tx.height = height;
 								formatMosaicDivisibility(tx, () => {
 									res.json(tx);
+									return;
 								});
 							}
 						});
@@ -177,6 +178,7 @@ module.exports = {
 							tx.height = height;
 							formatMosaicDivisibility(tx, () => {
 								res.json(tx);
+								return;
 							});
 						}
 					});
@@ -243,7 +245,7 @@ let checkApostilleAndMosaicTransferFromTX = (tx) => {
 };
 
 let formatMosaicDivisibility = (tx, callback) => {
-	if(tx.tx.mosaics){
+	if(tx.tx.mosaics && tx.tx.mosaics.length>0){
 		let count = 0;
 		tx.tx.mosaics.forEach(mosaic => {
 			let m = mosaic.mosaicId.name;
@@ -258,5 +260,7 @@ let formatMosaicDivisibility = (tx, callback) => {
 					callback();
 			});
 		});
-	}
+	} else {
+		callback();
+	} 
 };
