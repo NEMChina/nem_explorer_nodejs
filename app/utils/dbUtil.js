@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
 /**
+ *************************************************************************************
+ *** Block ***************************************************************************
+ ************************************************************************************* 
+ */
+
+/**
  * save block into DB
  */
 let saveBlock = (saveBlock) => {
@@ -11,6 +17,25 @@ let saveBlock = (saveBlock) => {
 			log('<error> Block [' + saveBlock.height + '] save block : ' + err);
 	});
 }
+
+/**
+ * find one Block by height
+ */
+let findOneBlock = (height, callback) => {
+	let Block = mongoose.model('Block');
+	Block.findOne({height: height}).exec((err, doc) => {
+		if(err || !doc)
+			callback(null);
+		else 
+			callback(doc);
+	});
+}
+
+/**
+ *************************************************************************************
+ *** Transaction *********************************************************************
+ ************************************************************************************* 
+ */
 
 /**
  * save transaction into DB
@@ -52,6 +77,25 @@ let findOneTransactionSortHeight = (callback) => {
 		}
 	});
 }
+
+/**
+ * find one transaction by Hash
+ */
+let findOneTransaction = (hash, callback) => {
+	let Transaction = mongoose.model('Transaction');
+	Transaction.findOne({hash: hash}).exec((err, doc) => {
+		if(err || !doc)
+			callback(null);
+		else 
+			callback(doc);
+	});
+}
+
+/**
+ *************************************************************************************
+ *** Account *************************************************************************
+ ************************************************************************************* 
+ */
 
 /**
  * query one account info from DB
@@ -106,6 +150,12 @@ let findOneAccountRemark = (account, callback) => {
 }
 
 /**
+ *************************************************************************************
+ *** MosaicTransaction ***************************************************************
+ ************************************************************************************* 
+ */
+
+/**
  * save mosaic transaction into DB by batch
  */
 let saveMosaicTransactionByBatch = (mosaicTxArr, height) => {
@@ -117,6 +167,12 @@ let saveMosaicTransactionByBatch = (mosaicTxArr, height) => {
 			log('<success> Block [' + height + '] found TX(M) count [' + mosaicTxArr.length + ']');
 	});
 }
+
+/**
+ *************************************************************************************
+ *** Namespace ***********************************************************************
+ ************************************************************************************* 
+ */
 
 /**
  * query one namespace info from DB
@@ -237,6 +293,12 @@ let namespaceListbyNamespace = (ns, callback) => {
 }
 
 /**
+ *************************************************************************************
+ *** Mosaic **************************************************************************
+ ************************************************************************************* 
+ */
+
+/**
  * save mosaic into DB
  */
 let saveMosaic = (m) => {
@@ -339,6 +401,12 @@ let updateMosaicSupply = (mosaicName, namespace, supply, height) => {
 }
 
 /**
+ *************************************************************************************
+ *** SupernodePayout **************************************************************************
+ ************************************************************************************* 
+ */
+
+/**
  * save supernode payout into DB
  */
 let saveSupernodePayout = (payout) => {
@@ -355,9 +423,11 @@ let log = (message) => {
 
 module.exports = {
 	saveBlock,
+	findOneBlock,
 	saveTransaction,
 	saveTransactionByBatchNemesis,
 	findOneTransactionSortHeight,
+	findOneTransaction,
 	findOneAccount,
 	saveAccount,
 	updateAccount,

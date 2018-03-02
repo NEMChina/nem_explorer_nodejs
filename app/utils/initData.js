@@ -4,7 +4,6 @@ import address from './address';
 import timeUtil from './timeUtil';
 import messageUtil from './message';
 import schedule from 'node-schedule';
-import cache from '../cache/appCache';
 import config from '../config/config';
 import blockWS from '../websocket/blockWS';
 import transactionWS from '../websocket/transactionWS';
@@ -12,7 +11,6 @@ import pollController from '../controllers/poll.server.controller';
 
 let lastLoadedHeight = 0;
 let foundAddressSet = new Set();
-let reloadFoundAddressSet = new Set();
 
 /**
  * init the blocks, transactions, account, namespace, mosaics and supernodes payout
@@ -57,9 +55,6 @@ let init = (server) => {
 							lastLoadedHeight = data;
 						});
 					});
-					// init cache
-					cache.appCache.set(cache.saveBlockPrefix, new Set());
-					cache.appCache.set(cache.saveTransactionPrefix, new Set());
 					// websocket update transactions
 					transactionWS.transaction((height, callback)=>{
 						loadBlocks(height, callback);
@@ -135,86 +130,91 @@ let loadBlocks = (height, callback) => {
 			txes.forEach((itemTx, index) => {
 				let tx = itemTx.tx;
 				let saveTx = {};
-				saveTx.hash = itemTx.hash;
-				saveTx.height = block.height;
-				saveTx.sender = tx.signer?address.publicKeyToAddress(tx.signer):'';
-				saveTx.recipient = '';
-				saveTx.recipient = tx.recipient?tx.recipient:saveTx.recipient;
-				saveTx.recipient = tx.remoteAccount?address.publicKeyToAddress(tx.remoteAccount):saveTx.recipient;
-				saveTx.amount = tx.amount?tx.amount:0;
-				saveTx.fee = tx.fee?tx.fee:0;
-				saveTx.timeStamp = tx.timeStamp?tx.timeStamp:0;
-				saveTx.deadline = tx.deadline?tx.deadline:0;
-				saveTx.signature = tx.signature?tx.signature:'';
-				saveTx.type = tx.type?tx.type:0;
-				// check if apostille
-				if(tx.type==257 && saveTx.recipient==config.apostilleAccount && tx.message && tx.message.type && tx.message.type==1){
-					let message = messageUtil.hexToUtf8(tx.message.payload);
-					if(message.indexOf('HEX:')==0)
-						saveTx.apostilleFlag = 1;
-				}
-				// check if mosaic transafer
-				if(tx.type==257 && tx.mosaics && tx.mosaics.length>0){
-					saveTx.mosaicTransferFlag = 1;
-					saveMosaicTX(saveTx, tx.mosaics);
-				}
-				// check if multisig transaction
-				if(tx.type==4100 && tx.signatures && tx.otherTrans){
-					saveTx.amount = tx.otherTrans.amount?tx.otherTrans.amount:0;
-					saveTx.fee = tx.otherTrans.fee?tx.otherTrans.fee:0;
-					saveTx.sender = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):"";
-					saveTx.recipient = tx.otherTrans.recipient;
+				// check transaction exist
+				checkTransactionExist(itemTx.hash, flag => {
+					if(flag)
+						return;
+					saveTx.hash = itemTx.hash;
+					saveTx.height = block.height;
+					saveTx.sender = tx.signer?address.publicKeyToAddress(tx.signer):'';
+					saveTx.recipient = '';
+					saveTx.recipient = tx.recipient?tx.recipient:saveTx.recipient;
+					saveTx.recipient = tx.remoteAccount?address.publicKeyToAddress(tx.remoteAccount):saveTx.recipient;
+					saveTx.amount = tx.amount?tx.amount:0;
+					saveTx.fee = tx.fee?tx.fee:0;
+					saveTx.timeStamp = tx.timeStamp?tx.timeStamp:0;
+					saveTx.deadline = tx.deadline?tx.deadline:0;
+					saveTx.signature = tx.signature?tx.signature:'';
+					saveTx.type = tx.type?tx.type:0;
+					// check if apostille
+					if(tx.type==257 && saveTx.recipient==config.apostilleAccount && tx.message && tx.message.type && tx.message.type==1){
+						let message = messageUtil.hexToUtf8(tx.message.payload);
+						if(message.indexOf('HEX:')==0)
+							saveTx.apostilleFlag = 1;
+					}
 					// check if mosaic transafer
-					if(tx.otherTrans.type==257 && tx.otherTrans.mosaics && tx.otherTrans.mosaics.length>0){
+					if(tx.type==257 && tx.mosaics && tx.mosaics.length>0){
 						saveTx.mosaicTransferFlag = 1;
-						saveMosaicTX(saveTx, tx.otherTrans.mosaics);
+						saveMosaicTX(saveTx, tx.mosaics);
 					}
+					// check if multisig transaction
+					if(tx.type==4100 && tx.signatures && tx.otherTrans){
+						saveTx.amount = tx.otherTrans.amount?tx.otherTrans.amount:0;
+						saveTx.fee = tx.otherTrans.fee?tx.otherTrans.fee:0;
+						saveTx.sender = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):"";
+						saveTx.recipient = tx.otherTrans.recipient;
+						// check if mosaic transafer
+						if(tx.otherTrans.type==257 && tx.otherTrans.mosaics && tx.otherTrans.mosaics.length>0){
+							saveTx.mosaicTransferFlag = 1;
+							saveMosaicTX(saveTx, tx.otherTrans.mosaics);
+						}
+						// save namespace
+						saveNamespace(saveTx, tx.otherTrans);
+						// save or update mosaic
+						saveOrUpdateMosaic(saveTx, tx.otherTrans);
+						// save poll
+						savePoll(saveTx, tx.otherTrans);
+					}
+					// check if aggregate  modification transaction
+					if((tx.type==4100 && tx.otherTrans && tx.otherTrans.type==4097) || tx.type==4097)
+						saveTx.aggregateFlag = 1;
 					// save namespace
-					saveNamespace(saveTx, tx.otherTrans);
+					saveNamespace(saveTx, tx);
 					// save or update mosaic
-					saveOrUpdateMosaic(saveTx, tx.otherTrans);
+					saveOrUpdateMosaic(saveTx, tx);
+					// save supernode payout
+					saveSupernodePayout(saveTx, tx);
 					// save poll
-					savePoll(saveTx, tx.otherTrans);
-				}
-				// check if aggregate  modification transaction
-				if((tx.type==4100 && tx.otherTrans && tx.otherTrans.type==4097) || tx.type==4097)
-					saveTx.aggregateFlag = 1;
-				// save namespace
-				saveNamespace(saveTx, tx);
-				// save or update mosaic
-				saveOrUpdateMosaic(saveTx, tx);
-				// save supernode payout
-				saveSupernodePayout(saveTx, tx);
-				// save poll
-				savePoll(saveTx, tx);
-				// update the account info which is in DB
-				let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
-				let recipient = tx.recipient;
-				let cosignatoryAccount = tx.cosignatoryAccount?address.publicKeyToAddress(tx.cosignatoryAccount):null;
-				let otherAccount = tx.otherAccount?address.publicKeyToAddress(tx.otherAccount):null;
-				updateAddress(signer, block.height);
-				updateAddress(recipient, block.height);
-				updateAddress(cosignatoryAccount, block.height);
-				updateAddress(otherAccount, block.height);
-				// update the account which is multisig transaction
-				if(tx.signatures){
-					for(let i=0;i<tx.signatures.length;i++){
-						let signatureItem = tx.signatures[i];
-						let signatureOtherAccount = signatureItem.otherAccount;
-						let signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
-						updateAddress(signatureOtherAccount, block.height);
-						updateAddress(signatureSigner, block.height);
+					savePoll(saveTx, tx);
+					// update the account info which is in DB
+					let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
+					let recipient = tx.recipient;
+					let cosignatoryAccount = tx.cosignatoryAccount?address.publicKeyToAddress(tx.cosignatoryAccount):null;
+					let otherAccount = tx.otherAccount?address.publicKeyToAddress(tx.otherAccount):null;
+					updateAddress(signer, block.height);
+					updateAddress(recipient, block.height);
+					updateAddress(cosignatoryAccount, block.height);
+					updateAddress(otherAccount, block.height);
+					// update the account which is multisig transaction
+					if(tx.signatures){
+						for(let i=0;i<tx.signatures.length;i++){
+							let signatureItem = tx.signatures[i];
+							let signatureOtherAccount = signatureItem.otherAccount;
+							let signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
+							updateAddress(signatureOtherAccount, block.height);
+							updateAddress(signatureSigner, block.height);
+						}
 					}
-				}
-				// update the account which is multisig transaction
-				if(tx.otherTrans){
-					let otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
-					let otherTransRecipient = tx.otherTrans.recipient;
-					updateAddress(otherTransSigner, block.height);
-					updateAddress(otherTransRecipient, block.height);
-				}
-				//insert the transaction into DB
-				saveTransaction(saveTx, index+1);
+					// update the account which is multisig transaction
+					if(tx.otherTrans){
+						let otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
+						let otherTransRecipient = tx.otherTrans.recipient;
+						updateAddress(otherTransSigner, block.height);
+						updateAddress(otherTransRecipient, block.height);
+					}
+					//insert the transaction into DB
+					saveTransaction(saveTx, index+1);
+				});
 			});
 			//recurse to query the next 10 blocks
 			if(data.data.length==blockIndex+1)
@@ -288,86 +288,37 @@ let updateAddress = (address, height) => {
 };
 
 /**
- * reload account info (block height > 1)
- */
-let reloadAccountInfo = (height) => {
-	let params = JSON.stringify({"height": height});
-	nis.blockList(params, data => {
-		if(!data || !data.data || data.data.length==0){
-			reloadFoundAddressSet = new Set();
-			return;
-		}
-		data.data.forEach((item, blockIndex) => {
-			let block = item.block;
-			let txes = item.txes;
-			//update the account info which is in DB
-			if(block.signer)
-				updateAddress(address.publicKeyToAddress(block.signer), block.height);
-			txes.forEach((itemTx, index) => {
-				let tx = itemTx.tx;
-				//update the account info which is in DB
-				let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
-				let recipient = tx.recipient;
-				let cosignatoryAccount = tx.cosignatoryAccount?address.publicKeyToAddress(tx.cosignatoryAccount):null;
-				let otherAccount = tx.otherAccount?address.publicKeyToAddress(tx.otherAccount):null;
-				updateAddress(signer, block.height);
-				updateAddress(recipient, block.height);
-				updateAddress(cosignatoryAccount, block.height);
-				updateAddress(otherAccount, block.height);
-				// update the account which is multisig transaction
-				if(tx.signatures){
-					for(let i=0;i<tx.signatures.length;i++){
-						let signatureItem = tx.signatures[i];
-						let signatureOtherAccount = signatureItem.otherAccount;
-						let signatureSigner = signatureItem.signer?address.publicKeyToAddress(signatureItem.signer):null;
-						updateAddress(signatureOtherAccount, block.height);
-						updateAddress(signatureSigner, block.height);
-					}
-				}
-				// update the account which is multisig transaction
-				if(tx.otherTrans){
-					let otherTransSigner = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):null;
-					let otherTransRecipient = tx.otherTrans.recipient;
-					updateAddress(otherTransSigner, block.height);
-					updateAddress(otherTransRecipient, block.height);
-				}
-			});
-			//log('Start to load Block ['+block.height+']');
-			//recurse to query the next 10 blocks
-			if(data.data.length==blockIndex+1){
-				reloadAccountInfo(block.height);
-			}
-		});
-	});
-};
-
-/**
  * save block info
  */
 let saveBlock = (block) => {
-	let setCache = cache.appCache.get(cache.saveBlockPrefix);
-	if(!setCache || setCache.has(block.height))
-		return;
-	let saveBlock = {};
-	saveBlock.height = block.height;
-	saveBlock.timeStamp = block.timeStamp;
-	dbUtil.saveBlock(saveBlock);
-	// update cache
-	setCache.add(block.height);
-	cache.appCache.set(cache.saveBlockPrefix, setCache);
+	dbUtil.findOneBlock(block.height, doc => {
+		if(doc)
+			return;
+		let saveBlock = {};
+		saveBlock.height = block.height;
+		saveBlock.timeStamp = block.timeStamp;
+		dbUtil.saveBlock(saveBlock);
+	});
+	
 };
 
 /**
  * save Transaction info
  */
 let saveTransaction = (saveTx, index) => {
-	let setCache = cache.appCache.get(cache.saveTransactionPrefix);
-	if(!setCache || setCache.has(saveTx.height + "_" + index))
-		return;
 	dbUtil.saveTransaction(saveTx, index);
-	// update cache
-	setCache.add(saveTx.height + "_" + index);
-	cache.appCache.set(cache.saveTransactionPrefix, setCache);
+};
+
+/**
+ * check transaction exist in DB
+ */
+let checkTransactionExist = (hash, callback) => {
+	dbUtil.findOneTransaction(hash, doc => {
+		if(doc)
+			callback(true);
+		else 
+			callback(false);
+	});
 };
 
 /**
@@ -552,6 +503,5 @@ let log = (message) => {
 
 module.exports = {
 	init,
-	loadBlocks,
-	reloadAccountInfo
+	loadBlocks
 }
