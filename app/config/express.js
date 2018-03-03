@@ -66,6 +66,7 @@ module.exports = () => {
 	clientWS.initUnconfirmedTransactionWS(server);
 	clientWS.initTransactionWS(server);
 	clientWS.initBlockWS(server);
+	clientWS.initMosaicWS(server);
 	
 	server.listen(config.port, function(){
 		console.log('app started, listening on port:', config.port);

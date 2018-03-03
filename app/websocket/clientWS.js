@@ -5,6 +5,7 @@ import schedule from 'node-schedule';
 let unconfirmedConns = new Set();
 let transactionConns = new Set();
 let blockConns = new Set();
+let mosaicConns = new Set();
 
 let initUnconfirmedTransactionWS = (server, callback) => {
 	let socket = SockJS.createServer();
@@ -45,6 +46,18 @@ let initBlockWS = (server, callback) => {
 	socket.installHandlers(server, {prefix:'/ws/block'});
 };
 
+let initMosaicWS = (server, callback) => {
+	let socket = SockJS.createServer();
+	socket.on('connection', function(conn) {
+		if(!conn)
+			return;
+		mosaicConns.add(conn);
+		conn.on('close', function() {
+			mosaicConns.delete(conn);
+		});
+	});
+	socket.installHandlers(server, {prefix:'/ws/mosaic'});
+};
 
 let emitUnconfirmedTransaction = (data) => {
 	for(let conn of unconfirmedConns)
@@ -61,11 +74,18 @@ let emitBlock = (data) => {
 		conn.write(JSON.stringify(data));
 };
 
+let emitMosaic = (data) => {
+	for(let conn of mosaicConns)
+		conn.write(JSON.stringify(data));
+};
+
 module.exports = {
 	initUnconfirmedTransactionWS,
 	emitUnconfirmedTransaction,
 	initTransactionWS,
 	emitTransaction,
 	initBlockWS,
-	emitBlock
+	emitBlock,
+	initMosaicWS,
+	emitMosaic,
 };

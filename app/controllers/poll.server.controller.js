@@ -72,15 +72,6 @@ module.exports = {
 					poll.whitelist = JSON.stringify(whitelist);
 				}
 			}
-			console.info('111111111111111111111111111111111111111111111');
-			console.info('111111111111111111111111111111111111111111111');
-			console.info('111111111111111111111111111111111111111111111');
-			console.info(poll.multiple);
-			console.info(poll.strings);
-			console.info(poll.addresses);
-			console.info('111111111111111111111111111111111111111111111');
-			console.info('111111111111111111111111111111111111111111111');
-			console.info('111111111111111111111111111111111111111111111');
 			if(!reg.test(poll.multiple) || !poll.strings || !poll.addresses)
 				return;
 			// save poll

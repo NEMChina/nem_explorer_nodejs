@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 let MosaicTransactionSchema = new mongoose.Schema({
 	hash: {type: String, required: true},
+	no: {type: Number, required: true, unique: true},
 	sender: {type: String, required: true},
 	recipient: {type: String, required: true},
 	namespace: {type: String, index: true, required: true},

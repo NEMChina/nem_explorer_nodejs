@@ -6,6 +6,7 @@ import messageUtil from './message';
 import schedule from 'node-schedule';
 import config from '../config/config';
 import blockWS from '../websocket/blockWS';
+import mosaicWS from '../websocket/mosaicWS';
 import transactionWS from '../websocket/transactionWS';
 import pollController from '../controllers/poll.server.controller';
 
@@ -62,6 +63,7 @@ let init = (server) => {
 					transactionWS.unconfirmedTransaction();
 					transactionWS.cleanHistoryUnconfirmedWhenInit();
 					blockWS.block();
+					mosaicWS.mosaic();
 				});
 			});
 		});
@@ -136,6 +138,7 @@ let loadBlocks = (height, callback) => {
 						return;
 					saveTx.hash = itemTx.hash;
 					saveTx.height = block.height;
+					saveTx.index = index;
 					saveTx.sender = tx.signer?address.publicKeyToAddress(tx.signer):'';
 					saveTx.recipient = '';
 					saveTx.recipient = tx.recipient?tx.recipient:saveTx.recipient;
@@ -328,13 +331,13 @@ let saveMosaicTX = (saveTx, mosaics) => {
 	let mosaicTx;
 	let mosaicTxArr = [];
 	let height = 0;
-	for(let i in mosaics){
-		if(!mosaics[i])
-			continue;
-		let mosaicId = mosaics[i].mosaicId;
-		let quantity = mosaics[i].quantity;
+	mosaics.forEach((m, i) => {
+		if(!m)
+			return;
+		let mosaicId = m.mosaicId;
+		let quantity = m.quantity;
 		if(!mosaicId || !mosaicId.namespaceId || !mosaicId.name || !quantity)
-			continue;
+			return;
 		mosaicTx = {};
 		mosaicTx.hash = saveTx.hash;
 		mosaicTx.sender = saveTx.sender;
@@ -343,9 +346,13 @@ let saveMosaicTX = (saveTx, mosaics) => {
 		mosaicTx.namespace = mosaicId.namespaceId;
 		mosaicTx.mosaic = mosaicId.name;
 		mosaicTx.quantity = quantity;
+		// calculate the number, no = block height + tx index + mosaic index
+		mosaicTx.no = saveTx.height;
+		mosaicTx.no = mosaicTx.no * 1000 + (saveTx.index+1);
+		mosaicTx.no = mosaicTx.no * 100 + (i+1);
 		height = saveTx.height;
 		mosaicTxArr.push(mosaicTx);
-	}
+	});
 	// insert mosaics into DB by batch
 	if(mosaicTxArr.length>0)
 		dbUtil.saveMosaicTransactionByBatch(mosaicTxArr, height);

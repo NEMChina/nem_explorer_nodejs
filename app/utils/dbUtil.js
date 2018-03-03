@@ -11,7 +11,6 @@ import mongoose from 'mongoose';
  */
 let saveBlock = (saveBlock) => {
 	let Block = mongoose.model('Block');
-	let nowTime = new Date().getTime();
 	new Block(saveBlock).save(err => {
 		if(err)
 			log('<error> Block [' + saveBlock.height + '] save block : ' + err);
@@ -338,6 +337,19 @@ let findOneMosaic = (mosaic, namespace, callback) => {
 }
 
 /**
+ * find mosaics by multiple mosaic name and namespace
+ */
+let findMosaics = (params, callback) => {
+	let Mosaic = mongoose.model('Mosaic');
+	Mosaic.find({$or: params}).exec((err, docs) => {
+		if(err || !docs)
+			return callback([]);
+		else 
+			return callback(docs);
+	});
+}
+
+/**
  * get mosaic list by namespace
  */
 let mosaicListByNamespace = (ns, callback) => {
@@ -368,7 +380,11 @@ let mosaicList = (callback) => {
  */
 let mosaicTransferList = (m, ns, page, limit, callback) => {
 	let MosaicTransaction = mongoose.model('MosaicTransaction');
-	MosaicTransaction.find({mosaic:m, namespace: ns}).sort({timeStamp: -1}).skip((page-1)*limit).limit(limit).exec((err, docs) => {
+	let params = {};
+	if(m && ns)
+		params = {mosaic:m, namespace: ns};
+	console.info(params);
+	MosaicTransaction.find(params).sort({timeStamp: -1}).skip((page-1)*limit).limit(limit).exec((err, docs) => {
 		if(err || !docs)
 			callback([]);
 		else
@@ -443,6 +459,7 @@ module.exports = {
 	subNamespaceList,
 	namespaceListbyNamespace,
 	findOneMosaic,
+	findMosaics,
 	saveMosaic,
 	updateMosaic,
 	mosaicListByNamespace,

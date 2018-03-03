@@ -1,7 +1,8 @@
-angular.module("webapp").controller("MosaicListController", ["$scope", "$timeout", "MosaicService", MosaicListController]);
+angular.module("webapp").controller("MosaicListController", ["$scope", "MosaicService", MosaicListController]);
 angular.module("webapp").controller("MosaicController", ["$scope", "$timeout", "$location", "MosaicService", MosaicController]);
+angular.module("webapp").controller("MosaicTransferController", ["$scope", "$interval", "MosaicService", MosaicTransferController]);
 
-function MosaicListController($scope, $timeout, MosaicService){
+function MosaicListController($scope, MosaicService){
 	MosaicService.mosaicList(function(r_list){
 		r_list.forEach((r, index) => {
 			r.timeStamp = fmtDate(r.timeStamp);
@@ -51,5 +52,48 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 			return;
 		}
 		$("#mosaicTransferDetail").modal("show");
+	};
+}
+
+function MosaicTransferController($scope, $interval, MosaicService){
+	MosaicService.mosaicTransferList({}, function(r_list){
+		r_list.forEach((r, index) => {
+			r.time = r.timeStamp;
+			r.timeStamp = fmtDate(r.timeStamp);
+		});
+		$scope.mosaicTransferList = r_list;
+		$scope.updateAge();
+	});
+	// websocket - new mosaic
+	let sock = new SockJS('/ws/mosaic');
+	sock.onmessage = function(e) {
+		console.info(1111);
+		if(!e || !e.data)
+			return;
+		let mosaics = JSON.parse(e.data);
+		if(!mosaics)
+			return;
+		mosaics.forEach(item => {
+			let m = {};
+			m.time = item.timeStamp;
+			m.mosaic = item.mosaicName;
+			m.namespace = item.namespace;
+			m.sender = item.sender;
+			m.recipient = item.recipient;
+			m.quantity = item.quantity;
+			m.timeStamp = fmtDate(item.timeStamp);
+			console.info(m);
+			$scope.mosaicTransferList.unshift(m);
+		});
+    };
+    // block age
+	$interval(function() {
+		$scope.updateAge();
+	}, 1000);
+	$scope.updateAge = function(){
+		let nowTime = new Date().getTime();
+		$scope.mosaicTransferList.forEach(m => {
+			m.age = compareTime(nowTime, m.time);
+		});
 	};
 }
