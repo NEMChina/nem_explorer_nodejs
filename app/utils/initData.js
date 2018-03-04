@@ -175,6 +175,8 @@ let loadBlocks = (height, callback) => {
 						saveNamespace(saveTx, tx.otherTrans);
 						// save or update mosaic
 						saveOrUpdateMosaic(saveTx, tx.otherTrans);
+						// save or update mosaic
+						saveOrUpdateMosaic(saveTx, tx.otherTrans);
 						// save poll
 						savePoll(saveTx, tx.otherTrans);
 					}

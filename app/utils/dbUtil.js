@@ -378,13 +378,14 @@ let mosaicList = (callback) => {
 /**
  * get mosaic transfer list
  */
-let mosaicTransferList = (m, ns, page, limit, callback) => {
+let mosaicTransferList = (m, ns, no, limit, callback) => {
 	let MosaicTransaction = mongoose.model('MosaicTransaction');
 	let params = {};
 	if(m && ns)
 		params = {mosaic:m, namespace: ns};
-	console.info(params);
-	MosaicTransaction.find(params).sort({timeStamp: -1}).skip((page-1)*limit).limit(limit).exec((err, docs) => {
+	if(no)
+		params.no = {$lt: no};
+	MosaicTransaction.find(params).sort({timeStamp: -1, no: -1}).limit(limit).exec((err, docs) => {
 		if(err || !docs)
 			callback([]);
 		else

@@ -49,13 +49,13 @@ module.exports = {
 			// validate namespace
 			let reg_ns = /^[a-zA-Z0-9_-]+((\.)[a-zA-Z0-9_-]+)*$/;
 			if(!ns || !reg_ns.test(ns)){
-				res.json([]);
+				res.json({});
 				return;
 			}
 			// validate mosaic
 			let reg_m = /^[a-zA-Z0-9'_-]+$/;
 			if(!m || !reg_m.test(m)){
-				res.json([]);
+				res.json({});
 				return;
 			}
 			dbUtil.findOneMosaic(m, ns, doc => {
@@ -113,7 +113,7 @@ module.exports = {
 		try {
 			let ns = req.body.ns;
 			let m = req.body.m;
-			let page = req.body.page;
+			let no = req.body.no;
 			// validate namespace
 			let reg_ns = /^[a-zA-Z0-9_-]+((\.)[a-zA-Z0-9_-]+)*$/;
 			if(!ns || !reg_ns.test(ns))
@@ -122,11 +122,11 @@ module.exports = {
 			let reg_m = /^[a-zA-Z0-9'_-]+$/;
 			if(!m || !reg_m.test(m))
 				m = null;
-			// validate page
-			let reg_page = /^[0-9]+$/;
-			if(!page || !reg_page.test(page))
-				page = 1;
-			dbUtil.mosaicTransferList(m, ns, page, mosaicTransferListLimit, docs => {
+			// validate no
+			let reg_no = /^[0-9]+$/;
+			if(!no || !reg_no.test(no))
+				no = null;
+			dbUtil.mosaicTransferList(m, ns, no, mosaicTransferListLimit, docs => {
 				if(!docs){
 					res.json([]);
 					return;

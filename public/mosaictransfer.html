@@ -1,31 +1,40 @@
 <div id="content" class="container" style="padding-top:10px;padding-bottom:70px;">
 	<div style="margin-bottom:20px;">
 		<span style="font-size:16px;font-weight:bold;">Mosaic Transfer</span>
-		<button id="search" type="button" style="display:inline;float:right;" ng-click="search()">
+		<button type="button" style="display:inline;float:right;" ng-click="searchMosaic()" ng-disabled="searchingFlag">
  			<span class="glyphicon glyphicon-repeat small"></span>
  		</button>
-		<input id="searchInput" type="text" style="width:200px;display:inline;float:right;margin-right:6px;padding-left:6px;" placeholder="mosaic">
+		<input ng-model="searchInput" type="text" style="width:360px;display:inline;float:right;margin-right:6px;padding-left:6px;" placeholder="mosaic (e.g. dim:coin)">
+		<img ng-if="searchingFlag" src="views/images/loading.gif" width="20" height="20" style="float:right;margin-right:10px;"/>
 	</div>
-	<table class="table table-striped table-hover" style="font-size:10px;">
-		<tr>
-			<td><b>Mosaic</b></td>
-			<td><b>Quantity</b></td>
-			<td><b>Sender / Recipient</b></td>
-			<td><b>TimeStamp</b></td>
-			<td><b>Age</b></td>
-		</tr>
-		<!-- <tr ng-class="{hidden:mosaicTransferList&&mosaicTransferList.length>0}">
-			<td colspan="5">Nothing to show</td>
-		</tr> -->
-		<tr ng-repeat="mt in mosaicTransferList" style="cursor:pointer;">
-			<td><span ng-bind="mt.namespace"></span>:<span ng-bind="mt.mosaic"></span></td>
-			<td width="130" ng-bind="mt.quantity"></td>
-			<td width="360">
-				<span ng-bind="mt.sender"></span><br/>
-				<span ng-bind="mt.recipient"></span>
-			</td>
-			<td width="130" ng-bind="mt.timeStamp"></td>
-			<td width="100" ng-bind="mt.age"></td>
-		</tr>
-	</table>
+	<div class="alert alert-warning" ng-if="warningFlag">
+	    <a href="javascript:void(0);" class="close" ng-click="closeWarning()">&times;</a>
+	    <span ng-bind="warningContent"></span>
+	</div>
+	<div infinite-scroll="loadMore()" infinite-scroll-disabled="loadingFlag">
+		<table class="table table-striped table-hover" style="font-size:10px;">
+			<tr>
+				<td><b>Mosaic</b></td>
+				<td><b>Quantity</b></td>
+				<td><b>Sender / Recipient</b></td>
+				<td><b>TimeStamp</b></td>
+				<td><b>Age</b></td>
+			</tr>
+			<tr ng-if="nothingToShowFlag">
+				<td colspan="5">Nothing to show</td>
+			</tr>
+			<tr ng-repeat="mt in mosaicTransferList" style="cursor:pointer;" ng-class="{fadeIn:fadeFlag}">
+				<td><span ng-bind="mt.namespace"></span>:<span ng-bind="mt.mosaic"></span></td>
+				<td width="130" ng-bind="mt.quantity"></td>
+				<td width="360">
+					<span ng-bind="mt.sender"></span><br/>
+					<span ng-bind="mt.recipient"></span>
+				</td>
+				<td width="130" ng-bind="mt.timeStamp"></td>
+				<td width="100" ng-bind="mt.age"></td>
+			</tr>
+		</table>
+	</div>
+	<div class="text-center" ng-if="loadingFlag"><img src="views/images/loading.gif"/></div>
+	<div class="text-center" ng-if="endFlag">This is the end</div>
 </div>
