@@ -4,6 +4,8 @@ import addressUtil from '../utils/address';
 import cache from '../cache/appCache';
 import init from '../utils/initData';
 import timeUtil from '../utils/timeUtil';
+import dbUtil from '../utils/dbUtil';
+import mosaicController from './mosaic.server.controller';
 
 const LISTSIZE = 100; //list size
 const MOSIALISTSIZE = 25;
@@ -200,29 +202,28 @@ module.exports = {
 			}
 			address = address.replace(new RegExp(/(-)/g), '');
 			let MosaicTransaction = mongoose.model('MosaicTransaction');
-			MosaicTransaction.find({"$or":[{sender:address}, {recipient: address}]}).sort({timeStamp: -1}).skip(MOSIALISTSIZE*(page-1)).limit(MOSIALISTSIZE).exec((err, doc) => {
+			MosaicTransaction.find({"$or":[{sender:address}, {recipient: address}]}).sort({timeStamp: -1}).skip(MOSIALISTSIZE*(page-1)).limit(MOSIALISTSIZE).exec((err, docs) => {
 				if(err) {
 					console.info(err);
 					return res.json([]);
 				}
 				let r_mosaicArray = [];
-				let r_mosaic = null;
-				let count = 0;
-				for(let i in doc){
-					let m = doc[i];
-					if(!m)
-						continue;
-					r_mosaic = {};
-					r_mosaic.hash = m.hash;
-					r_mosaic.sender = m.sender;
-					r_mosaic.recipient = m.recipient;
-					r_mosaic.timeStamp = m.timeStamp;
-					r_mosaic.namespace = m.namespace;
-					r_mosaic.mosaic = m.mosaic;
-					r_mosaic.quantity = m.quantity;
+				docs.forEach(mt => {
+					if(!mt)
+						return;
+					let r_mosaic = {};
+					r_mosaic.hash = mt.hash;
+					r_mosaic.sender = mt.sender;
+					r_mosaic.recipient = mt.recipient;
+					r_mosaic.timeStamp = mt.timeStamp;
+					r_mosaic.namespace = mt.namespace;
+					r_mosaic.mosaic = mt.mosaic;
+					r_mosaic.quantity = mt.quantity;
 					r_mosaicArray.push(r_mosaic);
-				}
-				res.json(r_mosaicArray);
+				});
+				mosaicController.fixMosaicTXQuantity(r_mosaicArray, re => {
+					res.json(r_mosaicArray);
+				});
 			});
 		} catch (e) {
 			console.error(e);

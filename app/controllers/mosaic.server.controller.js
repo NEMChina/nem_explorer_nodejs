@@ -131,7 +131,49 @@ module.exports = {
 					res.json([]);
 					return;
 				}
-				res.json(docs);
+				module.exports.fixMosaicTXQuantity(docs, mosaicTXs => {
+					res.json(mosaicTXs);
+				});
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+     * fix mosaic transactions quantity (divisibility)
+     */
+	fixMosaicTXQuantity: (mosaicTXs, callback) => {
+		try {
+			let findMosaicSet = new Set();
+			let findMosaicParams = [];
+			mosaicTXs.forEach(mt => {
+				let id = mt.namespace + ":" + mt.mosaic;
+				if(!findMosaicSet.has(id)){
+					findMosaicSet.add(id);
+					findMosaicParams.push({mosaicName: mt.mosaic, namespace: mt.namespace});
+				}
+			});
+			if(findMosaicParams.length==0){
+				callback(mosaicTXs);
+			}
+			// query mosaic divisibility from DB
+			dbUtil.findMosaics(findMosaicParams, mosaics => {
+				let divMap = new Map();
+				mosaics.forEach(m => {
+					if(m)
+						divMap.set(m.namespace+":"+m.mosaicName, m.divisibility);
+				});
+				mosaicTXs.forEach(r => {
+					let id = r.namespace+":"+r.mosaic;
+					if(!divMap.has(id))
+						return;
+					let div = 1;
+					if(divMap.get(id) && divMap.get(id)!=0)
+						div = Math.pow(10, divMap.get(id));
+					r.quantity = r.quantity / div;
+				});
+				callback(mosaicTXs);
 			});
 		} catch (e) {
 			console.error(e);

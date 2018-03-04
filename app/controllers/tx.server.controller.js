@@ -252,7 +252,7 @@ let formatMosaicDivisibility = (tx, callback) => {
 			let ns = mosaic.mosaicId.namespaceId;
 			let div = 1;
 			dbUtil.findOneMosaic(m, ns, doc => {
-				if(doc.divisibility && doc.divisibility>1)
+				if(doc && doc.divisibility && doc.divisibility>1)
 					div = Math.pow(10, doc.divisibility);
 				mosaic.quantity = mosaic.quantity / div;
 				count++;

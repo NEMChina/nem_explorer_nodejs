@@ -24,11 +24,16 @@
 				<td colspan="5">Nothing to show</td>
 			</tr>
 			<tr ng-repeat="mt in mosaicTransferList" style="cursor:pointer;" ng-class="{fadeIn:fadeFlag}">
-				<td><span ng-bind="mt.namespace"></span>:<span ng-bind="mt.mosaic"></span></td>
+				<td>
+					<a href="#/mosaic?ns={{mt.namespace}}&m={{mt.mosaic}}" target="_blank">
+						<span ng-bind="mt.namespace"></span>:<span ng-bind="mt.mosaic"></span>
+					</a>
+				</td>
 				<td width="130" ng-bind="mt.quantity"></td>
 				<td width="360">
-					<span ng-bind="mt.sender"></span><br/>
-					<span ng-bind="mt.recipient"></span>
+					<a href="#/s_account?account={{mt.sender}}" target="_blank"><span ng-bind="mt.sender"></span></a>
+					<br/>
+					<a href="#/s_account?account={{mt.sender}}" target="_blank"><span ng-bind="mt.recipient"></span></a>
 				</td>
 				<td width="130" ng-bind="mt.timeStamp"></td>
 				<td width="100" ng-bind="mt.age"></td>
