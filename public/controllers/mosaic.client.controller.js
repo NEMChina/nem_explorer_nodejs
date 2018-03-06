@@ -58,7 +58,7 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 	let params = {ns: ns, m: m};
 	let mosaicID = ns + ":" + m;
 	MosaicService.mosaic(params, function(r){
-		if(!r || !r.mosaic){
+		if(!r || !r.mosaicName){
 			$scope.message = "MosaicID \"" + mosaicID + "\" do not exist";
 			return;
 		}
