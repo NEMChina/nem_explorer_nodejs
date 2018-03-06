@@ -16,7 +16,8 @@ let MosaicSchema = new mongoose.Schema({
 	levyFee: {type: Number},
 	creator: {type: String, required: true},
 	timeStamp: {type: Number, required: true},
-	height: {type: Number, required: true}
+	height: {type: Number, required: true},
+	no: {type: Number, required: true, unique: true}
 });
 
 //init Mosaic Schema

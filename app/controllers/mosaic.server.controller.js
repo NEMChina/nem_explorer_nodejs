@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import dbUtil from '../utils/dbUtil';
 import nis from '../utils/nisRequest';
 
+const mosaicListLimit = 50;
 const mosaicTransferListLimit = 50;
 
 module.exports = {
@@ -31,7 +32,12 @@ module.exports = {
      */
 	mosaicList: (req, res, next) => {
 		try {
-			dbUtil.mosaicList(docs => {
+			let no = req.body.no;
+			// validate no
+			let reg_no = /^[0-9]+$/;
+			if(!no || !reg_no.test(no))
+				no = null;
+			dbUtil.mosaicList(no, mosaicListLimit, docs => {
 				res.json(docs);
 			});
 		} catch (e) {

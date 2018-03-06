@@ -7,8 +7,8 @@ function MosaicService($http){
 				callback(data);
 			});
 		},
-		mosaicList: function(callback) {
-			$http.post("/mosaic/mosaicList").success(function(data){
+		mosaicList: function(params, callback) {
+			$http.post("/mosaic/mosaicList", params).success(function(data){
 				callback(data);
 			});
 		},

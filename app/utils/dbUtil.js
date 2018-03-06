@@ -378,9 +378,12 @@ let mosaicListByNamespace = (ns, callback) => {
 /**
  * get mosaic list
  */
-let mosaicList = (callback) => {
+let mosaicList = (no, limit, callback) => {
 	let Mosaic = mongoose.model('Mosaic');
-	Mosaic.find().sort({timeStamp: -1}).exec((err, docs) => {
+	let params = {};
+	if(no)
+		params.no = {$lt: no};
+	Mosaic.find(params).sort({timeStamp: -1, no: -1}).limit(limit).exec((err, docs) => {
 		if(err || !docs)
 			callback([]);
 		else
@@ -424,7 +427,7 @@ let findOneMosaicByMosaicNameAndNamespace = (mosaicName, namespace, callback) =>
  */
 let updateMosaicSupply = (mosaicName, namespace, timeStamp, change, height) => {
 	let Mosaic = mongoose.model('Mosaic');
-	Mosaic.update({mosaicName: mosaicName, namespace: namespace, timeStamp: {$gt: timeStamp}}, {initialSupply: {$inc: change}}, (err, doc) => {
+	Mosaic.update({mosaicName: mosaicName, namespace: namespace, timeStamp: {$gt: timeStamp}}, {$inc: {initialSupply: change}}, (err, doc) => {
 		if(err) 
 			log('<error> Block [' + height + '] update Mosaic ['+mosaicName+'] : ' + err);
 	});

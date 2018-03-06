@@ -2,15 +2,49 @@ angular.module("webapp").controller("MosaicListController", ["$scope", "MosaicSe
 angular.module("webapp").controller("MosaicController", ["$scope", "$timeout", "$location", "MosaicService", MosaicController]);
 angular.module("webapp").controller("MosaicTransferController", ["$scope", "$timeout", "$interval", "MosaicService", MosaicTransferController]);
 
+const mosaicListLimit = 50;
+const mosaicTransferListLimit = 50;
+
 function MosaicListController($scope, MosaicService){
-	MosaicService.mosaicList(function(r_list){
-		r_list.forEach((r, index) => {
-			r.timeStamp = fmtDate(r.timeStamp);
-			if(r.updateTimeStamp)
-				r.updateTimeStamp = fmtDate(r.updateTimeStamp);
+	$scope.loadingFlag = false;
+	$scope.endFlag = false;
+	$scope.initList = () => {
+		MosaicService.mosaicList({}, function(r_list){
+			r_list.forEach(r => {
+				r.timeStamp = fmtDate(r.timeStamp);
+			});
+			$scope.mosaicList = r_list;
 		});
-		$scope.mosaicList = r_list;
-	});
+	};
+	$scope.loadMore = () => {
+		if($scope.endFlag)
+			return;
+		if($scope.loadingFlag)
+			return;
+		if(!$scope.mosaicList || $scope.mosaicList.length==0)
+			return;
+		let length = $scope.mosaicList.length;
+		let lastNo = $scope.mosaicList[length-1].no;
+		if(!lastNo)
+			return;
+		$scope.loadingFlag = true;
+		// attach the search conditions
+		let params = {no: lastNo};
+		MosaicService.mosaicList(params, function(r_list){
+			if(r_list.length==0){
+				$scope.endFlag = true;
+				return;
+			}
+			r_list.forEach(r => {
+				r.timeStamp = fmtDate(r.timeStamp);
+			});
+			$scope.mosaicList = $scope.mosaicList.concat(r_list);
+			$scope.loadingFlag = false;
+			if(r_list.length<mosaicListLimit)
+				$scope.endFlag = true;
+		});
+	};
+	$scope.initList();
 }
 
 function MosaicController($scope, $timeout, $location, MosaicService){
@@ -136,6 +170,10 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 			params = {ns: $scope.currentNamespace, m:$scope.currentMosaic};
 		params.no = lastNo;
 		MosaicService.mosaicTransferList(params, function(r_list){
+			if(r_list.length==0){
+				$scope.endFlag = true;
+				return;
+			}
 			r_list.forEach((r, index) => {
 				r.time = r.timeStamp;
 				r.timeStamp = fmtDate(r.timeStamp);
@@ -143,6 +181,8 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 			$scope.fadeFlag = false;
 			$scope.mosaicTransferList = $scope.mosaicTransferList.concat(r_list);
 			$scope.loadingFlag = false;
+			if(r_list.length<mosaicTransferListLimit)
+				$scope.endFlag = true;
 			$scope.updateAge();
 			$timeout(function(){
 				$scope.fadeFlag = true;
@@ -223,4 +263,14 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 	$scope.closeWarning = () => {
 		$scope.warningFlag = false;
 	};
+	$scope.showMT = (index, $event) => {
+		$scope.selectedHash = $scope.mosaicTransferList[index].hash;
+		$scope.selectedItem = $scope.mosaicTransferList[index];
+		//just skip the action when click from <a>
+		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
+			return;
+		}
+		$("#mtDetail").modal("show");
+	};
+	
 }

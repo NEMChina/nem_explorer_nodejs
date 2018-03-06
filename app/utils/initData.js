@@ -370,6 +370,9 @@ let saveNamespace = (saveTx, tx) => {
 	saveNamespace.timeStamp = tx.timeStamp;
 	saveNamespace.mosaics = 0;
 	saveNamespace.expiredTime = timeUtil.getYearAddOneTimeInNem(saveTx.timeStamp);
+	// calculate the number, no = block height + tx index
+	saveNamespace.no = saveTx.height;
+	saveNamespace.no = saveNamespace.no * 1000 + (saveTx.index+1);
 	if(!tx.parent || tx.parent=="null"){ // root namespace
 		saveNamespace.namespace = tx.newPart;
 		saveNamespace.rootNamespace = tx.newPart;
@@ -442,6 +445,9 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 				mosaic.levyMosaic = levy.mosaicId.name;
 			}
 		}
+		// calculate the number, no = block height + tx index
+		mosaic.no = saveTx.height;
+		mosaic.no = mosaic.no * 1000 + (saveTx.index+1);
 		dbUtil.saveOrUpdateMosaic(mosaic);
 	} else if (tx.type && tx.type==16386 && tx.mosaicId && tx.supplyType && tx.delta){ // update mosaic supply
 		let mosaicName = tx.mosaicId.name;
@@ -449,7 +455,7 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 		let change = 0;
 		if(tx.supplyType==1) // increase
 			change += tx.delta;
-		else if(tx.supplyType==1) // decrease
+		else if(tx.supplyType==2) // decrease
 			change -= tx.delta;
 		dbUtil.updateMosaicSupply(mosaicName, namespace, tx.timeStamp, change, saveTx.height);
 	}

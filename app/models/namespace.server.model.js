@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 let NamespaceSchema = new mongoose.Schema({
 	namespace: {type: String, required: true, unique: true},
+	no: {type: Number, required: true, unique: true},
 	rootNamespace: {type: String},
 	creator: {type: String, required: true},
 	height: {type: Number, required: true},
