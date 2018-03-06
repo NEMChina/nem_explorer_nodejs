@@ -37,7 +37,12 @@
 			</tr>
 			<tr>
 				<td>Supply</td>
-				<td ng-bind="mosaic.initialSupply"></td>
+				<td>
+					<span ng-bind="mosaic.initialSupply"></span>
+					<span ng-if="mosaic.fixInitialSupply" style="padding-left:10px;">
+						(<span ng-bind="mosaic.fixInitialSupply"></span>)
+					</span>
+				</td>
 			</tr>
 			<tr>
 				<td>Divisibility</td>

@@ -8,7 +8,6 @@ let NamespaceSchema = new mongoose.Schema({
 	timeStamp: {type: Number, required: true},
 	expiredTime: {type: Number, required: true},
 	subNamespaces: {type: String}, 
-	mosaics: {type: Number, required: true, default: 0},
 	mosaicNames: {type: String},
 });
 

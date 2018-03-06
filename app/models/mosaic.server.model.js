@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 let MosaicSchema = new mongoose.Schema({
+	mosaicID: {type: String, required: true, unique: true},
 	mosaicName: {type: String, required: true},
 	namespace: {type: String, required: true},
 	description: {type: String},
@@ -15,9 +16,7 @@ let MosaicSchema = new mongoose.Schema({
 	levyFee: {type: Number},
 	creator: {type: String, required: true},
 	timeStamp: {type: Number, required: true},
-	updateTimeStamp: {type: Number},
-	height: {type: Number, required: true},
-	updateHeight: {type: Number}
+	height: {type: Number, required: true}
 });
 
 //init Mosaic Schema

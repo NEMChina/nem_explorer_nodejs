@@ -13,7 +13,7 @@
 			<tr ng-repeat="m in mosaicList">
 				<td ng-bind="$index+1"></td>
 				<td>
-					<a href="#/mosaic?m={{m.mosaicName}}&ns={{m.namespace}}">
+					<a href="#/mosaic?m={{m.mosaicName}}&ns={{m.namespace}}" target="_blank">
 						<span ng-bind="m.namespace"></span>:<span ng-bind="m.mosaicName"></span>
 					</a>
 				</td>

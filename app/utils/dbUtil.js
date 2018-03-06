@@ -103,9 +103,9 @@ let findOneAccount = (address, callback) => {
 	let Account = mongoose.model('Account');
 	Account.findOne({address: address}, (err, doc) => {
 		if(err || !doc)
-			return callback(null);
+			callback(null);
 		else
-			return callback(doc);
+			callback(doc);
 	});
 }
 
@@ -142,9 +142,9 @@ let findOneAccountRemark = (account, callback) => {
 	let AccountRemark = mongoose.model('AccountRemark');
 	AccountRemark.findOne({address: account.address}).exec((err, doc) => {
 		if(err || !doc)
-			return callback(null);
+			callback(null);
 		else
-			return callback(doc);
+			callback(doc);
 	});
 }
 
@@ -180,9 +180,9 @@ let findOneNamespace = (namespace, callback) => {
 	let Namespace = mongoose.model('Namespace');
 	Namespace.findOne({namespace: namespace.namespace}).exec((err, doc) => {
 		if(err || !doc)
-			return callback(null);
+			callback(null);
 		else 
-			return callback(doc);
+			callback(doc);
 	});
 }
 
@@ -193,9 +193,9 @@ let findOneNamespaceByName = (name, callback) => {
 	let Namespace = mongoose.model('Namespace');
 	Namespace.findOne({namespace: name}).exec((err, doc) => {
 		if(err || !doc)
-			return callback(null);
+			callback(null);
 		else 
-			return callback(doc);
+			callback(doc);
 	});
 }
 
@@ -324,15 +324,28 @@ let updateMosaic = (m) => {
 }
 
 /**
+ * save or update mosaic into DB
+ */
+let saveOrUpdateMosaic = (m) => {
+	let Mosaic = mongoose.model('Mosaic');
+	Mosaic.update({mosaicName:m.mosaicName, namespace:m.namespace, timeStamp: {$lt: m.timeStamp}}, m, {upsert : true}, err => {
+		if(err)
+			log('<error> Block [' + m.height + '] save Mosaic [' + m.mosaicName + '] : ' + err);
+		else
+			log('<success> Block [' + m.height + '] save Mosaic [' + m.mosaicName + ']');
+	});
+}
+
+/**
  * find one mosaic by mosaic name and namespace
  */
 let findOneMosaic = (mosaic, namespace, callback) => {
 	let Mosaic = mongoose.model('Mosaic');
-	Mosaic.findOne({mosaicName: mosaic, namespace, namespace}).exec((err, doc) => {
+	Mosaic.findOne({mosaicName: mosaic, namespace: namespace}).exec((err, doc) => {
 		if(err || !doc)
-			return callback(null);
+			callback(null);
 		else 
-			return callback(doc);
+			callback(doc);
 	});
 }
 
@@ -343,9 +356,9 @@ let findMosaics = (params, callback) => {
 	let Mosaic = mongoose.model('Mosaic');
 	Mosaic.find({$or: params}).exec((err, docs) => {
 		if(err || !docs)
-			return callback([]);
+			callback([]);
 		else 
-			return callback(docs);
+			callback(docs);
 	});
 }
 
@@ -400,18 +413,18 @@ let findOneMosaicByMosaicNameAndNamespace = (mosaicName, namespace, callback) =>
 	let Mosaic = mongoose.model('Mosaic');
 	Mosaic.findOne({mosaicName: mosaicName, namespace: namespace}).exec((err, doc) => {
 		if(err || !doc)
-			return callback(null);
+			callback(null);
 		else 
-			return callback(doc);
+			callback(doc);
 	});
 }
 
 /**
  * update mosaic supply field
  */
-let updateMosaicSupply = (mosaicName, namespace, supply, height) => {
+let updateMosaicSupply = (mosaicName, namespace, timeStamp, change, height) => {
 	let Mosaic = mongoose.model('Mosaic');
-	Mosaic.update({mosaicName: mosaicName, namespace: namespace}, {initialSupply: supply}, (err, doc) => {
+	Mosaic.update({mosaicName: mosaicName, namespace: namespace, timeStamp: {$gt: timeStamp}}, {initialSupply: {$inc: change}}, (err, doc) => {
 		if(err) 
 			log('<error> Block [' + height + '] update Mosaic ['+mosaicName+'] : ' + err);
 	});
@@ -463,6 +476,7 @@ module.exports = {
 	findMosaics,
 	saveMosaic,
 	updateMosaic,
+	saveOrUpdateMosaic,
 	mosaicListByNamespace,
 	mosaicList,
 	mosaicTransferList,

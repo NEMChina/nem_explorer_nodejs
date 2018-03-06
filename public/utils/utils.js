@@ -239,7 +239,7 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 				for(i in tx.mosaicDefinition.properties){
 					let property = tx.mosaicDefinition.properties[i];
 					if(property.name == "initialSupply")
-						items.push({label: "", content: "Initial supply - " + property.value});
+						items.push({label: "", content: "Initial supply - " + fmtSplit(property.value)});
 					if(property.name == "divisibility")
 						items.push({label: "", content: "Divisibility - " + property.value});
 					if(property.name == "supplyMutable")
@@ -264,9 +264,9 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 			items.push({label: "Fee", content: fmtXEM(tx.fee)});
 			let change = "";
 			if(tx.supplyType==1)
-				change = " + " + tx.delta;
+				change = " + " + fmtSplit(tx.delta);
 			else if(tx.supplyType==2)
-				change = " - " + tx.delta;
+				change = " - " + fmtSplit(tx.delta);
 			items.push({label: "Change", content: change});
 		}
 		$scope.items = items;

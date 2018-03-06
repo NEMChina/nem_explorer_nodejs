@@ -175,8 +175,6 @@ let loadBlocks = (height, callback) => {
 						saveNamespace(saveTx, tx.otherTrans);
 						// save or update mosaic
 						saveOrUpdateMosaic(saveTx, tx.otherTrans);
-						// save or update mosaic
-						saveOrUpdateMosaic(saveTx, tx.otherTrans);
 						// save poll
 						savePoll(saveTx, tx.otherTrans);
 					}
@@ -404,6 +402,7 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 		let mosaic = {};
 		mosaic.mosaicName = tx.mosaicDefinition.id.name;
 		mosaic.namespace = tx.mosaicDefinition.id.namespaceId;
+		mosaic.mosaicID = mosaic.namespace + ":" + mosaic.mosaicName;
 		mosaic.description = tx.mosaicDefinition.description;
 		mosaic.timeStamp = tx.timeStamp;
 		mosaic.creator = address.publicKeyToAddress(tx.mosaicDefinition.creator);
@@ -443,32 +442,16 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 				mosaic.levyMosaic = levy.mosaicId.name;
 			}
 		}
-		dbUtil.findOneMosaic(mosaic.mosaicName, mosaic.namespace, doc => {
-			if(!doc){ // save
-				dbUtil.saveMosaic(mosaic);
-				// update namespace mosaics
-				dbUtil.updateNamespaceMosaics(mosaic.namespace, saveTx.height);
-			} else { // update
-				mosaic.updateHeight = mosaic.height; // update height
-				mosaic.height = doc.height; // create height
-				mosaic.updateTimeStamp = mosaic.timeStamp; // update time
-				mosaic.timeStamp = doc.timeStamp; // create time
-				dbUtil.updateMosaic(mosaic);
-			}
-		});
+		dbUtil.saveOrUpdateMosaic(mosaic);
 	} else if (tx.type && tx.type==16386 && tx.mosaicId && tx.supplyType && tx.delta){ // update mosaic supply
 		let mosaicName = tx.mosaicId.name;
 		let namespace = tx.mosaicId.namespaceId;
-		dbUtil.findOneMosaicByMosaicNameAndNamespace(mosaicName, namespace, doc => {
-			if(!doc)
-				return;
-			let supply = doc.initialSupply;
-			if(tx.supplyType==1) // increase
-				supply += tx.delta;
-			else if(tx.supplyType==1) // decrease
-				supply -= tx.delta;
-			dbUtil.updateMosaicSupply(mosaicName, namespace, supply, saveTx.height);
-		});
+		let change = 0;
+		if(tx.supplyType==1) // increase
+			change += tx.delta;
+		else if(tx.supplyType==1) // decrease
+			change -= tx.delta;
+		dbUtil.updateMosaicSupply(mosaicName, namespace, tx.timeStamp, change, saveTx.height);
 	}
 };
 

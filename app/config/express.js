@@ -6,7 +6,6 @@ import initData from '../utils/initData';
 import supernodeSchedule from '../schedule/supernodeSchedule';
 import nodeScheduleSchedule from '../schedule/nodeSchedule';
 import coinmarketcapSchedule from '../schedule/coinmarketcapSchedule';
-import mosaicSchedule from '../schedule/mosaicSchedule';
 import clientWS from '../websocket/clientWS';
 
 module.exports = () => {
@@ -59,8 +58,6 @@ module.exports = () => {
 	nodeScheduleSchedule.scheduleFetchNode();
 	// schedule fetch price from coinmarketcap
 	coinmarketcapSchedule.scheduleFetchPrice();
-	// schedule check mosaic from namespace
-	mosaicSchedule.scheduleCheckMosaic();
 
 	// websocket
 	clientWS.initUnconfirmedTransactionWS(server);

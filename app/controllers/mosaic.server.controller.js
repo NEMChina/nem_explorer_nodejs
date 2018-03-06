@@ -156,6 +156,7 @@ module.exports = {
 			});
 			if(findMosaicParams.length==0){
 				callback(mosaicTXs);
+				return;
 			}
 			// query mosaic divisibility from DB
 			dbUtil.findMosaics(findMosaicParams, mosaics => {

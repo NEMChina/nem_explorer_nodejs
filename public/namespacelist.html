@@ -15,7 +15,7 @@
 			<tr ng-repeat="ns in namespaceList">
 				<td ng-bind="$index+1"></td>
 				<td>
-					<a href="#/namespace?ns={{ns.namespace}}"><span ng-bind="ns.namespace"></span></a>
+					<a href="#/namespace?ns={{ns.namespace}}" target="_blank"><span ng-bind="ns.namespace"></span></a>
 					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 				</td>
 				<td ng-bind="ns.subNamespaces" ng-class="{hidden:1==1}"></td>

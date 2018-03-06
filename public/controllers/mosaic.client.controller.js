@@ -24,6 +24,9 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 		r.timeStamp = fmtDate(r.timeStamp);
 		if(r.updateTimeStamp)
 			r.updateTimeStamp = fmtDate(r.updateTimeStamp);
+		if(r.divisibility!=0)
+			r.fixInitialSupply = fmtSplit(r.initialSupply / Math.pow(10, r.divisibility));
+		r.initialSupply = fmtSplit(r.initialSupply);
 		$scope.mosaic = r;
 		MosaicService.mosaicTransferList(params, function(r_list){
 			let divisibility = 1;
