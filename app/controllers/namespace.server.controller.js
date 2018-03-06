@@ -3,6 +3,7 @@ import dbUtil from '../utils/dbUtil';
 import nis from '../utils/nisRequest';
 
 const LISTSIZE = 100;
+const namespaceListLimit = 50;
 
 module.exports = {
 
@@ -11,7 +12,12 @@ module.exports = {
      */
 	rootNamespaceList: (req, res, next) => {
 		try {
-			dbUtil.rootNamespaceList(docs => {
+			let no = req.body.no;
+			// validate no
+			let reg_no = /^[0-9]+$/;
+			if(!no || !reg_no.test(no))
+				no = null;
+			dbUtil.rootNamespaceList(no, namespaceListLimit, docs => {
 				docs.forEach((item, index) => {
 					item.subNamespaces = item.subNamespaces?item.subNamespaces:"";
 				});

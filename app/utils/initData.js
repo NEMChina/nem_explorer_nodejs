@@ -109,7 +109,7 @@ let loadNemesisBlock = () => {
 			updateAddress(otherAccount, 1);
 		}
 		//save the transaction into DB by batch
-		dbUtil.saveTransactionByBatch(saveTxArr);
+		dbUtil.saveTransactionByBatchNemesis(saveTxArr);
 	});
 };
 

@@ -8,14 +8,12 @@ const mosaicTransferListLimit = 50;
 function MosaicListController($scope, MosaicService){
 	$scope.loadingFlag = false;
 	$scope.endFlag = false;
-	$scope.initList = () => {
-		MosaicService.mosaicList({}, function(r_list){
-			r_list.forEach(r => {
-				r.timeStamp = fmtDate(r.timeStamp);
-			});
-			$scope.mosaicList = r_list;
+	MosaicService.mosaicList({}, function(r_list){
+		r_list.forEach(r => {
+			r.timeStamp = fmtDate(r.timeStamp);
 		});
-	};
+		$scope.mosaicList = r_list;
+	});
 	$scope.loadMore = () => {
 		if($scope.endFlag)
 			return;
@@ -44,7 +42,6 @@ function MosaicListController($scope, MosaicService){
 				$scope.endFlag = true;
 		});
 	};
-	$scope.initList();
 }
 
 function MosaicController($scope, $timeout, $location, MosaicService){

@@ -254,9 +254,12 @@ let updateRootNamespace = (namespace) => {
 /**
  * get root namspace list
  */
-let rootNamespaceList = (callback) => {
+let rootNamespaceList = (no, limit, callback) => {
 	let Namespace = mongoose.model('Namespace');
-	Namespace.find({$where: "this.namespace==this.rootNamespace"}).sort({timeStamp: -1}).exec((err, docs) => {
+	let params = {$where: "this.namespace==this.rootNamespace"};
+	if(no)
+		params.no = {$lt: no};
+	Namespace.find(params).sort({timeStamp: -1, no: -1}).limit(limit).exec((err, docs) => {
 		if(err || !docs)
 			callback([]);
 		else

@@ -1,14 +1,47 @@
 angular.module("webapp").controller("NamespaceListController", ["$scope", "$timeout", "NamespaceService", NamespaceListController]);
 angular.module("webapp").controller("NamespaceController", ["$scope", "$timeout", "$location", "NamespaceService", "MosaicService", NamespaceController]);
 
+const namespaceListLimit = 50;
+
 function NamespaceListController($scope, $timeout, NamespaceService){
-	NamespaceService.rootNamespaceList(function(r_namespaceList){
+	$scope.loadingFlag = false;
+	$scope.endFlag = false;
+	NamespaceService.rootNamespaceList({}, function(r_namespaceList){
 		r_namespaceList.forEach((r, index) => {
 			r.timeStamp = fmtDate(r.timeStamp);
 			r.expiredTime = fmtDate(r.expiredTime);
 		});
 		$scope.namespaceList = r_namespaceList;
 	});
+	$scope.loadMore = () => {
+		if($scope.endFlag)
+			return;
+		if($scope.loadingFlag)
+			return;
+		if(!$scope.namespaceList || $scope.namespaceList.length==0)
+			return;
+		let length = $scope.namespaceList.length;
+		let lastNo = $scope.namespaceList[length-1].no;
+		if(!lastNo)
+			return;
+		$scope.loadingFlag = true;
+		// attach the search conditions
+		let params = {no: lastNo};
+		NamespaceService.rootNamespaceList(params, function(r_list){
+			if(r_list.length==0){
+				$scope.endFlag = true;
+				return;
+			}
+			r_list.forEach(r => {
+				r.timeStamp = fmtDate(r.timeStamp);
+				r.expiredTime = fmtDate(r.expiredTime);
+			});
+			$scope.namespaceList = $scope.namespaceList.concat(r_list);
+			$scope.loadingFlag = false;
+			if(r_list.length<namespaceListLimit)
+				$scope.endFlag = true;
+		});
+	};
 }
 
 function NamespaceController($scope, $timeout, $location, NamespaceService, MosaicService){
