@@ -60,8 +60,15 @@ module.exports = {
 				res.json([]);
 				return;
 			}
-			dbUtil.namespaceListbyNamespace(namespace, docs => {
-				res.json(docs);
+			// get root namespace
+			let rootNamespace = namespace.substring(namespace.indexOf(".")+1);
+			dbUtil.namespaceListbyRoot(rootNamespace, docs => {
+				let newDocs = [];
+				docs.forEach(doc => {
+					if(doc.namespace.length>=namespace.length)
+						newDocs.push(doc);
+				});
+				res.json(newDocs);
 			});
 		} catch (e) {
 			console.error(e);

@@ -1,155 +1,69 @@
 <div id="content" class="container" style="padding-top:10px;padding-bottom:70px;">
 	<h4>Namespace Detail</h4>
-	<table class="table table-striped table-hover well well-large">
-		<tr>
-			<td width="190">Namespace</td>
-			<td>
-		    	<select class="form-control" ng-model="select" ng-options="item.namespace for item in namespaceList" ng-change="changeSelectOption()" style="width: 400px;height: 32px;font-weight: bold;font-size:16px;"></select>
-			</td>
-		</tr>
-		<tr>
-			<td>Creator</td>
-			<td ng-bind="select.creator"></td>
-		</tr>
-		<tr>
-			<td>CreateTime</td>
-			<td ng-bind="select.timeStamp"></td>
-		</tr>
-		<tr ng-class="{hidden: select.namespace!=select.rootNamespace}">
-			<td>ExpiredTime</td>
-			<td ng-bind="select.expiredTime"></td>
-		</tr>
-		<tr>
-			<td>Height</td>
-			<td ng-bind="select.height"></td>
-		</tr>
-	</table>
-	<ul class="nav nav-tabs" role="tablist" id="tab" style="margin-top: 40px;" ng-class="{hidden:!select}">
-		<li role="presentation" class="active">
-			<a role="tab" data-toggle="tab">
-				<span style="font-weight: bold;">
-					Mosaics
-				</span>
-			</a>
-		</li>
-	</ul>
-	<div class="tab-content" ng-class="{hidden:!select}">
-		<div role="tabpanel" class="tab-pane active" id="mosaics">
-			<table class="table table-striped table-hover">
-				<thead>
-					<tr>
-						<td>#</td>
-						<td>Mosaic</td>
-						<td>InitialSupply</td>
-						<td>Divisibility</td>
-						<td>TimeStamp</td>
-					</tr>
-				</thead>
-				<tbody class="well well-large">
-					<tr ng-class="{hidden:mosaicList&&mosaicList.length>0}">
-						<td colspan="5">Nothing to show</td>
-					</tr>
-					<tr ng-repeat="m in mosaicList" style="cursor:pointer;" ng-click="showMosaic($index, $event)" ng-class="{success:selectedMosaicIndex==$index}">
-						<td ng-bind="$index+1"></td>
-						<td>
-							<a href="#mosaic?m={{m.mosaicName}}&ns={{m.namespace}}" target="_blank">
-								<span class="noDetail" ng-bind="m.mosaic"></span>
-							</a>
-						</td>
-						<td ng-bind="m.initialSupply"></td>
-						<td ng-bind="m.divisibility"></td>
-						<td ng-bind="m.timeStamp"></td>
-					</tr>
-				</tboby>
-			</table>
-		</div>
-	</div>
-	<div class="modal fade" id="mosaicDetail" tabindex="-1" role="dialog">
-		<div class="modal-dialog" style="width:900px;">
-	    	<div class="modal-content">
-	        	<div class="modal-header">
-	            	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-	            	<h5 class="modal-title"><b>Mosaic Detail</b></h5>
-		         </div>
-		         <div class="modal-body">
-		         	<table>
-		         		<tr style="line-height:26px;">
-							<td width="180">Mosaic</td>
-							<td ng-bind="selectedMosaic.mosaic"></td>
-						</tr>
-						<tr style="line-height:26px;">
-							<td>Description</td>
-							<td ng-bind="selectedMosaic.description" style="word-break: break-word;"></td>
-						</tr>
-						<tr style="line-height:26px;">
-							<td>Creator</td>
-							<td ng-bind="selectedMosaic.creator"></td>
-						</tr>
-						<tr style="line-height:26px;">
-							<td>Create / Update Time</td>
-							<td>
-								<span ng-bind="selectedMosaic.timeStamp"></span>
-								<span ng-class="{hidden:!selectedMosaic.updateTimeStamp}">
-									/
-									<span ng-bind="selectedMosaic.updateTimeStamp" ></span>
-								</span>
-							</td>
-						</tr>
-						<tr style="line-height:26px;">
-							<td>Create / Update Height</td>
-							<td>
-								<span ng-bind="selectedMosaic.height"></span>
-								<span ng-class="{hidden:!selectedMosaic.updateHeight}">
-									/
-									<span ng-bind="selectedMosaic.updateHeight" ></span>
-								</span>
-							</td>
-						</tr>
-						<tr style="line-height:26px;">
-							<td>Supply</td>
-							<td ng-bind="selectedMosaic.initialSupply"></td>
-						</tr>
-						<tr style="line-height:26px;">
+	<div ng-if="!namespaceList" style="font-size: 16px;line-height:50px;" ng-bind="message"></div>
+	<div ng-if="namespaceList">
+		<table class="table table-striped table-hover well well-large">
+			<tr>
+				<td width="190">Namespace</td>
+				<td>
+			    	<select class="form-control" ng-model="select" ng-options="item.namespace for item in namespaceList" ng-change="changeSelectOption(select)" style="width: 400px;height: 32px;font-weight: bold;font-size:16px;"></select>
+				</td>
+			</tr>
+			<tr>
+				<td>Creator</td>
+				<td ng-bind="select.creator"></td>
+			</tr>
+			<tr>
+				<td>CreateTime</td>
+				<td ng-bind="select.timeStamp"></td>
+			</tr>
+			<tr ng-class="{hidden: select.namespace!=select.rootNamespace}">
+				<td>ExpiredTime</td>
+				<td ng-bind="select.expiredTime"></td>
+			</tr>
+			<tr>
+				<td>Height</td>
+				<td ng-bind="select.height"></td>
+			</tr>
+		</table>
+		<ul class="nav nav-tabs" role="tablist" id="tab" style="margin-top: 40px;" ng-class="{hidden:!select}">
+			<li role="presentation" class="active">
+				<a role="tab" data-toggle="tab">
+					<span style="font-weight: bold;">
+						Mosaics
+					</span>
+				</a>
+			</li>
+		</ul>
+		<div class="tab-content" ng-class="{hidden:!select}">
+			<div role="tabpanel" class="tab-pane active" id="mosaics">
+				<table class="table table-striped table-hover">
+					<thead>
+						<tr>
+							<td>#</td>
+							<td>Mosaic</td>
+							<td>InitialSupply</td>
 							<td>Divisibility</td>
-							<td ng-bind="selectedMosaic.divisibility"></td>
+							<td>TimeStamp</td>
 						</tr>
-						<tr style="line-height:26px;">
-							<td>SupplyMutable</td>
+					</thead>
+					<tbody class="well well-large">
+						<tr ng-class="{hidden:mosaicList&&mosaicList.length>0}">
+							<td colspan="5">Nothing to show</td>
+						</tr>
+						<tr ng-repeat="m in mosaicList" style="cursor:pointer;" ng-click="showMosaic($index, $event)" ng-class="{success:selectedMosaicIndex==$index}">
+							<td ng-bind="$index+1"></td>
 							<td>
-								<span ng-class="{hidden:selectedMosaic.supplyMutable!=0}">No</span>
-								<span ng-class="{hidden:selectedMosaic.supplyMutable!=1}">Yes</span>
+								<a href="#mosaic?m={{m.mosaicName}}&ns={{m.namespace}}" target="_blank">
+									<span class="noDetail" ng-bind="m.mosaic"></span>
+								</a>
 							</td>
+							<td ng-bind="m.initialSupply"></td>
+							<td ng-bind="m.divisibility"></td>
+							<td ng-bind="m.timeStamp"></td>
 						</tr>
-						<tr style="line-height:26px;">
-							<td>Transferable</td>
-							<td>
-								<span ng-class="{hidden:selectedMosaic.transferable!=0}">No</span>
-								<span ng-class="{hidden:selectedMosaic.transferable!=1}">Yes</span>
-							</td>
-						</tr>
-						<tr style="line-height:26px;" ng-class="{hidden:!selectedMosaic.levyType}">
-							<td>Levy Type</td>
-							<td>
-								<span ng-class="{hidden:selectedMosaic.levyType!=1}">absolute fee</span>
-								<span ng-class="{hidden:selectedMosaic.levyType!=2}">relative fee</span>
-							</td>
-						</tr>
-						<tr style="line-height:26px;" ng-class="{hidden:!selectedMosaic.levyMosaic}">
-							<td>Levy Mosaic</td>
-							<td>
-								<span ng-bind="selectedMosaic.levyNamespace"></span>:<span ng-bind="selectedMosaic.levyMosaic"></span>
-							</td>
-						</tr>
-						<tr style="line-height:26px;" ng-class="{hidden:!selectedMosaic.levyFee}">
-							<td>Levy Fee</td>
-							<td ng-class="selectedMosaic.levyFee"></td>
-						</tr>
-						<tr style="line-height:26px;" ng-class="{hidden:!selectedMosaic.levyRecipient}">
-							<td>Levy Recipient</td>
-							<td ng-class="selectedMosaic.levyRecipient"></td>
-						</tr>
-					</table>
-		         </div>
+					</tboby>
+				</table>
 			</div>
 		</div>
 	</div>

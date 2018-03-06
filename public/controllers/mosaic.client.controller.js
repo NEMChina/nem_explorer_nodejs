@@ -45,13 +45,23 @@ function MosaicListController($scope, MosaicService){
 }
 
 function MosaicController($scope, $timeout, $location, MosaicService){
-	$scope.notFound = false;
 	let ns = $location.search().ns;
 	let m = $location.search().m;
-	if(!ns || !m)
-		$scope.notFound = true;
+	if(!ns){
+		$scope.message = "Search condition [ns] is needed";
+		return;
+	}
+	if(!m){
+		$scope.message = "Search condition [m] is needed";
+		return;
+	}
 	let params = {ns: ns, m: m};
+	let mosaicID = ns + ":" + m;
 	MosaicService.mosaic(params, function(r){
+		if(!r || !r.mosaic){
+			$scope.message = "MosaicID \"" + mosaicID + "\" do not exist";
+			return;
+		}
 		r.timeStamp = fmtDate(r.timeStamp);
 		if(r.updateTimeStamp)
 			r.updateTimeStamp = fmtDate(r.updateTimeStamp);

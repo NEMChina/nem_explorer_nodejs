@@ -295,6 +295,19 @@ let namespaceListbyNamespace = (ns, callback) => {
 }
 
 /**
+ * get namespace and sub namespace list by Root namespace
+ */
+let namespaceListbyRoot = (ns, callback) => {
+	let Namespace = mongoose.model('Namespace');
+	Namespace.find({rootNamespace: ns}).sort({namespace: 1}).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else
+			callback(docs);
+	});
+}
+
+/**
  *************************************************************************************
  *** Mosaic **************************************************************************
  ************************************************************************************* 
@@ -478,6 +491,7 @@ module.exports = {
 	rootNamespaceList,
 	subNamespaceList,
 	namespaceListbyNamespace,
+	namespaceListbyRoot,
 	findOneMosaic,
 	findMosaics,
 	saveMosaic,

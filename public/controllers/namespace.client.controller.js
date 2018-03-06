@@ -45,28 +45,31 @@ function NamespaceListController($scope, $timeout, NamespaceService){
 }
 
 function NamespaceController($scope, $timeout, $location, NamespaceService, MosaicService){
-	let absUrl = $location.absUrl();
-	if(absUrl==null)
+	let ns = $location.search().ns;
+	if(!ns){
+		$scope.message = "Search condition [ns] is needed";
 		return;
-	let reg = /ns=([a-zA-Z0-9_-]+((\.)[a-zA-Z0-9_-]+)*)/;
-	if(!absUrl.match(reg) || absUrl.match(reg).length<2)
-		return;
-	let ns = absUrl.match(reg)[1];
+	}
 	let params = {ns: ns};
+	$scope.searchNamespace = ns;
 	NamespaceService.namespaceListbyNamespace(params, function(r_namespaceList){
+		if(r_namespaceList.length==0){
+			$scope.message = "Namespace \"" + ns + "\" do not exist";
+			return;
+		}
 		r_namespaceList.forEach((r, index) => {
 			r.timeStamp = fmtDate(r.timeStamp);
 			r.expiredTime = fmtDate(r.expiredTime);
 		});
 		$scope.namespaceList = r_namespaceList;
 		$scope.select = $scope.namespaceList[0];
-		$scope.changeSelectOption();
+		$scope.changeSelectOption($scope.select);
 	});
 	// change the option
-	$scope.changeSelectOption = function(){
-		if(!$scope.select.namespace)
+	$scope.changeSelectOption = function(select){
+		if(!select || !select.namespace)
 			return;
-		MosaicService.mosaicListByNamespace({"ns": $scope.select.namespace}, function(r_mosaicList) {
+		MosaicService.mosaicListByNamespace({"ns": select.namespace}, function(r_mosaicList) {
 			if(!r_mosaicList){
 				$scope.mosaicList = [];
 				return;
