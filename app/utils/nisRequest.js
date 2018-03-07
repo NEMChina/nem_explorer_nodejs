@@ -32,6 +32,10 @@ let accountByAddress = (address, callback) => {
 	get('/account/get?address='+address, callback);
 };
 
+let accountByAddressBatch = (reqData, callback) => {
+	post('/account/get/batch', reqData, callback);
+};
+
 let blockAtPublic = (reqData, callback) => {
 	post('/block/at/public', reqData, callback);
 };
@@ -248,6 +252,7 @@ module.exports = {
 	publicKeyToAddress,
 	blockAtPublic,
 	accountByAddress,
+	accountByAddressBatch,
 	harvestByAddress,
 	harvestByAddressInTime,
 	accountTransferRecord,
