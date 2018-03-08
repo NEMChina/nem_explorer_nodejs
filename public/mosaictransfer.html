@@ -4,7 +4,7 @@
 		<button type="button" style="display:inline;float:right;" ng-click="searchMosaic()" ng-disabled="searchingFlag">
  			<span class="glyphicon glyphicon-repeat small"></span>
  		</button>
-		<input ng-model="searchInput" type="text" style="width:360px;display:inline;float:right;margin-right:6px;padding-left:6px;" placeholder="mosaic (e.g. dim:coin)">
+		<input ng-model="searchInput" type="text" style="width:360px;display:inline;float:right;margin-right:6px;padding-left:6px;" placeholder="mosaicID (e.g. dim:coin)">
 		<img ng-if="searchingFlag" src="views/images/loading.gif" width="20" height="20" style="float:right;margin-right:10px;"/>
 	</div>
 	<div class="alert alert-warning" ng-if="warningFlag">
@@ -26,16 +26,16 @@
 			</tr>
 			<tr ng-repeat="mt in mosaicTransferList" style="cursor:pointer;" ng-class="{success:selectedNO==mt.no, fadeIn:fadeFlag}" ng-click="showMT($index, $event)">
 				<td>
-					<a href="#/mosaic?ns={{mt.namespace}}&m={{mt.mosaic}}" target="_blank">
-						<span ng-bind="mt.namespace"></span>:<span ng-bind="mt.mosaic"></span>
+					<a href="#/mosaic?ns={{mt.namespace}}&m={{mt.mosaic}}" target="_blank" class="noDetail">
+						<span ng-bind="mt.namespace" class="noDetail"></span>:<span ng-bind="mt.mosaic" class="noDetail"></span>
 					</a>
 				</td>
 				<td width="110" ng-bind="mt.quantity"></td>
 				<td width="340">
-					<a href="#/s_account?account={{mt.sender}}" target="_blank"><span ng-bind="mt.sender"></span></a>
+					<a href="#/s_account?account={{mt.sender}}" class="noDetail" target="_blank"><span ng-bind="mt.sender" class="noDetail"></span></a>
 				</td>
 				<td width="340">
-					<a href="#/s_account?account={{mt.sender}}" target="_blank"><span ng-bind="mt.recipient"></span></a>
+					<a href="#/s_account?account={{mt.sender}}" class="noDetail" target="_blank"><span ng-bind="mt.recipient" class="noDetail"></span></a>
 				</td>
 				<!-- <td width="130" ng-bind="mt.timeStamp"></td> -->
 				<td width="120" ng-bind="mt.age"></td>

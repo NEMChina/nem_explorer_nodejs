@@ -8,10 +8,13 @@ function NamespaceListController($scope, $timeout, NamespaceService){
 	$scope.endFlag = false;
 	NamespaceService.rootNamespaceList({}, function(r_namespaceList){
 		r_namespaceList.forEach((r, index) => {
+			r.expired = false;
+			r.originalExpiredTime = r.expiredTime;
 			r.timeStamp = fmtDate(r.timeStamp);
 			r.expiredTime = fmtDate(r.expiredTime);
 		});
 		$scope.namespaceList = r_namespaceList;
+		$scope.resetExpired();
 	});
 	$scope.loadMore = () => {
 		if($scope.endFlag)
@@ -33,6 +36,8 @@ function NamespaceListController($scope, $timeout, NamespaceService){
 				return;
 			}
 			r_list.forEach(r => {
+				r.expired = false;
+				r.originalExpiredTime = r.expiredTime;
 				r.timeStamp = fmtDate(r.timeStamp);
 				r.expiredTime = fmtDate(r.expiredTime);
 			});
@@ -40,8 +45,17 @@ function NamespaceListController($scope, $timeout, NamespaceService){
 			$scope.loadingFlag = false;
 			if(r_list.length<namespaceListLimit)
 				$scope.endFlag = true;
+			$scope.resetExpired();
 		});
 	};
+	$scope.resetExpired = () => {
+		let nowTime = new Date().getTime();
+		$scope.namespaceList.forEach((ns, i) => {
+			let expiredTime = getDateFromNemTime(ns.originalExpiredTime);
+			if(nowTime>expiredTime.getTime())
+				$scope.namespaceList[i].expired = true;
+		});
+	}
 }
 
 function NamespaceController($scope, $timeout, $location, NamespaceService, MosaicService){
@@ -76,7 +90,7 @@ function NamespaceController($scope, $timeout, $location, NamespaceService, Mosa
 			}
 			r_mosaicList.forEach((m, index) => {
 				m.timeStamp = fmtDate(m.timeStamp);
-				m.initialSupply = fmtXEM(m.initialSupply);
+				m.initialSupply = fmtMosaic(m.initialSupply, m.divisibility);
 				if(m.updateTimeStamp)
 					m.updateTimeStamp = fmtDate(m.updateTimeStamp);
 				m.mosaic = m.namespace + ":" + m.mosaicName;

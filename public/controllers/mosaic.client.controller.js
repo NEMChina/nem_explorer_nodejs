@@ -11,6 +11,7 @@ function MosaicListController($scope, MosaicService){
 	MosaicService.mosaicList({}, function(r_list){
 		r_list.forEach(r => {
 			r.timeStamp = fmtDate(r.timeStamp);
+			r.initialSupply = fmtMosaic(r.initialSupply, r.divisibility);
 		});
 		$scope.mosaicList = r_list;
 	});
@@ -35,6 +36,7 @@ function MosaicListController($scope, MosaicService){
 			}
 			r_list.forEach(r => {
 				r.timeStamp = fmtDate(r.timeStamp);
+				r.initialSupply = fmtMosaic(r.initialSupply, r.divisibility);
 			});
 			$scope.mosaicList = $scope.mosaicList.concat(r_list);
 			$scope.loadingFlag = false;
@@ -63,19 +65,12 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 			return;
 		}
 		r.timeStamp = fmtDate(r.timeStamp);
-		if(r.updateTimeStamp)
-			r.updateTimeStamp = fmtDate(r.updateTimeStamp);
-		if(r.divisibility!=0)
-			r.fixInitialSupply = fmtSplit(r.initialSupply / Math.pow(10, r.divisibility));
-		r.initialSupply = fmtSplit(r.initialSupply);
+		r.initialSupply = fmtSplit(r.initialSupply.toFixed(r.divisibility));
 		$scope.mosaic = r;
 		MosaicService.mosaicTransferList(params, function(r_list){
-			let divisibility = 1;
-			if(r.divisibility && r.divisibility!=0)
-				divisibility = Math.pow(10, r.divisibility);
 			r_list.forEach(item => {
 				item.timeStamp = fmtDate(item.timeStamp);
-				item.quantity = item.quantity / divisibility;
+				item.quantity = fmtMosaic(item.quantity, item.div);
 			});
 			$scope.mosaicTransferList = r_list;
 		});

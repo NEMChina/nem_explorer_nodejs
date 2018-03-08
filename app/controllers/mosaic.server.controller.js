@@ -151,9 +151,47 @@ module.exports = {
 					r.div = 0;
 					r_arr.push(r);
 				});
-				setMosaicTXDivisibility(r_arr, mosaicTXs => {
+				module.exports.setMosaicTXDivisibility(r_arr, mosaicTXs => {
 					res.json(mosaicTXs);
 				});
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+	 * set mosaic transactions divisibility
+	 */
+	setMosaicTXDivisibility: (mosaicTXs, callback) => {
+		try {
+			let findMosaicSet = new Set();
+			let findMosaicParams = [];
+			mosaicTXs.forEach(mt => {
+				let id = mt.namespace + ":" + mt.mosaic;
+				if(!findMosaicSet.has(id)){
+					findMosaicSet.add(id);
+					findMosaicParams.push({mosaicName: mt.mosaic, namespace: mt.namespace});
+				}
+			});
+			if(findMosaicParams.length==0){
+				callback(mosaicTXs);
+				return;
+			}
+			// query mosaic divisibility from DB
+			dbUtil.findMosaics(findMosaicParams, mosaics => {
+				let divMap = new Map();
+				mosaics.forEach(m => {
+					if(m)
+						divMap.set(m.namespace+":"+m.mosaicName, m.divisibility);
+				});
+				mosaicTXs.forEach((r, i) => {
+					let id = r.namespace+":"+r.mosaic;
+					if(!divMap.has(id))
+						return;
+					mosaicTXs[i].div = divMap.get(id);
+				});
+				callback(mosaicTXs);
 			});
 		} catch (e) {
 			console.error(e);
@@ -161,40 +199,3 @@ module.exports = {
 	}
 };
 
-/**
- * set mosaic transactions divisibility
- */
-let setMosaicTXDivisibility = (mosaicTXs, callback) => {
-	try {
-		let findMosaicSet = new Set();
-		let findMosaicParams = [];
-		mosaicTXs.forEach(mt => {
-			let id = mt.namespace + ":" + mt.mosaic;
-			if(!findMosaicSet.has(id)){
-				findMosaicSet.add(id);
-				findMosaicParams.push({mosaicName: mt.mosaic, namespace: mt.namespace});
-			}
-		});
-		if(findMosaicParams.length==0){
-			callback(mosaicTXs);
-			return;
-		}
-		// query mosaic divisibility from DB
-		dbUtil.findMosaics(findMosaicParams, mosaics => {
-			let divMap = new Map();
-			mosaics.forEach(m => {
-				if(m)
-					divMap.set(m.namespace+":"+m.mosaicName, m.divisibility);
-			});
-			mosaicTXs.forEach((r, i) => {
-				let id = r.namespace+":"+r.mosaic;
-				if(!divMap.has(id))
-					return;
-				mosaicTXs[i].div = divMap.get(id);
-			});
-			callback(mosaicTXs);
-		});
-	} catch (e) {
-		console.error(e);
-	}
-}

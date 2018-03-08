@@ -443,6 +443,8 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 			if(levy.mosaicId && levy.mosaicId.namespaceId && levy.mosaicId.name){
 				mosaic.levyNamespace = levy.mosaicId.namespaceId;
 				mosaic.levyMosaic = levy.mosaicId.name;
+				mosaic.levyRecipient = levy.recipient;
+				mosaic.levyFee = levy.fee;
 			}
 		}
 		// calculate the number, no = block height + tx index

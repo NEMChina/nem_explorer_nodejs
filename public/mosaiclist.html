@@ -4,24 +4,23 @@
 			<thead>
 				<tr>
 					<th>#</th>
-					<th>Mosaic</th>
-					<th>Supply (Divisibility)</th>
+					<th>MosaicID</th>
+					<th>Supply</th>
+					<th>Divisibility</th>
 					<th>CreateTime</th>
 				</tr>
 			</thead>
 			<tbody class="well well-large">
 				<tr ng-repeat="m in mosaicList">
-					<td ng-bind="$index+1"></td>
+					<td ng-bind="$index+1" width="42"></td>
 					<td>
 						<a href="#/mosaic?m={{m.mosaicName}}&ns={{m.namespace}}" target="_blank">
 							<span ng-bind="m.namespace"></span>:<span ng-bind="m.mosaicName"></span>
 						</a>
 					</td>
-					<td>
-						<span ng-bind="m.initialSupply"></span>
-						(<span ng-bind="m.divisibility"></span>)
-					</td>
-					<td ng-bind="m.timeStamp"></td>
+					<td ng-bind="m.initialSupply" width="200"></td>
+					<td ng-bind="m.divisibility" width="140"></td>
+					<td ng-bind="m.timeStamp" width="180"></td>
 				</tr>
 			</tbody>
 		</table>

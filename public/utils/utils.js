@@ -59,6 +59,10 @@ function fixNumber(input) {
 		return input;
 }
 
+function getDateFromNemTime(input) {
+	return new Date(input*1000 + NEM_EPOCH);
+}
+
 function compareTime(nowTime, time) {
 	let second = Math.floor((nowTime - NEM_EPOCH - time*1000)/1000);
 	if(second<60)
@@ -133,9 +137,9 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 			if(tx.mosaics && tx.mosaics.length>0){
 				for(let i in tx.mosaics){
 					if(i==0)
-						items.push({label: "Mosaic transfer", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtSplit(tx.mosaics[i].quantity)});
+						items.push({label: "Mosaic transfer", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtMosaic(tx.mosaics[i].quantity, tx.mosaics[i].divisibility)});
 					else
-						items.push({label: "", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtSplit(tx.mosaics[i].quantity)});
+						items.push({label: "", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtMosaic(tx.mosaics[i].quantity, tx.mosaics[i].divisibility)});
 				}
 			}
 		} else if(tx.type==2049){ //Initiating a importance transfer transaction

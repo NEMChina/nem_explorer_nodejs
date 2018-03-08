@@ -4,16 +4,26 @@
 	<div ng-if="mosaic">
 		<table class="table table-striped table-hover well well-large">
 			<tr>
-				<td width="180">Mosaic</td>
-				<td ng-bind="mosaic.mosaicName"></td>
+				<td width="180">MosaicID</td>
+				<td>
+					<span ng-bind="mosaic.namespace"></span>:<span ng-bind="mosaic.mosaicName"></span>
+				</td>
 			</tr>
 			<tr>
 				<td>Namespace</td>
-				<td ng-bind="mosaic.namespace"></td>
+				<td>
+					<a href="#/namespace?ns={{mosaic.namespace}}" target="_blank">
+						<span ng-bind="mosaic.namespace"></span>
+					</a>
+				</td>
 			</tr>
 			<tr>
 				<td>Creator</td>
-				<td ng-bind="mosaic.creator"></td>
+				<td>
+					<a href="#/s_account?account={{mosaic.creator}}" target="_blank">
+						<span ng-bind="mosaic.creator"></span>
+					</a>
+				</td>
 			</tr>
 			<tr>
 				<td>Create / Update Time</td>
@@ -24,16 +34,15 @@
 			<tr>
 				<td>Create / Update Height</td>
 				<td>
-					<span ng-bind="mosaic.height"></span>
+					<a href="#/s_block?height={{mosaic.height}}" target="_blank">
+						<span ng-bind="mosaic.height"></span>
+					</a>
 				</td>
 			</tr>
 			<tr>
 				<td>Supply</td>
 				<td>
 					<span ng-bind="mosaic.initialSupply"></span>
-					<span ng-if="mosaic.fixInitialSupply" style="padding-left:10px;">
-						(<span ng-bind="mosaic.fixInitialSupply"></span>)
-					</span>
 				</td>
 			</tr>
 			<tr>

@@ -212,6 +212,7 @@ module.exports = {
 					if(!mt)
 						return;
 					let r_mosaic = {};
+					r_mosaic.no = mt.no;
 					r_mosaic.hash = mt.hash;
 					r_mosaic.sender = mt.sender;
 					r_mosaic.recipient = mt.recipient;
@@ -221,7 +222,7 @@ module.exports = {
 					r_mosaic.quantity = mt.quantity;
 					r_mosaicArray.push(r_mosaic);
 				});
-				mosaicController.fixMosaicTXQuantity(r_mosaicArray, re => {
+				mosaicController.setMosaicTXDivisibility(r_mosaicArray, re => {
 					res.json(r_mosaicArray);
 				});
 			});

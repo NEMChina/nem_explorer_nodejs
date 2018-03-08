@@ -247,14 +247,14 @@ let checkApostilleAndMosaicTransferFromTX = (tx) => {
 let formatMosaicDivisibility = (tx, callback) => {
 	if(tx.tx.mosaics && tx.tx.mosaics.length>0){
 		let count = 0;
-		tx.tx.mosaics.forEach(mosaic => {
+		tx.tx.mosaics.forEach((mosaic, i) => {
+			tx.tx.mosaics[i].divisibility = 0;
 			let m = mosaic.mosaicId.name;
 			let ns = mosaic.mosaicId.namespaceId;
-			let div = 1;
+			let div = 0;
 			dbUtil.findOneMosaic(m, ns, doc => {
 				if(doc && doc.divisibility && doc.divisibility>1)
-					div = Math.pow(10, doc.divisibility);
-				mosaic.quantity = mosaic.quantity / div;
+					tx.tx.mosaics[i].divisibility = doc.divisibility;
 				count++;
 				if(count==tx.tx.mosaics.length)
 					callback();
