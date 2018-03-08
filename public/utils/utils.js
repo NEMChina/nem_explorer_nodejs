@@ -43,6 +43,14 @@ function fmtSplit(input) {
 	return result + decimal;
 }
 
+function fmtMosaic(input, div) {
+	let divisor = 1;
+	if(div && div>0)
+		divisor = Math.pow(10, div);
+	let result = (input / divisor).toFixed(div);
+	return fmtSplit(result);
+}
+
 function fixNumber(input) {
 	let reg = /^([0-9,])+(\.)[0-9]{2}[0-9]+$/;
 	if(reg.test(input))

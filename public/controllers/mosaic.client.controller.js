@@ -116,6 +116,7 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 		r_list.forEach((r, index) => {
 			r.time = r.timeStamp;
 			r.timeStamp = fmtDate(r.timeStamp);
+			r.quantity = fmtMosaic(r.quantity, r.div);
 		});
 		$scope.mosaicTransferList = r_list;
 		$scope.updateAge();
@@ -134,12 +135,13 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 		$scope.nothingToShowFlag = false;
 		mosaics.forEach(item => {
 			let m = {};
+			m.hash = item.hash;
 			m.time = item.timeStamp;
 			m.mosaic = item.mosaicName;
 			m.namespace = item.namespace;
 			m.sender = item.sender;
 			m.recipient = item.recipient;
-			m.quantity = item.quantity;
+			m.quantity = fmtMosaic(item.quantity, item.divisibility);
 			m.timeStamp = fmtDate(item.timeStamp);
 			if($scope.currentNamespace!="" && $scope.currentMosaic!=""){
 				if($scope.currentNamespace==m.namespace && $scope.currentMosaic==m.mosaic)

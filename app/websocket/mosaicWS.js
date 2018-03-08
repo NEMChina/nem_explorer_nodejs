@@ -6,6 +6,7 @@ import clientWS from './clientWS';
 import address from '../utils/address';
 import jsonUtil from '../utils/jsonUtil';
 import dbUtil from '../utils/dbUtil';
+import nis from '../utils/nisRequest';
 
 const WS_URL = 'http://' + config.nisHost + ':' + config.wsPort + config.wsPath;
 
@@ -30,38 +31,57 @@ let mosaic = () => {
 		if(!data)
 			return;
 		let block = jsonUtil.parse(data);
-		if(!block.transactions || block.transactions.length==0)
+		if(!block || !block.height || !block.signature)
 			return;
-
-		let r_mosaicArr = [];
-		let mosaicQueryParams = [];
-		block.transactions.forEach(tx => {
-			let mosaicFromTX = getMosaicFromTX(tx);
-			let mosaicQueryParamsFromTX = getMosaicQueryParamsFromTX(tx);
-			if(mosaicFromTX.length!=0)
-				r_mosaicArr = r_mosaicArr.concat(mosaicFromTX);
-			if(mosaicQueryParamsFromTX)
-				mosaicQueryParams = mosaicQueryParams.concat(mosaicQueryParamsFromTX);
-		});
-		if(r_mosaicArr==0)
-			return;
-		if(r_mosaicArr!=0 && mosaicQueryParams.length==0)
-			clientWS.emitBlock(r_mosaicArr);
-		dbUtil.findMosaics(mosaicQueryParams, docs => {
-			let mosaicMap = new Map();
-			docs.forEach(doc => {
-				let mosaicID = doc.namespace + ":" + doc.mosaicname; 
-				mosaicMap.set(mosaicID, doc.divisibility);
-			});
-			r_mosaicArr.forEach(m => {
-				if(!mosaicMap.has(m.mosaicID))
+		let params = JSON.stringify({"height": block.height-1});
+		nis.blockList(params, data => {
+			if(!data || !data.data || data.data.length==0)
+				return;
+			data.data.forEach(item => {
+				if(!item.block || !item.txes)
 					return;
-				let div = 1;
-				if(mosaicMap.get(m.mosaicID) && mosaicMap.get(m.mosaicID)>0)
-					div = Math.pow(10, mosaicMap.get(m.mosaicID))
-				m.quantity = m.quantity / div;
+				// query given height block
+				if(item.block.height!=block.height)
+					return;
+				let r_mosaicArr = [];
+				let mosaicQueryParams = [];
+				// collect mosaics
+				item.txes.forEach((itemTx, index) => {
+					if(!itemTx || !itemTx.tx || !itemTx.hash)
+						return;
+					let tx = itemTx.tx;
+					tx.height = block.height;
+					tx.hash = itemTx.hash;
+					tx.index = index;
+					let mosaicFromTX = getMosaicFromTX(tx);
+					let mosaicQueryParamsFromTX = getMosaicQueryParamsFromTX(tx);
+					if(mosaicFromTX.length!=0)
+						r_mosaicArr = r_mosaicArr.concat(mosaicFromTX);
+					if(mosaicQueryParamsFromTX)
+						mosaicQueryParams = mosaicQueryParams.concat(mosaicQueryParamsFromTX);
+				});
+				if(r_mosaicArr==0)
+					return;
+				if(r_mosaicArr!=0 && mosaicQueryParams.length==0)
+					clientWS.emitBlock(r_mosaicArr);
+				// query mosaics info and format the quantity
+				dbUtil.findMosaics(mosaicQueryParams, docs => {
+					let mosaicMap = new Map();
+					docs.forEach(doc => {
+						let mosaicID = doc.namespace + ":" + doc.mosaicname; 
+						mosaicMap.set(mosaicID, doc.divisibility);
+					});
+					r_mosaicArr.forEach(m => {
+						if(!mosaicMap.has(m.mosaicID))
+							return;
+						let div = 1;
+						if(mosaicMap.get(m.mosaicID) && mosaicMap.get(m.mosaicID)>0)
+							div = Math.pow(10, mosaicMap.get(m.mosaicID))
+						m.quantity = m.quantity / div;
+					});
+					clientWS.emitMosaic(r_mosaicArr);
+				});
 			});
-			clientWS.emitMosaic(r_mosaicArr);
 		});
 	});
 };
@@ -73,18 +93,23 @@ let getMosaicFromTX = (tx) => {
 		mosaics = mosaics.concat(tx.mosaics);
 	if(tx.otherTrans && tx.otherTrans.mosaics)
 		mosaics = mosaics.concat(tx.otherTrans.mosaics);
-	mosaics.forEach(m => {
+	mosaics.forEach((m, i) => {
 		if(!m.mosaicId || !m.mosaicId.namespaceId || !m.mosaicId.name)
 			return;
 		let mosaic = {};
 		mosaic.sender = address.publicKeyToAddress(tx.signer);
 		if(tx.recipient)
 			mosaic.recipient = tx.recipient;
+		mosaic.hash = tx.hash;
 		mosaic.timeStamp = tx.timeStamp;
 		mosaic.mosaicID = m.mosaicId.namespaceId + ":" + m.mosaicId.name;
 		mosaic.mosaicName = m.mosaicId.name;
 		mosaic.namespace = m.mosaicId.namespaceId;
 		mosaic.quantity = m.quantity;
+		// calculate the number, no = block height + tx index + mosaic index
+		mosaicTx.no = tx.height;
+		mosaicTx.no = mosaicTx.no * 1000 + (tx.index+1);
+		mosaicTx.no = mosaicTx.no * 100 + (i+1);
 		r_mosaics.push(mosaic);
 	});
 	return r_mosaics;

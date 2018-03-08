@@ -137,53 +137,64 @@ module.exports = {
 					res.json([]);
 					return;
 				}
-				module.exports.fixMosaicTXQuantity(docs, mosaicTXs => {
+				let r_arr = [];
+				docs.forEach(doc => {
+					let r = {};
+					r.no = r.no;
+					r.hash = doc.hash;
+					r.sender = doc.sender;
+					r.recipient = doc.recipient;
+					r.timeStamp = doc.timeStamp;
+					r.namespace = doc.namespace;
+					r.mosaic = doc.mosaic;
+					r.quantity = doc.quantity;
+					r.div = 0;
+					r_arr.push(r);
+				});
+				setMosaicTXDivisibility(r_arr, mosaicTXs => {
 					res.json(mosaicTXs);
 				});
 			});
 		} catch (e) {
 			console.error(e);
 		}
-	},
+	}
+};
 
-	/**
-     * fix mosaic transactions quantity (divisibility)
-     */
-	fixMosaicTXQuantity: (mosaicTXs, callback) => {
-		try {
-			let findMosaicSet = new Set();
-			let findMosaicParams = [];
-			mosaicTXs.forEach(mt => {
-				let id = mt.namespace + ":" + mt.mosaic;
-				if(!findMosaicSet.has(id)){
-					findMosaicSet.add(id);
-					findMosaicParams.push({mosaicName: mt.mosaic, namespace: mt.namespace});
-				}
-			});
-			if(findMosaicParams.length==0){
-				callback(mosaicTXs);
-				return;
+/**
+ * set mosaic transactions divisibility
+ */
+let setMosaicTXDivisibility = (mosaicTXs, callback) => {
+	try {
+		let findMosaicSet = new Set();
+		let findMosaicParams = [];
+		mosaicTXs.forEach(mt => {
+			let id = mt.namespace + ":" + mt.mosaic;
+			if(!findMosaicSet.has(id)){
+				findMosaicSet.add(id);
+				findMosaicParams.push({mosaicName: mt.mosaic, namespace: mt.namespace});
 			}
-			// query mosaic divisibility from DB
-			dbUtil.findMosaics(findMosaicParams, mosaics => {
-				let divMap = new Map();
-				mosaics.forEach(m => {
-					if(m)
-						divMap.set(m.namespace+":"+m.mosaicName, m.divisibility);
-				});
-				mosaicTXs.forEach(r => {
-					let id = r.namespace+":"+r.mosaic;
-					if(!divMap.has(id))
-						return;
-					let div = 1;
-					if(divMap.get(id) && divMap.get(id)!=0)
-						div = Math.pow(10, divMap.get(id));
-					r.quantity = r.quantity / div;
-				});
-				callback(mosaicTXs);
-			});
-		} catch (e) {
-			console.error(e);
+		});
+		if(findMosaicParams.length==0){
+			callback(mosaicTXs);
+			return;
 		}
+		// query mosaic divisibility from DB
+		dbUtil.findMosaics(findMosaicParams, mosaics => {
+			let divMap = new Map();
+			mosaics.forEach(m => {
+				if(m)
+					divMap.set(m.namespace+":"+m.mosaicName, m.divisibility);
+			});
+			mosaicTXs.forEach((r, i) => {
+				let id = r.namespace+":"+r.mosaic;
+				if(!divMap.has(id))
+					return;
+				mosaicTXs[i].div = divMap.get(id);
+			});
+			callback(mosaicTXs);
+		});
+	} catch (e) {
+		console.error(e);
 	}
 }
