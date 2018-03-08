@@ -135,13 +135,15 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 		$scope.nothingToShowFlag = false;
 		mosaics.forEach(item => {
 			let m = {};
+			m.no = item.no;
 			m.hash = item.hash;
 			m.time = item.timeStamp;
 			m.mosaic = item.mosaicName;
 			m.namespace = item.namespace;
 			m.sender = item.sender;
 			m.recipient = item.recipient;
-			m.quantity = fmtMosaic(item.quantity, item.divisibility);
+			console.info(item);
+			m.quantity = fmtMosaic(item.quantity, item.div);
 			m.timeStamp = fmtDate(item.timeStamp);
 			if($scope.currentNamespace!="" && $scope.currentMosaic!=""){
 				if($scope.currentNamespace==m.namespace && $scope.currentMosaic==m.mosaic)
@@ -186,6 +188,7 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 			r_list.forEach((r, index) => {
 				r.time = r.timeStamp;
 				r.timeStamp = fmtDate(r.timeStamp);
+				r.quantity = fmtMosaic(r.quantity, r.div);
 			});
 			$scope.fadeFlag = false;
 			$scope.mosaicTransferList = $scope.mosaicTransferList.concat(r_list);
@@ -273,7 +276,7 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 		$scope.warningFlag = false;
 	};
 	$scope.showMT = (index, $event) => {
-		$scope.selectedHash = $scope.mosaicTransferList[index].hash;
+		$scope.selectedNO = $scope.mosaicTransferList[index].no;
 		$scope.selectedItem = $scope.mosaicTransferList[index];
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){

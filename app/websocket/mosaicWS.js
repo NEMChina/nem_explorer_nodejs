@@ -57,27 +57,24 @@ let mosaic = () => {
 					let mosaicQueryParamsFromTX = getMosaicQueryParamsFromTX(tx);
 					if(mosaicFromTX.length!=0)
 						r_mosaicArr = r_mosaicArr.concat(mosaicFromTX);
-					if(mosaicQueryParamsFromTX)
+					if(mosaicQueryParamsFromTX.length!=0)
 						mosaicQueryParams = mosaicQueryParams.concat(mosaicQueryParamsFromTX);
 				});
-				if(r_mosaicArr==0)
+				if(r_mosaicArr.length==0)
 					return;
-				if(r_mosaicArr!=0 && mosaicQueryParams.length==0)
+				if(r_mosaicArr.length!=0 && mosaicQueryParams.length==0)
 					clientWS.emitBlock(r_mosaicArr);
 				// query mosaics info and format the quantity
 				dbUtil.findMosaics(mosaicQueryParams, docs => {
 					let mosaicMap = new Map();
 					docs.forEach(doc => {
-						let mosaicID = doc.namespace + ":" + doc.mosaicname; 
+						let mosaicID = doc.namespace + ":" + doc.mosaicName; 
 						mosaicMap.set(mosaicID, doc.divisibility);
 					});
-					r_mosaicArr.forEach(m => {
+					r_mosaicArr.forEach((m, i) => {
 						if(!mosaicMap.has(m.mosaicID))
 							return;
-						let div = 1;
-						if(mosaicMap.get(m.mosaicID) && mosaicMap.get(m.mosaicID)>0)
-							div = Math.pow(10, mosaicMap.get(m.mosaicID))
-						m.quantity = m.quantity / div;
+						r_mosaicArr[i].div = mosaicMap.get(m.mosaicID);
 					});
 					clientWS.emitMosaic(r_mosaicArr);
 				});
@@ -107,9 +104,9 @@ let getMosaicFromTX = (tx) => {
 		mosaic.namespace = m.mosaicId.namespaceId;
 		mosaic.quantity = m.quantity;
 		// calculate the number, no = block height + tx index + mosaic index
-		mosaicTx.no = tx.height;
-		mosaicTx.no = mosaicTx.no * 1000 + (tx.index+1);
-		mosaicTx.no = mosaicTx.no * 100 + (i+1);
+		mosaic.no = tx.height;
+		mosaic.no = mosaic.no * 1000 + (tx.index+1);
+		mosaic.no = mosaic.no * 100 + (i+1);
 		r_mosaics.push(mosaic);
 	});
 	return r_mosaics;
@@ -119,11 +116,11 @@ let getMosaicQueryParamsFromTX = (tx) => {
 	let mosaicQueryParams = [];
 	let mosaics = [];
 	if(tx.mosaics)
-		mosaics.push(tx.mosaics);
+		mosaics = mosaics.concat(tx.mosaics);
 	if(tx.otherTrans && tx.otherTrans.mosaics)
-		mosaics.push(tx.otherTrans.mosaics);
+		mosaics = mosaics.concat(tx.otherTrans.mosaics);
 	mosaics.forEach(m => {
-		if(!m.mosaicId || !m.mosaicId.namespaceId || m.mosaicId.name)
+		if(!m.mosaicId || !m.mosaicId.namespaceId || !m.mosaicId.name)
 			return;
 		mosaicQueryParams.push({mosaicName: m.mosaicId.name, namespace: m.mosaicId.namespaceId});
 	});

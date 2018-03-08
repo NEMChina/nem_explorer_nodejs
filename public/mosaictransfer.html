@@ -24,7 +24,7 @@
 			<tr ng-if="nothingToShowFlag">
 				<td colspan="5">Nothing to show</td>
 			</tr>
-			<tr ng-repeat="mt in mosaicTransferList" style="cursor:pointer;" ng-class="{success:selectedHash==mt.hash, fadeIn:fadeFlag}" ng-click="showMT($index, $event)">
+			<tr ng-repeat="mt in mosaicTransferList" style="cursor:pointer;" ng-class="{success:selectedNO==mt.no, fadeIn:fadeFlag}" ng-click="showMT($index, $event)">
 				<td>
 					<a href="#/mosaic?ns={{mt.namespace}}&m={{mt.mosaic}}" target="_blank">
 						<span ng-bind="mt.namespace"></span>:<span ng-bind="mt.mosaic"></span>
@@ -38,7 +38,7 @@
 					<a href="#/s_account?account={{mt.sender}}" target="_blank"><span ng-bind="mt.recipient"></span></a>
 				</td>
 				<!-- <td width="130" ng-bind="mt.timeStamp"></td> -->
-				<td width="114" ng-bind="mt.age"></td>
+				<td width="120" ng-bind="mt.age"></td>
 			</tr>
 		</table>
 	</div>
