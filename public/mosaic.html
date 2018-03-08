@@ -96,33 +96,35 @@
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="mosaics">
-				<table class="table table-striped table-hover">
-					<thead>
-						<tr>
-							<td>#</td>
-							<td>Sender</td>
-							<td>Recipient</td>
-							<td>Quantity</td>
-							<td>TimeStamp</td>
-						</tr>
-					</thead>
-					<tbody class="well well-large">
-						<tr ng-class="{hidden:mosaicTransferList&&mosaicTransferList.length>0}">
-							<td colspan="5">Nothing to show</td>
-						</tr>
-						<tr ng-repeat="m in mosaicTransferList" style="cursor:pointer;" ng-click="showMosaicTransferDetail($index, $event)" ng-class="{success:selectedIndex==$index}">
-							<td ng-bind="$index+1"></td>
-							<td>
-								<a href="#s_account?account={{m.sender}}" target="_blank"><span class="noDetail" ng-bind="m.sender"></span></a>
-							</td>
-							<td>
-								<a href="#s_account?account={{m.recipient}}" target="_blank"><span class="noDetail" ng-bind="m.recipient"></span></a>
-							</td>
-							<td ng-bind="m.quantity"></td>
-							<td ng-bind="m.timeStamp"></td>
-						</tr>
-					</tboby>
-				</table>
+				<div infinite-scroll="loadMore()" infinite-scroll-immediate-check="false" infinite-scroll-disabled="loadingFlag">
+					<table class="table table-striped table-hover">
+						<thead>
+							<tr>
+								<td>#</td>
+								<td>Sender</td>
+								<td>Recipient</td>
+								<td>Quantity</td>
+								<td>TimeStamp</td>
+							</tr>
+						</thead>
+						<tbody class="well well-large">
+							<tr ng-class="{hidden:mosaicTransferList&&mosaicTransferList.length>0}">
+								<td colspan="5">Nothing to show</td>
+							</tr>
+							<tr ng-repeat="m in mosaicTransferList" style="cursor:pointer;" ng-click="showMosaicTransferDetail($index, $event)" ng-class="{success:selectedIndex==$index}">
+								<td ng-bind="$index+1"></td>
+								<td>
+									<a href="#s_account?account={{m.sender}}" target="_blank"><span class="noDetail" ng-bind="m.sender"></span></a>
+								</td>
+								<td>
+									<a href="#s_account?account={{m.recipient}}" target="_blank"><span class="noDetail" ng-bind="m.recipient"></span></a>
+								</td>
+								<td ng-bind="m.quantity"></td>
+								<td ng-bind="m.timeStamp"></td>
+							</tr>
+						</tboby>
+					</table>
+				<div>
 			</div>
 		</div>
 		<div class="modal fade" id="mosaicTransferDetail" tabindex="-1" role="dialog">
@@ -162,4 +164,6 @@
 			</div>
 		</div>
 	</div>
+	<div class="text-center" ng-if="loadingFlag"><img src="views/images/loading.gif"/></div>
+	<div class="text-center" ng-if="endFlag">This is the end</div>
 </div>

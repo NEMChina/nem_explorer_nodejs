@@ -4,6 +4,7 @@ angular.module("webapp").controller("MosaicTransferController", ["$scope", "$tim
 
 const mosaicListLimit = 50;
 const mosaicTransferListLimit = 50;
+const mosaicDetailMosaicTransferListLimit = 50;
 
 function MosaicListController($scope, MosaicService){
 	$scope.loadingFlag = false;
@@ -47,6 +48,8 @@ function MosaicListController($scope, MosaicService){
 }
 
 function MosaicController($scope, $timeout, $location, MosaicService){
+	$scope.loadingFlag = false;
+	$scope.endFlag = false;
 	let ns = $location.search().ns;
 	let m = $location.search().m;
 	if(!ns){
@@ -57,6 +60,8 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 		$scope.message = "Search condition [m] is needed";
 		return;
 	}
+	$scope.currentNamespace = ns;
+	$scope.currentMosaic = m;
 	let params = {ns: ns, m: m};
 	let mosaicID = ns + ":" + m;
 	MosaicService.mosaic(params, function(r){
@@ -82,6 +87,37 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 	    	$(this).tab('show');
 	  	});
 	}, 100);
+	// load more
+	$scope.loadMore = () => {
+		if($scope.endFlag)
+			return;
+		if($scope.loadingFlag)
+			return;
+		if(!$scope.mosaicTransferList || $scope.mosaicTransferList.length==0)
+			return;
+		let length = $scope.mosaicTransferList.length;
+		let lastNo = $scope.mosaicTransferList[length-1].no;
+		if(!lastNo)
+			return;
+		$scope.loadingFlag = true;
+		// attach the search conditions
+		let params = {ns: $scope.currentNamespace, m: $scope.currentMosaic};
+		params.no = lastNo;
+		MosaicService.mosaicTransferList(params, function(r_list){
+			if(r_list.length==0){
+				$scope.endFlag = true;
+				return;
+			}
+			r_list.forEach(item => {
+				item.timeStamp = fmtDate(item.timeStamp);
+				item.quantity = fmtMosaic(item.quantity, item.div);
+			});
+			$scope.mosaicTransferList = $scope.mosaicTransferList.concat(r_list);
+			$scope.loadingFlag = false;
+			if(r_list.length<mosaicDetailMosaicTransferListLimit)
+				$scope.endFlag = true;
+		});
+	};
 	// show mosaic transfer detail
 	$scope.showMosaicTransferDetail = function(index, $event){
 		$scope.selectedIndex = index;
