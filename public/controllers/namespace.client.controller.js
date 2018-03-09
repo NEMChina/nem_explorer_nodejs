@@ -64,8 +64,13 @@ function NamespaceController($scope, $timeout, $location, NamespaceService, Mosa
 		$scope.message = "Search condition [ns] is needed";
 		return;
 	}
-	let params = {ns: ns};
 	$scope.searchNamespace = ns;
+	$scope.searchSub = "";
+	if(ns.indexOf(".")!=-1){
+		$scope.searchNamespace = ns.substring(0, ns.indexOf("."));
+		$scope.searchSub = ns;
+	}
+	let params = {ns: $scope.searchNamespace};
 	NamespaceService.namespaceListbyNamespace(params, function(r_namespaceList){
 		if(r_namespaceList.length==0){
 			$scope.message = "Namespace \"" + ns + "\" do not exist";
@@ -76,7 +81,14 @@ function NamespaceController($scope, $timeout, $location, NamespaceService, Mosa
 			r.expiredTime = fmtDate(r.expiredTime);
 		});
 		$scope.namespaceList = r_namespaceList;
-		$scope.select = $scope.namespaceList[0];
+		let initIndex = 0;
+		if($scope.searchSub!=""){
+			$scope.namespaceList.forEach((r, index) => {
+				if($scope.searchSub==$scope.namespaceList[index].namespace)
+					initIndex = index;
+			});
+		}
+		$scope.select = $scope.namespaceList[initIndex];
 		$scope.changeSelectOption($scope.select);
 	});
 	// change the option
