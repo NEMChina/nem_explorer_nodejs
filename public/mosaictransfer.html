@@ -30,7 +30,7 @@
 						<span ng-bind="mt.namespace" class="noDetail"></span>:<span ng-bind="mt.mosaic" class="noDetail"></span>
 					</a>
 				</td>
-				<td width="110" ng-bind="mt.quantity"></td>
+				<td width="120" ng-bind="mt.quantity"></td>
 				<td width="340">
 					<a href="#/s_account?account={{mt.sender}}" class="noDetail" target="_blank"><span ng-bind="mt.sender" class="noDetail"></span></a>
 				</td>
@@ -38,7 +38,9 @@
 					<a href="#/s_account?account={{mt.sender}}" class="noDetail" target="_blank"><span ng-bind="mt.recipient" class="noDetail"></span></a>
 				</td>
 				<!-- <td width="130" ng-bind="mt.timeStamp"></td> -->
-				<td width="120" ng-bind="mt.age"></td>
+				<td width="114">
+					<div ng-bind="mt.age" style="width:114px;"></div>
+				</td>
 			</tr>
 		</table>
 	</div>

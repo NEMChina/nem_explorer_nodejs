@@ -107,6 +107,8 @@ let loadNemesisBlock = () => {
 			updateAddress(recipient, 1);
 			updateAddress(cosignatoryAccount,1 );
 			updateAddress(otherAccount, 1);
+			if(i==0)
+				saveOrUpdateMosaic(saveTx, null); // init mosaic 'nem:xem'
 		}
 		//save the transaction into DB by batch
 		dbUtil.saveTransactionByBatchNemesis(saveTxArr);
@@ -401,7 +403,23 @@ let saveNamespace = (saveTx, tx) => {
  * save or update mosaic
  */
 let saveOrUpdateMosaic = (saveTx, tx) => {
-	if(tx.type && tx.type==16385 && tx.mosaicDefinition && tx.mosaicDefinition.id){ // save or update
+	if(saveTx.height==1){ // save mosaic 'nem:xem'
+		let mosaic = {};
+		mosaic.mosaicName = "xem";
+		mosaic.namespace = "nem";
+		mosaic.mosaicID = mosaic.namespace + ":" + mosaic.mosaicName;
+		mosaic.description = "";
+		mosaic.timeStamp = saveTx.timeStamp;
+		mosaic.creator = saveTx.sender;
+		mosaic.height = saveTx.height;
+		mosaic.divisibility = 6;
+		mosaic.initialSupply = 8999999999;
+		mosaic.supplyMutable = 0;
+		mosaic.transferable = 1;
+		mosaic.no = saveTx.height;
+		mosaic.no = 1001;
+		dbUtil.saveOrUpdateMosaic(mosaic);
+	} else if(tx.type && tx.type==16385 && tx.mosaicDefinition && tx.mosaicDefinition.id){ // save or update
 		let mosaic = {};
 		mosaic.mosaicName = tx.mosaicDefinition.id.name;
 		mosaic.namespace = tx.mosaicDefinition.id.namespaceId;
