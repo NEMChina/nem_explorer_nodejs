@@ -32,6 +32,7 @@ function MosaicListController($scope, MosaicService){
 		let params = {no: lastNo};
 		MosaicService.mosaicList(params, function(r_list){
 			if(r_list.length==0){
+				$scope.loadingFlag = false;
 				$scope.endFlag = true;
 				return;
 			}
@@ -106,6 +107,7 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 		MosaicService.mosaicTransferList(params, function(r_list){
 			if(r_list.length==0){
 				$scope.endFlag = true;
+				$scope.loadingFlag = false;
 				return;
 			}
 			r_list.forEach(item => {
@@ -213,6 +215,7 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 		params.no = lastNo;
 		MosaicService.mosaicTransferList(params, function(r_list){
 			if(r_list.length==0){
+				$scope.loadingFlag = false;
 				$scope.endFlag = true;
 				return;
 			}
