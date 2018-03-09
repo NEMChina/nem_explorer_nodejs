@@ -247,6 +247,7 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 				r_list.forEach((r, index) => {
 					r.time = r.timeStamp;
 					r.timeStamp = fmtDate(r.timeStamp);
+					r.quantity = fmtMosaic(r.quantity, r.div);
 				});
 				$scope.currentNamespace = "";
 				$scope.currentMosaic = "";
@@ -293,6 +294,7 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 					r_list.forEach((r, index) => {
 						r.time = r.timeStamp;
 						r.timeStamp = fmtDate(r.timeStamp);
+						r.quantity = fmtMosaic(r.quantity, r.div);
 					});
 					$scope.fadeFlag = false;
 					$scope.searchingFlag = false;
