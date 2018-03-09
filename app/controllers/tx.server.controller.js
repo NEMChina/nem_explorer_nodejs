@@ -97,14 +97,22 @@ module.exports = {
 										signature.sender = address.publicKeyToAddress(signature.signer);
 									});
 								}
-								if(tx.tx.message && tx.tx.message.type)
+								if(tx.tx.message && tx.tx.message.type && tx.tx.message.type==1 && tx.tx.message.payload)
 									tx.tx.message.payload = message.hexToUtf8(tx.tx.message.payload);
 								if(tx.tx.remoteAccount)
 									tx.tx.remoteAccount = address.publicKeyToAddress(tx.tx.remoteAccount);
-								if(tx.tx.otherTrans && tx.tx.otherTrans.modifications){
-									tx.tx.otherTrans.modifications.forEach(modification => {
-										modification.cosignatoryAccount = address.publicKeyToAddress(modification.cosignatoryAccount);
-									});
+								if(tx.tx.otherTrans){
+									// message
+									if(tx.tx.otherTrans.message){
+										if(tx.tx.otherTrans.message.type && tx.tx.otherTrans.message.type==1 && tx.tx.otherTrans.message.payload)
+											tx.tx.otherTrans.message.payload = message.hexToUtf8(tx.tx.otherTrans.message.payload);
+									}
+									// modifications
+									if(tx.tx.otherTrans.modifications){
+										tx.tx.otherTrans.modifications.forEach(modification => {
+											modification.cosignatoryAccount = address.publicKeyToAddress(modification.cosignatoryAccount);
+										});
+									}
 								}
 								checkApostilleAndMosaicTransferFromTX(tx);
 								tx.height = height;
@@ -160,7 +168,7 @@ module.exports = {
 									signature.sender = address.publicKeyToAddress(signature.signer);
 								});
 							}
-							if(tx.tx.message && tx.tx.message.type)
+							if(tx.tx.message && tx.tx.message.type && tx.tx.message.type==1 && tx.tx.message.payload)
 								tx.tx.message.payload = message.hexToUtf8(tx.tx.message.payload);
 							if(tx.tx.modifications){
 								tx.tx.modifications.forEach(m => {
@@ -169,10 +177,19 @@ module.exports = {
 							}
 							if(tx.tx.remoteAccount)
 								tx.tx.remoteAccount = address.publicKeyToAddress(tx.tx.remoteAccount);
-							if(tx.tx.otherTrans && tx.tx.otherTrans.modifications){
-								tx.tx.otherTrans.modifications.forEach(modification => {
-									modification.cosignatoryAccount = address.publicKeyToAddress(modification.cosignatoryAccount);
-								});
+							if(tx.tx.otherTrans){
+								// message
+								if(tx.tx.otherTrans.message){
+									if(tx.tx.otherTrans.message.type && tx.tx.otherTrans.message.type==1 
+										&& tx.tx.otherTrans.message.payload)
+										tx.tx.otherTrans.message.payload = message.hexToUtf8(tx.tx.otherTrans.message.payload);
+								}
+								// modifications
+								if(tx.tx.otherTrans.modifications){
+									tx.tx.otherTrans.modifications.forEach(modification => {
+										modification.cosignatoryAccount = address.publicKeyToAddress(modification.cosignatoryAccount);
+									});
+								}
 							}
 							checkApostilleAndMosaicTransferFromTX(tx);
 							tx.height = height;

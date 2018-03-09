@@ -180,11 +180,11 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 			if(tx.otherTrans.amount && !isNaN(tx.otherTrans.amount))
 				items.push({label: "Amount", content: fmtXEM(tx.otherTrans.amount)});
 			items.push({label: "Fee", content: fmtXEM(tx.otherTrans.fee)});
-			if(tx.message){
-				if(tx.message.type==2)
-					items.push({label: "Message(encrypted)", content: tx.message.payload});
+			if(tx.otherTrans && tx.otherTrans.message){
+				if(tx.otherTrans.message.type==2)
+					items.push({label: "Message(encrypted)", content: tx.otherTrans.message.payload});
 				else
-					items.push({label: "Message", content: tx.message.payload});
+					items.push({label: "Message", content: tx.otherTrans.message.payload});
 			}
 			if(tx.mosaics && tx.mosaics.length>0){
 				for(let i in tx.mosaics){
@@ -198,7 +198,6 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 			for(let i in tx.signatures)
 				items.push({label: "	", content: tx.signatures[i].sender + " (" + fmtDate(tx.signatures[i].timeStamp) + ")"});
 			if(tx.otherTrans && tx.otherTrans.type==4097){
-				console.info(tx);
 				items.push({label: "", content: ""});
 				items.push({label: "Modifications", content: ""});
 				if(tx.otherTrans.minCosignatories && tx.otherTrans.minCosignatories.relativeChange){
