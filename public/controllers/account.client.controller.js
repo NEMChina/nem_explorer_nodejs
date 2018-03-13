@@ -98,24 +98,24 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 		});
 	}
 	//load transaction detail
-	$scope.showTx = function(height, hash, $event, recipient){
-		$scope.selectedTXHash = hash;
+	$scope.showTx = function(tx, $event){
+		$scope.selectedTXHash = tx.hash;
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
 		}
 		$("#txDetail").modal("show");
-		return showTransaction(height, hash, $scope, TXService, recipient);
+		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.recipient);
 	};
 	//load transaction detail
-	$scope.showMosaicTx = function(height, hash, $event, recipient){
-		$scope.selectedMosaicTXHash = hash;
+	$scope.showMosaicTx = function(tx, $event){
+		$scope.selectedMosaicTXNO = tx.no;
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
 		}
 		$("#txDetail").modal("show");
-		return showTransaction(height, hash, $scope, TXService, recipient);
+		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.recipient);
 	};
 	//load transactions
 	$scope.loadTransactions = function(){
