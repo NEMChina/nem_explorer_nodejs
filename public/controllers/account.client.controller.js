@@ -35,14 +35,13 @@ function AccountController($scope, AccountService){
 }
 
 function SearchAccountController($scope, $timeout, $location, AccountService, NamespaceService, TXService){
-	$scope.hideMore = false;
-	$scope.hideMore_mosaic = false;
-	$scope.lastID = 0;
+	$scope.transactionListPage = 1;
 	$scope.addressExist = false;
 	$scope.loadingFlag = false;
 	$scope.loadingMosaicFlag = false;
 	$scope.endFlag = false;
 	$scope.endMosaicFlag = false;
+	$scope.showTransactionTabIndex = 0; //0-transactions, 1-mosaic transactions
 	var absUrl = $location.absUrl();
 	if(absUrl==null){
 		return;
@@ -95,11 +94,15 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 				$('#optionAccountTab a').click(function (e) {
 			    	e.preventDefault();
 			    	$(this).tab('show');
-			  	})
+			  	});
 			  	$('#optionTransactionTab a').click(function (e) {
 			    	e.preventDefault();
+			    	if($(e.target).text()=="Transactions")
+			    		$scope.showTransactionTabIndex = 0;
+			    	else if($(e.target).text()=="Mosaic Transactions")
+			    		$scope.showTransactionTabIndex = 1;
 			    	$(this).tab('show');
-			  	})
+			  	});
 			}, 100);
 		});
 	}
@@ -125,13 +128,19 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 	};
 	//load transactions
 	$scope.loadTransactions = function(){
-		$scope.loadingMore = true;
-		let params = {address: $scope.searchAccount, id: $scope.lastID};
+		if($scope.showTransactionTabIndex!=0)
+			return;
+		if($scope.endFlag)
+			return;
+		$scope.loadingFlag = true;
+		let params = {address: $scope.searchAccount, page: $scope.transactionListPage};
 		AccountService.detailTXList(params, function(data) {
 			if(!data){
-				$scope.hideMore = true;
+				$scope.loadingFlag = false;
+				$scope.endFlag = true;
 				return;
 			}
+			$scope.transactionListPage++;
 			for(i in data) {
 				let tx = data[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
@@ -148,14 +157,16 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			} else {
 				$scope.txList = data;
 			}
-			if(data.length==0 || data.length<25){
-				$scope.hideMore = true;
+			if(data.length==0 || data.length<mosaicTXListLimit){
+				$scope.endFlag = true;
 			}
-			$scope.loadingMore = false;
+			$scope.loadingFlag = false;
 		});
 	};
 	//load mosaic transactions
 	$scope.loadMosaicTransactions = function(){
+		if($scope.showTransactionTabIndex!=1)
+			return;
 		if($scope.endMosaicFlag)
 			return;
 		$scope.loadingMosaicFlag = true;

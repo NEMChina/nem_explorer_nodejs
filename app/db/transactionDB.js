@@ -66,7 +66,7 @@ let transactionsByAddress = (address, size, page, callback) => {
 		limit = size;
 	if(page && size)
 		skip = size * (page-1);
-	Transaction.find(params).skip(skip).limit(limit).exec((err, docs) => {
+	Transaction.find(params).skip(skip).limit(limit).sort({timeStamp: -1}).exec((err, docs) => {
 		if(err || !docs)
 			callback([]);
 		else 

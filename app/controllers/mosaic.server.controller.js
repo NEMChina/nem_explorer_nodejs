@@ -18,7 +18,7 @@ module.exports = {
 				res.json([]);
 				return;
 			}
-			dbUtil.mosaicListByNamespace(ns, docs => {
+			mosaicDB.mosaicListByNamespace(ns, docs => {
 				res.json(docs);
 			});
 		} catch (e) {
