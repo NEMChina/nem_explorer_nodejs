@@ -1,4 +1,10 @@
-import dbUtil from './dbUtil';
+import transactionDB from '../db/transactionDB';
+import blockDB from '../db/blockDB';
+import mosaicDB from '../db/mosaicDB';
+import mosaicTransactionDB from '../db/mosaicTransactionDB';
+import namespaceDB from '../db/namespaceDB';
+import accountDB from '../db/accountDB';
+import supernodePayoutDB from '../db/supernodePayoutDB';
 import nis from './nisRequest';
 import address from './address';
 import timeUtil from './timeUtil';
@@ -31,7 +37,7 @@ let init = (server) => {
 			if(heightNIS<1) 
 				return;
 			//query max block height from DB
-			dbUtil.findOneTransactionSortHeight(doc => {
+			transactionDB.findOneTransactionSortHeight(doc => {
 				let heightDB = 0;
 				if(doc && doc.height) 
 					heightDB = doc.height;
@@ -111,7 +117,7 @@ let loadNemesisBlock = () => {
 				saveOrUpdateMosaic(saveTx, null); // init mosaic 'nem:xem'
 		}
 		//save the transaction into DB by batch
-		dbUtil.saveTransactionByBatchNemesis(saveTxArr);
+		transactionDB.saveTransactionByBatchNemesis(saveTxArr);
 	});
 };
 
@@ -264,7 +270,7 @@ let updateAddress = (address, height) => {
 			nis.accountTransferRecord(address, data => {
 				if(data && data.data && data.data.length>0)
 					 updateAccount.timeStamp = data.data[0].transaction.timeStamp;
-				dbUtil.findOneAccount(address, addr => {
+				accountDB.findOneAccount(address, addr => {
 					if(addr){ //update
 						let update = {
 							address: address,
@@ -277,13 +283,13 @@ let updateAddress = (address, height) => {
 							timeStamp: updateAccount.timeStamp,
 							height: height
 						}
-						dbUtil.updateAccount(update);
+						accountDB.updateAccount(update);
 					} else { //save
 						//query the account remark and save the entity
-						dbUtil.findOneAccountRemark(updateAccount, remark => {
+						accountDB.findOneAccountRemark(updateAccount, remark => {
 							if(remark)
 								updateAccount.remark = remark.remark;
-							dbUtil.saveAccount(updateAccount);
+							accountDB.saveAccount(updateAccount);
 						});
 					}
 				});
@@ -296,13 +302,13 @@ let updateAddress = (address, height) => {
  * save block info
  */
 let saveBlock = (block) => {
-	dbUtil.findOneBlock(block.height, doc => {
+	blockDB.findOneBlock(block.height, doc => {
 		if(doc)
 			return;
 		let saveBlock = {};
 		saveBlock.height = block.height;
 		saveBlock.timeStamp = block.timeStamp;
-		dbUtil.saveBlock(saveBlock);
+		blockDB.saveBlock(saveBlock);
 	});
 	
 };
@@ -311,14 +317,14 @@ let saveBlock = (block) => {
  * save Transaction info
  */
 let saveTransaction = (saveTx, index) => {
-	dbUtil.saveTransaction(saveTx, index);
+	transactionDB.saveTransaction(saveTx, index);
 };
 
 /**
  * check transaction exist in DB
  */
 let checkTransactionExist = (hash, callback) => {
-	dbUtil.findOneTransaction(hash, doc => {
+	transactionDB.findOneTransaction(hash, doc => {
 		if(doc)
 			callback(true);
 		else 
@@ -357,7 +363,7 @@ let saveMosaicTX = (saveTx, mosaics) => {
 	});
 	// insert mosaics into DB by batch
 	if(mosaicTxArr.length>0)
-		dbUtil.saveMosaicTransactionByBatch(mosaicTxArr, height);
+		mosaicTransactionDB.saveMosaicTransactionByBatch(mosaicTxArr, height);
 };
 
 /**
@@ -379,12 +385,12 @@ let saveNamespace = (saveTx, tx) => {
 		saveNamespace.namespace = tx.newPart;
 		saveNamespace.rootNamespace = tx.newPart;
 		// check if renew
-		dbUtil.findOneNamespace(saveNamespace, doc => {
+		namespaceDB.findOneNamespace(saveNamespace, doc => {
 			if(!doc){ // new namespace
-				dbUtil.saveNamespace(saveNamespace);
+				namespaceDB.saveNamespace(saveNamespace);
 			} else { // renew namespace
 				let expiredTime = timeUtil.getYearAddOneTimeInNem(doc.expiredTime);
-				dbUtil.updateNamespaceExpiredTime(saveNamespace, expiredTime);
+				namespaceDB.updateNamespaceExpiredTime(saveNamespace, expiredTime);
 			}
 		});
 	} else { // sub namespace
@@ -393,9 +399,9 @@ let saveNamespace = (saveTx, tx) => {
 		if(tx.parent.indexOf(".")!=-1)
 			saveNamespace.rootNamespace = tx.parent.substring(0, tx.parent.indexOf("."));
 		// save sub namespace
-		dbUtil.saveNamespace(saveNamespace);
+		namespaceDB.saveNamespace(saveNamespace);
 		// update root namespace
-		dbUtil.updateRootNamespace(saveNamespace);
+		namespaceDB.updateRootNamespace(saveNamespace);
 	}
 };
 
@@ -418,7 +424,7 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 		mosaic.transferable = 1;
 		mosaic.no = saveTx.height;
 		mosaic.no = 1001;
-		dbUtil.saveOrUpdateMosaic(mosaic);
+		mosaicDB.saveOrUpdateMosaic(mosaic);
 	} else if(tx.type && tx.type==16385 && tx.mosaicDefinition && tx.mosaicDefinition.id){ // save or update
 		let mosaic = {};
 		mosaic.mosaicName = tx.mosaicDefinition.id.name;
@@ -468,7 +474,7 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 		// calculate the number, no = block height + tx index
 		mosaic.no = saveTx.height;
 		mosaic.no = mosaic.no * 1000 + (saveTx.index+1);
-		dbUtil.saveOrUpdateMosaic(mosaic);
+		mosaicDB.saveOrUpdateMosaic(mosaic);
 	} else if (tx.type && tx.type==16386 && tx.mosaicId && tx.supplyType && tx.delta){ // update mosaic supply
 		let mosaicName = tx.mosaicId.name;
 		let namespace = tx.mosaicId.namespaceId;
@@ -477,7 +483,7 @@ let saveOrUpdateMosaic = (saveTx, tx) => {
 			change += tx.delta;
 		else if(tx.supplyType==2) // decrease
 			change -= tx.delta;
-		dbUtil.updateMosaicSupply(mosaicName, namespace, tx.timeStamp, change, saveTx.height);
+		mosaicDB.updateMosaicSupply(mosaicName, namespace, tx.timeStamp, change, saveTx.height);
 	}
 };
 
@@ -498,7 +504,7 @@ let saveSupernodePayout = (saveTx, tx) => {
 		payout.amount = saveTx.amount;
 		payout.fee = saveTx.fee;
 		payout.timeStamp = saveTx.timeStamp;
-		dbUtil.saveSupernodePayout(payout);
+		supernodePayoutDB.saveSupernodePayout(payout);
 	}
 };
 

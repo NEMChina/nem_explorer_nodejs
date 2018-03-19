@@ -5,7 +5,7 @@ import Stomp from 'stompjs';
 import clientWS from './clientWS';
 import address from '../utils/address';
 import jsonUtil from '../utils/jsonUtil';
-import dbUtil from '../utils/dbUtil';
+import mosaicDB from '../db/mosaicDB';
 import nis from '../utils/nisRequest';
 
 const WS_URL = 'http://' + config.nisHost + ':' + config.wsPort + config.wsPath;
@@ -65,7 +65,7 @@ let mosaic = () => {
 				if(r_mosaicArr.length!=0 && mosaicQueryParams.length==0)
 					clientWS.emitBlock(r_mosaicArr);
 				// query mosaics info and format the quantity
-				dbUtil.findMosaics(mosaicQueryParams, docs => {
+				mosaicDB.findMosaics(mosaicQueryParams, docs => {
 					let mosaicMap = new Map();
 					docs.forEach(doc => {
 						let mosaicID = doc.namespace + ":" + doc.mosaicName; 

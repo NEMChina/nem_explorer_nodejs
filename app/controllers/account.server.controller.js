@@ -4,8 +4,9 @@ import addressUtil from '../utils/address';
 import cache from '../cache/appCache';
 import init from '../utils/initData';
 import timeUtil from '../utils/timeUtil';
-import dbUtil from '../utils/dbUtil';
+import transactionDB from '../db/transactionDB';
 import mosaicController from './mosaic.server.controller';
+
 
 const LISTSIZE = 100; //list size
 const MOSIALISTSIZE = 50;
@@ -148,41 +149,13 @@ module.exports = {
 	detailTXList: (req, res, next) => {
 		try {
 			let address = req.body.address;
-			let id = req.body.id;
-			if(!id)
-				id = 0;
+			let page = req.body.page;
+			if(!page)
+				page = 1;
 			address = address.replace(new RegExp(/(-)/g), '');
 			let r_txList = [];
-			nis.accountTransferRecordAndID(address, id, data => {
-				if(!data || !data.data){
-					res.json([]);
-					return;
-				}
-				let r_tx = null;
-				data.data.forEach(item => {
-					r_tx = {};
-					r_tx.id = item.meta.id;
-					if(item.transaction.type==4100 && item.transaction.otherTrans 
-						&& !item.transaction.otherTrans.modifications){ //multisig transaction
-						r_tx.timeStamp = item.transaction.otherTrans.timeStamp;
-						r_tx.amount = item.transaction.otherTrans.amount?item.transaction.otherTrans.amount:0;
-						r_tx.fee = item.transaction.otherTrans.fee;
-						r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.otherTrans.signer);
-						r_tx.recipient = item.transaction.otherTrans.recipient;
-					} else {
-						r_tx.timeStamp = item.transaction.timeStamp;
-						r_tx.amount = item.transaction.amount?item.transaction.amount:0;
-						r_tx.fee = item.transaction.fee;
-						r_tx.sender = addressUtil.publicKeyToAddress(item.transaction.signer);
-						r_tx.recipient = item.transaction.recipient;
-					}
-					r_tx.height = item.meta.height;
-					r_tx.signature = item.transaction.signature;
-					if(item.meta.hash && item.meta.hash.data)
-						r_tx.hash = item.meta.hash.data;
-					r_txList.push(r_tx);
-				});
-				res.json(r_txList);
+			transactionDB.transactionsByAddress(address, MOSIALISTSIZE, page, data => {
+				res.json(data);
 			});
 		} catch (e) {
 			console.error(e);
@@ -202,7 +175,6 @@ module.exports = {
 				params.no = {$lt: no};
 			}
 			let MosaicTransaction = mongoose.model('MosaicTransaction');
-			console.info(params);
 			MosaicTransaction.find(params).sort({timeStamp: -1, no: -1}).limit(MOSIALISTSIZE).exec((err, docs) => {
 				if(err) {
 					console.info(err);

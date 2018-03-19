@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import dbUtil from '../utils/dbUtil';
+import namespaceDB from '../db/namespaceDB';
 import nis from '../utils/nisRequest';
 
 const LISTSIZE = 100;
@@ -17,7 +16,7 @@ module.exports = {
 			let reg_no = /^[0-9]+$/;
 			if(!no || !reg_no.test(no))
 				no = null;
-			dbUtil.rootNamespaceList(no, namespaceListLimit, docs => {
+			namespaceDB.rootNamespaceList(no, namespaceListLimit, docs => {
 				docs.forEach((item, index) => {
 					item.subNamespaces = item.subNamespaces?item.subNamespaces:"";
 				});
@@ -40,7 +39,7 @@ module.exports = {
 				res.json([]);
 				return;
 			}
-			dbUtil.subNamespaceList(rootNamespace, docs => {
+			namespaceDB.subNamespaceList(rootNamespace, docs => {
 				res.json(docs);
 			});
 		} catch (e) {
@@ -62,7 +61,7 @@ module.exports = {
 			}
 			// get root namespace
 			let rootNamespace = namespace.substring(namespace.indexOf(".")+1);
-			dbUtil.namespaceListbyRoot(rootNamespace, docs => {
+			namespaceDB.namespaceListbyRoot(rootNamespace, docs => {
 				let newDocs = [];
 				docs.forEach(doc => {
 					if(doc.namespace.length>=namespace.length)

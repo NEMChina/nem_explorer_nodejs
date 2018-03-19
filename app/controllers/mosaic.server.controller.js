@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import dbUtil from '../utils/dbUtil';
+import mosaicDB from '../db/mosaicDB';
 import nis from '../utils/nisRequest';
 
 const mosaicListLimit = 50;
@@ -37,7 +36,7 @@ module.exports = {
 			let reg_no = /^[0-9]+$/;
 			if(!no || !reg_no.test(no))
 				no = null;
-			dbUtil.mosaicList(no, mosaicListLimit, docs => {
+			mosaicDB.mosaicList(no, mosaicListLimit, docs => {
 				res.json(docs);
 			});
 		} catch (e) {
@@ -64,7 +63,7 @@ module.exports = {
 				res.json({});
 				return;
 			}
-			dbUtil.findOneMosaic(m, ns, doc => {
+			mosaicDB.findOneMosaic(m, ns, doc => {
 				if(!doc){
 					res.json({});
 					return;
@@ -100,7 +99,7 @@ module.exports = {
 			let reg_page = /^[0-9]+$/;
 			if(!page || !reg_page.test(page))
 				page = 1;
-			dbUtil.mosaicTransferList(m, ns, page, mosaicTransferListLimit, docs => {
+			mosaicDB.mosaicTransferList(m, ns, page, mosaicTransferListLimit, docs => {
 				if(!docs){
 					res.json([]);
 					return;
@@ -132,7 +131,7 @@ module.exports = {
 			let reg_no = /^[0-9]+$/;
 			if(!no || !reg_no.test(no))
 				no = null;
-			dbUtil.mosaicTransferList(m, ns, no, mosaicTransferListLimit, docs => {
+			mosaicDB.mosaicTransferList(m, ns, no, mosaicTransferListLimit, docs => {
 				if(!docs){
 					res.json([]);
 					return;
@@ -179,7 +178,7 @@ module.exports = {
 				return;
 			}
 			// query mosaic divisibility from DB
-			dbUtil.findMosaics(findMosaicParams, mosaics => {
+			mosaicDB.findMosaics(findMosaicParams, mosaics => {
 				let divMap = new Map();
 				mosaics.forEach(m => {
 					if(m)

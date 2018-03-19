@@ -3,7 +3,7 @@ import config from '../config/config';
 import nis from '../utils/nisRequest';
 import address from '../utils/address';
 import message from '../utils/message';
-import dbUtil from '../utils/dbUtil';
+import mosaicDB from '../db/mosaicDB';
 
 const TXLISTSIZE = 10;
 
@@ -269,7 +269,7 @@ let formatMosaicDivisibility = (tx, callback) => {
 			let m = mosaic.mosaicId.name;
 			let ns = mosaic.mosaicId.namespaceId;
 			let div = 0;
-			dbUtil.findOneMosaic(m, ns, doc => {
+			mosaicDB.findOneMosaic(m, ns, doc => {
 				if(doc && doc.divisibility && doc.divisibility>1)
 					tx.tx.mosaics[i].divisibility = doc.divisibility;
 				count++;
