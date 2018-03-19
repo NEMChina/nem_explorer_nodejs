@@ -1,6 +1,9 @@
 angular.module("webapp").controller("AccountController", ["$scope", "AccountService", AccountController]);
 angular.module("webapp").controller("SearchAccountController", ["$scope", "$timeout", "$location", "AccountService", "NamespaceService", "TXService", SearchAccountController]);
 
+const txListLimit = 50;
+const mosaicTXListLimit = 50;
+
 function AccountController($scope, AccountService){
 	$scope.page = 1;
 	$scope.hideMore = false;
@@ -35,8 +38,11 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 	$scope.hideMore = false;
 	$scope.hideMore_mosaic = false;
 	$scope.lastID = 0;
-	$scope.mosaicPage = 1;
 	$scope.addressExist = false;
+	$scope.loadingFlag = false;
+	$scope.loadingMosaicFlag = false;
+	$scope.endFlag = false;
+	$scope.endMosaicFlag = false;
 	var absUrl = $location.absUrl();
 	if(absUrl==null){
 		return;
@@ -150,18 +156,23 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 	};
 	//load mosaic transactions
 	$scope.loadMosaicTransactions = function(){
-		$scope.loadingMore_mosaic = true;
-		let params = {address: $scope.searchAccount, page: $scope.mosaicPage};
+		if($scope.endMosaicFlag)
+			return;
+		$scope.loadingMosaicFlag = true;
+		let params = {address: $scope.searchAccount};
+		if($scope.mosaicTXList && $scope.mosaicTXList.length>0)
+			params.no = $scope.mosaicTXList[$scope.mosaicTXList.length-1].no;
 		AccountService.detailMosaicTXList(params, function(data) {
 			if(!data){
-				$scope.hideMore_mosaic = true;
+				$scope.loadingMosaicFlag = false;
+				$scope.endMosaicFlag = true;
 				return;
 			}
 			for(i in data) {
 				let tx = data[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
 				tx.mosaicName = tx.namespace + ":" + tx.mosaic;
-				tx.quantity = fmtSplit(tx.quantity);
+				tx.quantity = fmtMosaic(tx.quantity, tx.div);
 				tx.flow = 0; // 0-imcoming, 1-outgoing
 				if($scope.searchAccount==tx.sender)
 					tx.flow = 1;
@@ -171,11 +182,10 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			} else {
 				$scope.mosaicTXList = data;
 			}
-			if(data.length==0 || data.length<25){
-				$scope.hideMore_mosaic = true;
+			if(data.length==0 || data.length<mosaicTXListLimit){
+				$scope.endMosaicFlag = true;
 			}
-			$scope.loadingMore_mosaic = false;
-			$scope.mosaicPage = $scope.mosaicPage + 1;
+			$scope.loadingMosaicFlag = false;
 		});
 	};
 	//load harvest info

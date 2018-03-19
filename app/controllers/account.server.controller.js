@@ -8,8 +8,7 @@ import dbUtil from '../utils/dbUtil';
 import mosaicController from './mosaic.server.controller';
 
 const LISTSIZE = 100; //list size
-const MOSIALISTSIZE = 25;
-const UPDATETIME = 24*60*60*1000;
+const MOSIALISTSIZE = 50;
 
 module.exports = {
 
@@ -196,13 +195,15 @@ module.exports = {
 	detailMosaicTXList: (req, res, next) => {
 		try{
 			let address = req.body.address;
-			let page = 1;
-			if(req.body.page){
-				page = parseInt(req.body.page);
-			}
 			address = address.replace(new RegExp(/(-)/g), '');
+			let params = {"$or":[{sender:address}, {recipient: address}]};
+			if(req.body.no){
+				let no = parseInt(req.body.no);
+				params.no = {$lt: no};
+			}
 			let MosaicTransaction = mongoose.model('MosaicTransaction');
-			MosaicTransaction.find({"$or":[{sender:address}, {recipient: address}]}).sort({timeStamp: -1}).skip(MOSIALISTSIZE*(page-1)).limit(MOSIALISTSIZE).exec((err, docs) => {
+			console.info(params);
+			MosaicTransaction.find(params).sort({timeStamp: -1, no: -1}).limit(MOSIALISTSIZE).exec((err, docs) => {
 				if(err) {
 					console.info(err);
 					return res.json([]);
@@ -225,33 +226,6 @@ module.exports = {
 				mosaicController.setMosaicTXDivisibility(r_mosaicArray, re => {
 					res.json(r_mosaicArray);
 				});
-			});
-		} catch (e) {
-			console.error(e);
-		}
-	},
-
-	/**
-     * reload account info (in order to fix some invalid data of account)
-     */
-	reloadAccountInfo: (req, res, next) => {
-		try {
-			if(!cache || !cache.appCache || !cache.accountLastReloadTime){
-				res.json({"message": "unable to use cache"});
-				return;
-			}
-			cache.appCache.get(cache.accountLastReloadTime, (err, value) => {
-				if(err){
-					res.json({"message": "unable to use cache"});
-					return;
-				}
-				if(value && (value+UPDATETIME > new Date().getTime())){
-					res.json({"message": "this action only allow to be executed one time in 24 hours"});
-					return;
-				}
-				cache.appCache.set(cache.accountLastReloadTime, new Date().getTime());
-				init.reloadAccountInfo(1);
-				res.json({"message": "success"});
 			});
 		} catch (e) {
 			console.error(e);
