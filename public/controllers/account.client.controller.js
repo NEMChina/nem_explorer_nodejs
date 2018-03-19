@@ -14,6 +14,8 @@ function AccountController($scope, AccountService){
 				account.timeStamp = fmtDate(account.timeStamp);
 				account.balance = fixNumber(fmtXEM(account.balance));
 				account.importance = fmtPOI(account.importance);
+				if(account.remark && account.remark.length>60)
+					account.remark = account.remark.substring(0, 59) + "..";
 			}
 			if($scope.accountList){
 				$scope.accountList = $scope.accountList.concat(r_accountList);

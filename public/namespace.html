@@ -1,4 +1,4 @@
-<div id="content" class="container" style="padding-top:10px;padding-bottom:70px;">
+<div id="content" class="container fontSize12" style="padding-top:10px;padding-bottom:70px;">
 	<h4>Namespace Detail</h4>
 	<div ng-if="!namespaceList" style="font-size: 16px;line-height:50px;" ng-bind="message"></div>
 	<div ng-if="namespaceList">
@@ -6,7 +6,7 @@
 			<tr>
 				<td width="220">Namespace (sub-namespaces)</td>
 				<td>
-			    	<select class="form-control" ng-model="select" ng-options="item.namespace for item in namespaceList" ng-change="changeSelectOption(select)" style="width: 400px;height: 32px;font-weight: bold;font-size:16px;"></select>
+			    	<select class="form-control" ng-model="select" ng-options="item.namespace for item in namespaceList" ng-change="changeSelectOption(select)" style="width: 400px;height: 32px;font-weight: bold;font-size:12px;"></select>
 				</td>
 			</tr>
 			<tr>

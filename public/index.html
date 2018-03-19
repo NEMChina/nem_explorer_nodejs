@@ -21,13 +21,13 @@
 		    	</form>
 		    </div>
           	<div class="navbar navbar-static-top pull-left">
-  		        <ul class="nav navbar-nav" style="font-size:14px;">
-		              <li><a ng-class="navClass1" href="#/blocklist">BLOCKS</a></li>
+  		        <ul class="nav navbar-nav fontSize12">
+		              <li class="dropdown"><a ng-class="navClass1" href="#/blocklist">BLOCKS</a></li>
   		            <li class="dropdown">
   		                <a href="javascript:void(0);" ng-class="navClass2" class="dropdown-toggle" data-toggle="dropdown">
   		                    TRANSACTIONS <b class="caret"></b>
   		                </a>
-  		                <ul class="dropdown-menu">
+  		                <ul class="dropdown-menu fontSize12">
   		                    <li><a ng-class="navClass21" href="#/txlist">Recent Transactions</a></li>
   		                    <li><a ng-class="navClass22" href="#/unconfirmedtxlist">Pending Transactions</a></li>
   		                    <li class="divider"></li>
@@ -44,7 +44,7 @@
   		                <a href="javascript:void(0);" ng-class="navClass3" class="dropdown-toggle" data-toggle="dropdown">
   		                    ACCOUNTS <b class="caret"></b>
   		                </a>
-  		                <ul class="dropdown-menu">
+  		                <ul class="dropdown-menu fontSize12">
   		                    <li><a ng-class="navClass31" href="#/accountlist">Rich List</a></li>
   		                    <li><a ng-class="navClass32" href="#/harvesterlist">Harvester List</a></li>
   		                    <li><a ng-class="navClass33" href="#/harvestingCalculator">Harvesting Calculator</a></li>
@@ -54,7 +54,7 @@
   		                <a href="javascript:void(0);" ng-class="navClass4" class="dropdown-toggle" data-toggle="dropdown">
   		                    NODES <b class="caret"></b>
   		                </a>
-  		                <ul class="dropdown-menu">
+  		                <ul class="dropdown-menu fontSize12">
   		                    <li><a ng-class="navClass41" href="#/nodelist">Node List</a></li>
   		                    <li><a ng-class="navClass42" href="#/supernodepayout">Supernode Reward</a></li>
                           <li><a ng-class="navClass43" href="#/supernodepayout_custom">Supernode Reward (Custom)</a></li>
@@ -64,7 +64,7 @@
                       <a href="javascript:void(0);" ng-class="navClass5" class="dropdown-toggle" data-toggle="dropdown">
                           NS & MOSAICS <b class="caret"></b>
                       </a>
-                      <ul class="dropdown-menu">
+                      <ul class="dropdown-menu fontSize12">
                           <li><a ng-class="navClass51" href="#/namespacelist">Namespace List</a></li>
                           <li><a ng-class="navClass52" href="#/mosaiclist">Mosaic List</a></li>
                           <li><a ng-class="navClass53" href="#/mosaictransfer">Mosaic Transfer</a></li>
@@ -82,7 +82,7 @@
 	  </div>
 </div>
 <div ng-view></div>
-<footer class="footer navbar-fixed-bottom">
+<footer class="footer navbar-fixed-bottom" style="margin-bottom:-10px;">
 	<div class="container" ng-controller="FooterController">
 		<p>
 			<a href="http://nem.io" target="_blank">NEM IO</a> 
