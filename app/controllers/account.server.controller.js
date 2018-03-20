@@ -118,14 +118,8 @@ module.exports = {
 				r_account.remoteStatus = meta.remoteStatus;
 				r_account.harvestedBlocks = account.harvestedBlocks;
 				r_account.vestedBalance = account.vestedBalance;
-				let Account = mongoose.model("Account");
-				Account.findOne({address: address}).exec((err, doc) => {
-					if(!err && doc)
-						r_account.remark = doc.remark;
-				});
-				if(account.multisigInfo && account.multisigInfo.minCosignatories){
+				if(account.multisigInfo && account.multisigInfo.minCosignatories)
 					r_account.minCosignatories = account.multisigInfo.minCosignatories;
-				}
 				if(meta.cosignatories && meta.cosignatories.length>0){
 					r_account.multisig = 1;
 					r_account.cosignatories = "";
@@ -136,7 +130,12 @@ module.exports = {
 							r_account.cosignatories = r_account.cosignatories + "<br/>" + co.address;
 					});
 				}
-				res.json(r_account);
+				let Account = mongoose.model("Account");
+				Account.findOne({address: address}).exec((err, doc) => {
+					if(!err && doc)
+						r_account.remark = doc.remark;
+					res.json(r_account);
+				});
 			});
 		} catch (e) {
 			console.error(e);

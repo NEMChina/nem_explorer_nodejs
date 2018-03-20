@@ -44,24 +44,25 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 	$scope.endFlag = false;
 	$scope.endMosaicFlag = false;
 	$scope.showTransactionTabIndex = 0; //0-transactions, 1-mosaic transactions
-	var absUrl = $location.absUrl();
+	let absUrl = $location.absUrl();
 	if(absUrl==null){
 		return;
 	}
-	var reg = /account=(\w{40}|(\w{6}-\w{6}-\w{6}-\w{6}-\w{6}-\w{6}-\w{4}))/;
+	let reg = /account=(\w{40}|(\w{6}-\w{6}-\w{6}-\w{6}-\w{6}-\w{6}-\w{4}))/;
 	if(absUrl.match(reg) && absUrl.match(reg).length>=2){
-		var account = absUrl.match(reg)[1];
+		let account = absUrl.match(reg)[1];
 		account = account.replace(new RegExp(/(-)/g), '').toUpperCase();
 		$scope.searchAccount = account;
 		let params = {address: account};
 		AccountService.detail(params, function(data) {
+			console.info(data);
 			if(!data || !data.address){
 				$scope.accountItems = [{label: "Not Found", content: ""}];
 				return;
 			}
 			$scope.addressExist = true;
 			//load account detail
-			var list = [];
+			let list = [];
 			list.push({label: "Address", content: data.address});
 			list.push({label: "Public key", content: data.publicKey});
 			list.push({label: "Balance", content: ""+fmtXEM(data.balance)});
