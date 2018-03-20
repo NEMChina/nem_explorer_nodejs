@@ -226,7 +226,7 @@ let getAllVoteTransactions = (optionAddresses, callback) => {
 /**
  * query account history info
  */
-let queryAccountHistory = (allVote, doc, callback) => {
+let queryAccountHistory = (allVote, doc, expiredHeight, callback) => {
 	let poiResultMap = new Map();
 	let nowTime = new Date().getTime();
 	// collect all accounts
@@ -242,6 +242,7 @@ let queryAccountHistory = (allVote, doc, callback) => {
 		params.accounts = paramAddressArr;
 		params.startHeight = expiredHeight;
 		params.endHeight = expiredHeight;
+		params.incrementBy = 1;
 		params = JSON.stringify(params);
 		nis.accountHistoricalBatch(params, expiredHeight, expiredHeight, data => {
 			if(!data || !data.data){
@@ -350,7 +351,7 @@ let pollResultWithPOI = (res, doc) => {
 					});
 				}
 				// query all address importance by batch
-				queryAccountHistory(allVote, doe, poiResultMap => {
+				queryAccountHistory(allVote, doe, expiredHeight, poiResultMap => {
 					// set poi
 					allVote.forEach((itemArr, i) => {
 						itemArr.forEach((item, j) => {
