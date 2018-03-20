@@ -1,5 +1,6 @@
 import namespaceDB from '../db/namespaceDB';
 import nis from '../utils/nisRequest';
+import mosaicController from '../controllers/mosaic.server.controller';
 
 const LISTSIZE = 100;
 const namespaceListLimit = 50;
@@ -127,33 +128,15 @@ module.exports = {
 					if(data_mosaic.data[i].mosaicId.namespaceId=="nem")
 						continue;
 					r_mosaic = {};
-					r_mosaic.mosaic = data_mosaic.data[i].mosaicId.namespaceId + ":" + data_mosaic.data[i].mosaicId.name;
+					r_mosaic.mosaic = data_mosaic.data[i].mosaicId.name;
 					r_mosaic.quantity = data_mosaic.data[i].quantity;
 					r_mosaic.namespace = data_mosaic.data[i].mosaicId.namespaceId;
 					r_mosaic.id = data_mosaic.data[i].mosaicId.name;
 					r_mosaicList.push(r_mosaic);
 				}
-				let quantityFixCount = 0;
-				for(let i in r_mosaicList){
-					nis.allMosaicDefinitionListByNamespace(r_mosaicList[i].namespace, null, [], data_definition => {
-						for(let j in data_definition){
-							if(data_definition[j].mosaic.id.name==r_mosaicList[i].id){
-								let divisibility = 0;
-								for(let k in data_definition[j].mosaic.properties){
-									if(data_definition[j].mosaic.properties[k].name=="divisibility"){
-										divisibility = data_definition[j].mosaic.properties[k].value;
-										break;
-									}
-								}
-								if(r_mosaicList[i].quantity!=0)
-									r_mosaicList[i].quantity = r_mosaicList[i].quantity/Math.pow(10, parseInt(divisibility));
-							}
-						}
-						quantityFixCount++;
-						if(quantityFixCount==r_mosaicList.length)
-							res.json(r_mosaicList);
-					});
-				}
+				mosaicController.setMosaicTXDivisibility(r_mosaicList, mosaicTXs => {
+					res.json(mosaicTXs);
+				});
 			});
 		} catch (e) {
 			console.error(e);

@@ -6,8 +6,10 @@ const mosaicTXListLimit = 50;
 
 function AccountController($scope, AccountService){
 	$scope.page = 1;
-	$scope.hideMore = false;
+	$scope.loadingFlag = false;
+	$scope.endFlag = false;
 	$scope.getAccountList = function(){
+		$scope.loadingFlag = true;
 		AccountService.accountList({"page": $scope.page}, function(r_accountList){
 			for(let i in r_accountList){
 				let account = r_accountList[i];
@@ -17,20 +19,19 @@ function AccountController($scope, AccountService){
 				if(account.remark && account.remark.length>60)
 					account.remark = account.remark.substring(0, 59) + "..";
 			}
-			if($scope.accountList){
+			if($scope.accountList)
 				$scope.accountList = $scope.accountList.concat(r_accountList);
-			} else {
+			else
 				$scope.accountList = r_accountList;
-			}
-			if(r_accountList.length==0 || r_accountList.length<100){
-				$scope.hideMore = true;
-			}
-			$scope.loadingMore = false;
+			if(r_accountList.length==0 || r_accountList.length<100)
+				$scope.endFlag = true;
+			$scope.loadingFlag = false;
 		});
 	}
 	$scope.loadMore = function(){
+		if($scope.loadingFlag==true)
+			return;
 		$scope.page++;
-		$scope.loadingMore = true;
 		$scope.getAccountList();
 	};
 	$scope.getAccountList();
@@ -55,7 +56,6 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 		$scope.searchAccount = account;
 		let params = {address: account};
 		AccountService.detail(params, function(data) {
-			console.info(data);
 			if(!data || !data.address){
 				$scope.accountItems = [{label: "Not Found", content: ""}];
 				return;
@@ -76,8 +76,13 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			}
 			if(data.cosignatories!=null && data.cosignatories!=""){
 				list.push({label: "Multisig account", content: "Yes"});
-				list.push({label: "Min signatures", content: ""+data.minCosignatories});
-				list.push({label: "Cosignatories", content: data.cosignatories});
+				if(data.minCosignatories==0){
+					list.push({label: "Min signatures", content: ""+data.minCosignatories});
+					list.push({label: "Cosignatories", content: data.cosignatories});
+				} else {
+					list.push({label: "Min signatures", content: ""+data.minCosignatories});
+					list.push({label: "Cosignatories", content: data.cosignatories});
+				}
 			}
 			$scope.accountItems = list;
 			//load harvest info
@@ -232,9 +237,8 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 	$scope.showNamespace = function(){
 		let params = {address: $scope.searchAccount};
 		NamespaceService.namespaceListByAddress(params, function(data) {
-			if(!data || data.length==0){
+			if(!data || data.length==0)
 				return;
-			}
 			$scope.showNamespaceFlag = true;
 			$scope.namespaceList = data;
 		});
@@ -243,11 +247,14 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 	$scope.showMosaic = function(){
 		let params = {address: $scope.searchAccount};
 		NamespaceService.mosaicListByAddress(params, function(data) {
-			if(!data || data.length==0){
+			if(!data || data.length==0)
 				return;
-			}
 			$scope.showMosaicFlag = true;
 			$scope.mosaicList = data;
+			$scope.mosaicList.forEach(m => {
+				m.quantity = fmtMosaic(m.quantity, m.div);
+				m.mosaic = m.namespace + ":" + m.mosaic;
+			});
 		});
 	};
 	$scope.loadTransactions();

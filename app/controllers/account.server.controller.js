@@ -61,7 +61,7 @@ module.exports = {
 				page = parseInt(req.body.page);
 			}
 			let Account = mongoose.model('Account');
-			Account.find().sort({blocks: -1}).skip(LISTSIZE*(page-1)).limit(LISTSIZE).exec((err, doc) => {
+			Account.find({blocks: {$gt: 0}}).sort({blocks: -1}).skip(LISTSIZE*(page-1)).limit(LISTSIZE).exec((err, doc) => {
 				if(err) {
 					console.info(err);
 					return res.json([]);
@@ -118,8 +118,10 @@ module.exports = {
 				r_account.remoteStatus = meta.remoteStatus;
 				r_account.harvestedBlocks = account.harvestedBlocks;
 				r_account.vestedBalance = account.vestedBalance;
-				if(account.multisigInfo && account.multisigInfo.minCosignatories)
+				if(account.multisigInfo)
 					r_account.minCosignatories = account.multisigInfo.minCosignatories;
+				if(r_account.minCosignatories==0)
+					r_account.minCosignatories = meta.cosignatories.length;
 				if(meta.cosignatories && meta.cosignatories.length>0){
 					r_account.multisig = 1;
 					r_account.cosignatories = "";

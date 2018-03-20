@@ -3,28 +3,31 @@ angular.module("webapp").controller("HarvestingCalculatorController", ["$scope",
 
 function HarvesterController($scope, AccountService){
 	$scope.page = 1;
-	$scope.hideMore = false;
+	$scope.loadingFlag = false;
+	$scope.endFlag = false;
 	$scope.getHarvesterList = function(){
+		$scope.loadingFlag = true;
 		AccountService.harvesterList({"page": $scope.page}, function(r_harvesterList){
 			for(let i in r_harvesterList){
 				let account = r_harvesterList[i];
 				account.fees = fmtXEM(account.fees);
 				account.importance = fmtPOI(account.importance);
+				if(account.remark && account.remark.length>60)
+					account.remark = account.remark.substring(0, 59) + "..";
 			}
-			if($scope.harvesterList){
+			if($scope.harvesterList)
 				$scope.harvesterList = $scope.harvesterList.concat(r_harvesterList);
-			} else {
+			else
 				$scope.harvesterList = r_harvesterList;
-			}
-			if(r_harvesterList.length==0 || r_harvesterList.length<100){
-				$scope.hideMore = true;
-			}
-			$scope.loadingMore = false;
+			if(r_harvesterList.length==0 || r_harvesterList.length<100)
+				$scope.endFlag = true;
+			$scope.loadingFlag = false;
 		});
 	}
 	$scope.loadMore = function(){
+		if($scope.loadingFlag==true)
+			return;
 		$scope.page++;
-		$scope.loadingMore = true;
 		$scope.getHarvesterList();
 	};
 	$scope.getHarvesterList();
