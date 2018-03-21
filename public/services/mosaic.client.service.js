@@ -26,6 +26,11 @@ function MosaicService($http){
 			$http.post("/mosaic/mosaicTransferList", params).success(function(data){
 				callback(data);
 			});
+		},
+		mosaicListByMosaic: function(params, callback) {
+			$http.post("/mosaic/mosaicListByMosaic", params).success(function(data){
+				callback(data);
+			});
 		}
 	}
 }

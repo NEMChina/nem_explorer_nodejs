@@ -6,4 +6,5 @@ module.exports = function(app){
 	app.route('/mosaic/mosaic').post(MosaicController.mosaic);
 	app.route('/mosaic/mosaicTransferRecord').post(MosaicController.mosaicTransferRecord);
 	app.route('/mosaic/mosaicTransferList').post(MosaicController.mosaicTransferList);
+	app.route('/mosaic/mosaicListByMosaic').post(MosaicController.mosaicListByMosaic);
 };

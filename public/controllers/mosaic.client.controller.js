@@ -7,6 +7,9 @@ const mosaicTransferListLimit = 50;
 const mosaicDetailMosaicTransferListLimit = 50;
 
 function MosaicListController($scope, MosaicService){
+	$scope.currentNamespace = "";
+	$scope.searchingFlag = false;
+	$scope.warningFlag = false;
 	$scope.loadingFlag = false;
 	$scope.endFlag = false;
 	MosaicService.mosaicList({}, function(r_list){
@@ -45,6 +48,68 @@ function MosaicListController($scope, MosaicService){
 			if(r_list.length<mosaicListLimit)
 				$scope.endFlag = true;
 		});
+	};
+	$scope.searchMosaic = () => {
+		$scope.warningFlag = false;
+		let inputMosaic = $scope.searchInput;
+		if(!inputMosaic){ // blank search conditions
+			if($scope.currentMosaic=="")
+				return;
+			// reset the list
+			$scope.searchingFlag = true;
+			MosaicService.mosaicList({}, function(r_list){
+				r_list.forEach(r => {
+					r.timeStamp = fmtDate(r.timeStamp);
+					r.initialSupply = fmtMosaic(r.initialSupply, r.divisibility);
+				});
+				$scope.currentNamespace = "";
+				$scope.searchingFlag = false;
+				$scope.mosaicList = r_list;
+			});
+		} else { // non blank search conditions
+			// check mosaic ID format
+			let reg = /^([a-zA-Z0-9_-]+(.[a-zA-Z0-9'_-])*):([a-zA-Z0-9'_-]+)$/;
+			if(!reg.test(inputMosaic)){
+				$scope.warningContent = "Invalid mosaic ID";
+				$scope.warningFlag = true;
+				return;
+			}
+			// get namespace and mosaic form mosaic ID
+			let match = inputMosaic.match(reg);
+			let ns = null;
+			let m = null;
+			if(match && match.length>0){
+				ns = match[1];
+				m = match[3];
+			}
+			if(!ns || !m){
+				$scope.warningContent = "Invalid mosaic ID";
+				$scope.warningFlag = true;
+				return;
+			}
+			$scope.searchingFlag = true;
+			// attach the search conditions
+			let params = {ns: ns, m: m};
+			MosaicService.mosaicListByMosaic(params, function(r_mosaicList){
+				if(!r_mosaicList || r_mosaicList.length==0){
+					$scope.warningContent = "Mosaic ID do not exist";
+					$scope.searchingFlag = false;
+					$scope.warningFlag = true;
+					return;
+				}
+				r_mosaicList.forEach(r => {
+					r.timeStamp = fmtDate(r.timeStamp);
+					r.initialSupply = fmtMosaic(r.initialSupply, r.divisibility);
+				});
+				$scope.currentNamespace = ns;
+				$scope.currentMosaic = m;
+				$scope.mosaicList = r_mosaicList;
+				$scope.searchingFlag = false;
+			});
+		}
+	};
+	$scope.closeWarning = () => {
+		$scope.warningFlag = false;
 	};
 }
 

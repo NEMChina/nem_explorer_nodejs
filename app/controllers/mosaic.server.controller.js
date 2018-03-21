@@ -45,6 +45,36 @@ module.exports = {
 	},
 
 	/**
+     * get mosaic list by mosaic
+     */
+	mosaicListByMosaic: (req, res, next) => {
+		try {
+			let ns = req.body.ns;
+			let m = req.body.m;
+			// validate namespace
+			let reg_ns = /^[a-zA-Z0-9_-]+((\.)[a-zA-Z0-9_-]+)*$/;
+			if(!ns || !reg_ns.test(ns)){
+				res.json({});
+				return;
+			}
+			// validate mosaic
+			let reg_m = /^[a-zA-Z0-9'_-]+$/;
+			if(!m || !reg_m.test(m)){
+				res.json({});
+				return;
+			}
+			mosaicDB.findOneMosaic(m, ns, doc => {
+				if(!doc)
+					res.json([]);
+				else
+					res.json([doc]);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
      * get mosaic detail
      */
 	mosaic: (req, res, next) => {

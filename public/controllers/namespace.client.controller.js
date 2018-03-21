@@ -7,7 +7,6 @@ function NamespaceListController($scope, $timeout, NamespaceService){
 	$scope.currentNamespace = "";
 	$scope.searchingFlag = false;
 	$scope.warningFlag = false;
-	$scope.nothingToShowFlag = false;
 	$scope.loadingFlag = false;
 	$scope.endFlag = false;
 	NamespaceService.rootNamespaceList({}, function(r_namespaceList){
