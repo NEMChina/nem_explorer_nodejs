@@ -31,6 +31,11 @@ function NamespaceService($http){
 			$http.post("/namespace/mosaicListByNamespace", params).success(function(data){
 				callback(data);
 			});
+		},
+		rootNamespaceByNamespace: function(params, callback) {
+			$http.post("/namespace/rootNamespaceByNamespace", params).success(function(data){
+				callback(data);
+			});
 		}
 	}
 }

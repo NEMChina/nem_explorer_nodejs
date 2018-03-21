@@ -54,3 +54,12 @@
 .fontSize12{
 	font-size: 12px;
 }
+.fontSize16{
+	font-size: 16px;
+}
+.fontSizeBold{
+	font-weight: bold;
+}
+.cursorPointer{
+	cursor: pointer;
+}

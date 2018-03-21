@@ -7,4 +7,5 @@ module.exports = function(app){
 	app.route('/namespace/namespaceListByAddress').post(NamespaceController.namespaceListByAddress);
 	app.route('/namespace/mosaicListByAddress').post(NamespaceController.mosaicListByAddress);
 	app.route('/namespace/mosaicListByNamespace').post(NamespaceController.mosaicListByNamespace);
+	app.route('/namespace/rootNamespaceByNamespace').post(NamespaceController.rootNamespaceByNamespace);
 };

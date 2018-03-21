@@ -29,6 +29,39 @@ module.exports = {
 	},
 
 	/**
+     * get root namespace by namespace
+     */
+	rootNamespaceByNamespace: (req, res, next) => {
+		try {
+			let ns = req.body.ns;
+			// validate namespace
+			let reg = /^[a-zA-Z0-9_-]+((\.)[a-zA-Z0-9_-]+)*$/;
+			if(!reg.test(ns)){
+				res.json([]);
+				return;
+			}
+			// check namspace exists
+			namespaceDB.findOneNamespaceByName(ns, doc => {
+				if(!doc){
+					res.json([]);
+					return;
+				}
+				let rootNamespace = ns;
+				if(ns.indexOf(".")!=-1)
+					rootNamespace = rootNamespace.substring(0, rootNamespace.indexOf("."));
+				namespaceDB.findOneNamespaceByName(rootNamespace, doc => {
+					if(!doc)
+						res.json([]);
+					else 
+						res.json([doc]);
+				});
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
      * get sub namespace list by root namespace
      */
 	subNamespaceList: (req, res, next) => {

@@ -1,27 +1,46 @@
-<div id="content" class="container fontSize12" style="padding-bottom:70px;">
+<div id="content" class="container" style="padding-bottom:70px;">
+	<div style="margin-bottom:20px;">
+		<span class="fontSize16 fontSizeBold">Namespace List</span>
+		<button type="button" style="display:inline;float:right;" ng-click="searchNamespace()" ng-disabled="searchingFlag">
+ 			<span class="glyphicon glyphicon-repeat small"></span>
+ 		</button>
+		<input ng-model="searchInput" type="text" style="width:360px;display:inline;float:right;margin-right:6px;padding-left:6px;" placeholder="namespace or sub-namespace">
+		<img ng-if="searchingFlag" src="views/images/loading.gif" width="20" height="20" style="float:right;margin-right:10px;"/>
+	</div>
+	<div class="alert alert-warning" ng-if="warningFlag">
+	    <a href="javascript:void(0);" class="close" ng-click="closeWarning()">&times;</a>
+	    <span ng-bind="warningContent"></span>
+	</div>
   	<div infinite-scroll="loadMore()" infinite-scroll-immediate-check="false" infinite-scroll-disabled="loadingFlag">
-		<table class="table table-striped table-hover">
+		<table class="table table-striped table-hover fontSize12">
 			<thead>
 				<tr>
 					<th>#</th>
 					<th>Root Namespace</th>
 					<th>Creator</th>
-					<th>CreateTime</th>
-					<th>ExpiredTime</th>
+					<th>CreateTime / ExpiredTime</th>
+					<th>Subs</th>
 				</tr>
 			</thead>
 			<tbody class="well well-large">
-				<tr ng-repeat="ns in namespaceList">
+				<tr ng-repeat="ns in namespaceList" ng-class="{cursorPointer: ns.subsCount, success:selectedNamespace==ns.namespace}" ng-click="showSubs($index, $event)">
 					<td ng-bind="$index+1" width="42"></td>
 					<td>
-						<a href="#/namespace?ns={{ns.namespace}}" target="_blank"><span ng-bind="ns.namespace"></span></a>
-						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="#/namespace?ns={{ns.namespace}}" target="_blank">
+							<span class="noDetail" ng-bind="ns.namespace"></span>
+						</a>
 					</td>
-					<td width="420"><a href="#s_account?account={{ns.creator}}" target="_blank"><span class="noDetail" ng-bind="ns.creator"></span></a></td>
-					<td ng-bind="ns.timeStamp" width="160"></td>
-					<td width="160">
+					<td width="350"><a href="#s_account?account={{ns.creator}}" target="_blank"><span class="noDetail" ng-bind="ns.creator"></span></a></td>
+					<td width="270">
+						<span ng-bind="ns.timeStamp"></span>
+						&nbsp;&nbsp;/&nbsp;&nbsp;
 						<span ng-if="ns.expired" ng-bind="ns.expiredTime" style="color:red"></span>
 						<span ng-if="!ns.expired" ng-bind="ns.expiredTime"></span>
+					</td>
+					<td width="60">
+						<span ng-if="ns.subsCount">
+							(<span ng-bind="ns.subsCount"></span>)
+						</span>
 					</td>
 				</tr>
 			</tbody>
@@ -29,4 +48,26 @@
 	</div>
 	<div class="text-center" ng-if="loadingFlag"><img src="views/images/loading.gif"/></div>
 	<div class="text-center" ng-if="endFlag">This is the end</div>
+	<div class="modal fade" id="namespaceDetail" tabindex="-1" role="dialog">
+		<div class="modal-dialog" style="width:900px;">
+	    	<div class="modal-content">
+	        	<div class="modal-header">
+	            	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	            	<h5 class="modal-title"><b>Sub Namespaces</b></h5>
+		         </div>
+		         <div class="modal-body">
+		         	<table class="fontSize12">
+		         		<tr ng-repeat="sub in subs" style="line-height:26px;">
+		         			<td ng-bind="$index+1" width="60"></td>
+							<td>
+								<a href="#/namespace?ns={{sub}}" target="_blank">
+									<span class="noDetail" ng-bind="sub"></span>
+								</a>
+							</td>
+						</tr>
+					</table>
+		         </div>
+			</div>
+		</div>
+	</div>
 </div>
