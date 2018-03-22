@@ -139,11 +139,11 @@ let loadBlocks = (height, callback) => {
 				updateAddress(address.publicKeyToAddress(block.signer), block.height);
 			txes.forEach((itemTx, index) => {
 				let tx = itemTx.tx;
-				let saveTx = {};
 				// check transaction exist
 				checkTransactionExist(itemTx.hash, flag => {
 					if(flag)
 						return;
+					let saveTx = {};
 					saveTx.hash = itemTx.hash;
 					saveTx.height = block.height;
 					saveTx.index = index;

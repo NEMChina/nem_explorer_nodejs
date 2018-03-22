@@ -24,13 +24,20 @@ function BlockController($scope, $timeout, $interval, BlockService, TXService){
 		BlockService.blockList({"page": $scope.page}, function(r_blockList){
 			if(!r_blockList || r_blockList.length==0)
 				return;
-			let block = r_blockList[0];
-			block.time = block.timeStamp;
-			block.timeStamp = fmtDate(block.timeStamp);
-			block.txFee = fmtXEM(block.txFee);
-			$scope.blockList.splice(9, 1);
-			$scope.blockList.unshift(block);
-			$scope.updateAge();
+			r_blockList.reverse();
+			r_blockList.forEach(block => {
+				let lastHeight = 0;
+				if($scope.blockList && $scope.blockList.length>0)
+					lastHeight = $scope.blockList[0].height;
+				if(block.height<=lastHeight)
+					return;
+				block.time = block.timeStamp;
+				block.timeStamp = fmtDate(block.timeStamp);
+				block.txFee = fmtXEM(block.txFee);
+				$scope.blockList.splice(9, 1);
+				$scope.blockList.unshift(block);
+				$scope.updateAge();
+			});
 		});
 	};
 	// block age

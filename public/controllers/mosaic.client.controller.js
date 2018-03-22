@@ -240,7 +240,6 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 			m.namespace = item.namespace;
 			m.sender = item.sender;
 			m.recipient = item.recipient;
-			console.info(item);
 			m.quantity = fmtMosaic(item.quantity, item.div);
 			m.timeStamp = fmtDate(item.timeStamp);
 			if($scope.currentNamespace!="" && $scope.currentMosaic!=""){
