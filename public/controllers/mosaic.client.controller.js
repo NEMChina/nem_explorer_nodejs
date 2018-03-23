@@ -68,7 +68,7 @@ function MosaicListController($scope, MosaicService){
 			});
 		} else { // non blank search conditions
 			// check mosaic ID format
-			let reg = /^([a-zA-Z0-9_-]+(.[a-zA-Z0-9'_-])*):([a-zA-Z0-9'_-]+)$/;
+			let reg = /^([a-zA-Z0-9_-]+(.[a-zA-Z0-9_-]+)*):([a-zA-Z0-9'_-]+)$/;
 			if(!reg.test(inputMosaic)){
 				$scope.warningContent = "Invalid mosaic ID";
 				$scope.warningFlag = true;
@@ -325,7 +325,7 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 			});
 		} else { // non blank search conditions
 			// check mosaic ID format
-			let reg = /^([a-zA-Z0-9_-]+(.[a-zA-Z0-9'_-])*):([a-zA-Z0-9'_-]+)$/;
+			let reg = /^([a-zA-Z0-9_-]+(.[a-zA-Z0-9_-]+)*):([a-zA-Z0-9'_-]+)$/;
 			if(!reg.test(inputMosaic)){
 				$scope.warningContent = "Invalid mosaic ID";
 				$scope.warningFlag = true;
