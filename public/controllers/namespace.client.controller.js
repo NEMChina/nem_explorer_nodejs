@@ -193,7 +193,7 @@ function NamespaceController($scope, $timeout, $location, NamespaceService, Mosa
 			}
 			r_mosaicList.forEach((m, index) => {
 				m.timeStamp = fmtDate(m.timeStamp);
-				m.initialSupply = fmtMosaic(m.initialSupply, m.divisibility);
+				m.initialSupply = fmtSplit(m.initialSupply.toFixed(m.divisibility));
 				if(m.updateTimeStamp)
 					m.updateTimeStamp = fmtDate(m.updateTimeStamp);
 				m.mosaic = m.namespace + ":" + m.mosaicName;
