@@ -118,6 +118,7 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 		let items = new Array();
 		let content = "";
 		if(tx.type==257){ //Initiating a transfer transaction
+			items.push({label: "Block", content: data.height});
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			let typeName = "transfer";
 			if(tx.mosaicTransferFlag==1)
@@ -127,21 +128,36 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 			items.push({label: "Type", content: typeName});
 			items.push({label: "Sender", content: tx.signerAccount});
 			items.push({label: "Recipient", content: tx.recipient});
-			items.push({label: "Amount", content: fmtXEM(tx.amount)});
-			items.push({label: "Fee", content: fmtXEM(tx.fee)});
-			items.push({label: "Block", content: data.height});
+			if(tx.mosaics && tx.mosaics.length>0){
+				// check if 'nem:xem'
+				let amount = 0;
+				tx.mosaics.forEach(m => {
+					if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
+						amount = fmtMosaic(fmtXEM(tx.amount) * m.quantity, m.divisibility);
+				});
+				items.push({label: "Amount", content: amount});
+				items.push({label: "Fee", content: fmtXEM(tx.fee)});
+				// output mosaic info
+				let multiplier = 0;
+				if(tx.amount)
+					multiplier = fmtXEM(tx.amount);
+				tx.mosaics.forEach((m, i) => {
+					let mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
+					let quantity = fmtMosaic(m.quantity * multiplier, m.divisibility);
+					let quantityRemark = " ( " + fmtMosaic(m.quantity, m.divisibility) + " * " + multiplier + " )";
+					if(i==0)
+						items.push({label: "Mosaic transfer", content: mosaicID + " - " + quantity + quantityRemark});
+					else
+						items.push({label: "", content: mosaicID + " - " + quantity + quantityRemark});
+				});
+			} else {
+				items.push({label: "Amount", content: fmtXEM(tx.amount)});
+				items.push({label: "Fee", content: fmtXEM(tx.fee)});
+			}
 			if(tx.message && tx.message.type==2)
 				items.push({label: "Message(encrypted)", content: tx.message.payload});
 			else
 				items.push({label: "Message", content: tx.message.payload});
-			if(tx.mosaics && tx.mosaics.length>0){
-				for(let i in tx.mosaics){
-					if(i==0)
-						items.push({label: "Mosaic transfer", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtMosaic(tx.mosaics[i].quantity, tx.mosaics[i].divisibility)});
-					else
-						items.push({label: "", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtMosaic(tx.mosaics[i].quantity, tx.mosaics[i].divisibility)});
-				}
-			}
 		} else if(tx.type==2049){ //Initiating a importance transfer transaction
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			items.push({label: "Type", content: "importance"});
@@ -177,22 +193,38 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 			items.push({label: "Sender", content: tx.otherTrans.sender});
 			if(tx.otherTrans.recipient)
 				items.push({label: "Recipient", content: tx.otherTrans.recipient});
-			if(tx.otherTrans.amount && !isNaN(tx.otherTrans.amount))
-				items.push({label: "Amount", content: fmtXEM(tx.otherTrans.amount)});
-			items.push({label: "Fee", content: fmtXEM(tx.otherTrans.fee)});
+			if(tx.otherTrans.mosaics && tx.otherTrans.mosaics.length>0){
+				// check if 'nem:xem'
+				let amount = 0;
+				tx.otherTrans.mosaics.forEach(m => {
+					if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
+						amount = fmtMosaic(fmtXEM(tx.amount) * m.quantity, m.divisibility);
+				});
+				items.push({label: "Amount", content: amount});
+				items.push({label: "Fee", content: fmtXEM(tx.otherTrans.fee)});
+				// output mosaic info
+				let multiplier = 0;
+				if(tx.otherTrans.amount && !isNaN(tx.otherTrans.amount))
+					multiplier = fmtXEM(tx.otherTrans.amount);
+				tx.otherTrans.mosaics.forEach((m, i) => {
+					let mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
+					let quantity = fmtMosaic(m.quantity * multiplier, m.divisibility);
+					let quantityRemark = " ( " + fmtMosaic(m.quantity, m.divisibility) + " * " + multiplier + " )";
+					if(i==0)
+						items.push({label: "Mosaic transfer", content: mosaicID + " - " + quantity + quantityRemark});
+					else
+						items.push({label: "", content: mosaicID + " - " + quantity + quantityRemark});
+				});
+			} else {
+				if(tx.otherTrans.amount && !isNaN(tx.otherTrans.amount))
+					items.push({label: "Amount", content: fmtXEM(tx.otherTrans.amount)});
+				items.push({label: "Fee", content: fmtXEM(tx.otherTrans.fee)});
+			}
 			if(tx.otherTrans && tx.otherTrans.message){
 				if(tx.otherTrans.message.type==2)
 					items.push({label: "Message(encrypted)", content: tx.otherTrans.message.payload});
 				else
 					items.push({label: "Message", content: tx.otherTrans.message.payload});
-			}
-			if(tx.mosaics && tx.mosaics.length>0){
-				for(let i in tx.mosaics){
-					if(i==0)
-						items.push({label: "Mosaic transfer", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtSplit(tx.mosaics[i].quantity)});
-					else
-						items.push({label: "", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtSplit(tx.mosaics[i].quantity)});
-				}
 			}
 			items.push({label: "Cosignatures", content: tx.signerAccount + " (" + fmtDate(tx.timeStamp) + ") (Initiator)"});
 			for(let i in tx.signatures)

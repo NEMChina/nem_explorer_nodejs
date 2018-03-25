@@ -152,6 +152,7 @@ let loadBlocks = (height, callback) => {
 					saveTx.recipient = tx.recipient?tx.recipient:saveTx.recipient;
 					saveTx.recipient = tx.remoteAccount?address.publicKeyToAddress(tx.remoteAccount):saveTx.recipient;
 					saveTx.amount = tx.amount?tx.amount:0;
+					saveTx.amountForMosaic = tx.amount?tx.amount:0;
 					saveTx.fee = tx.fee?tx.fee:0;
 					saveTx.timeStamp = tx.timeStamp?tx.timeStamp:0;
 					saveTx.deadline = tx.deadline?tx.deadline:0;
@@ -171,6 +172,7 @@ let loadBlocks = (height, callback) => {
 					// check if multisig transaction
 					if(tx.type==4100 && tx.signatures && tx.otherTrans){
 						saveTx.amount = tx.otherTrans.amount?tx.otherTrans.amount:0;
+						saveTx.amountForMosaic = tx.otherTrans.amount?tx.otherTrans.amount:0;
 						saveTx.fee = tx.otherTrans.fee?tx.otherTrans.fee:0;
 						saveTx.sender = tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):"";
 						saveTx.recipient = tx.otherTrans.recipient;
@@ -223,6 +225,7 @@ let loadBlocks = (height, callback) => {
 						updateAddress(otherTransSigner, block.height);
 						updateAddress(otherTransRecipient, block.height);
 					}
+					saveTx.amount = correctAmountIfMosaic(saveTx, tx);
 					//insert the transaction into DB
 					saveTransaction(saveTx, index+1);
 				});
@@ -233,6 +236,24 @@ let loadBlocks = (height, callback) => {
 		});
 	});
 };
+
+let correctAmountIfMosaic = (saveTx, tx, callback) => {
+	let amount = saveTx.amount;
+	let mosaics = [];
+	if(tx.mosaics && tx.mosaics.length>0)
+		mosaics = tx.mosaics;
+	if(tx.otherTrans && tx.otherTrans.mosaics && tx.otherTrans.mosaics.length>0)
+		mosaics = tx.otherTrans.mosaics;
+	if(mosaics.length==0)
+		return amount;
+	mosaics.forEach(m => {
+		if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem"){
+			return m.quantity * (tx.amount / 1000000);
+		}
+	});
+	return 0;
+};
+
 
 /**
  * update the account info in DB
@@ -352,7 +373,7 @@ let saveMosaicTX = (saveTx, mosaics) => {
 		mosaicTx.recipient = saveTx.recipient;
 		mosaicTx.timeStamp = saveTx.timeStamp;
 		mosaicTx.namespace = mosaicId.namespaceId;
-		mosaicTx.mosaic = mosaicId.name;
+		mosaicTx.mosaic = mosaicId.name * (saveTx.amountForMosaic / 1000000);
 		mosaicTx.quantity = quantity;
 		// calculate the number, no = block height + tx index + mosaic index
 		mosaicTx.no = saveTx.height;

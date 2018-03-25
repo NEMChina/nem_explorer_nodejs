@@ -104,7 +104,7 @@
 						</tr>
 					</thead>
 					<tbody class="well well-large">
-						<tr ng-class="{hidden:txList&&txList.length>0}">
+						<tr ng-if="txList.length==0">
 							<td colspan="6">Nothing to show</td>
 						</tr>
 						<tr ng-repeat="tx in txList" style="cursor:pointer;" ng-click="showTx(tx, $event)" ng-class="{success:selectedTXHash==tx.hash}">
@@ -137,7 +137,7 @@
 						</tr>
 					</thead>
 					<tbody class="well well-large">
-						<tr ng-class="{hidden:mosaicTXList&&mosaicTXList.length>0}">
+						<tr ng-if="mosaicTXList.length==0">
 							<td colspan="5">Nothing to show</td>
 						</tr>
 						<tr ng-repeat="tx in mosaicTXList" style="cursor:pointer;" ng-click="showMosaicTx(tx, $event)" ng-class="{success:selectedMosaicTXNO==tx.no}">
