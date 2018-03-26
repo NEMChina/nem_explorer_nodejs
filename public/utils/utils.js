@@ -48,7 +48,10 @@ function fmtMosaic(input, div) {
 	if(div && div>0)
 		divisor = Math.pow(10, div);
 	let result = (input / divisor).toFixed(div);
-	return fmtSplit(result);
+	if(result==0)
+		return "" + 0;
+	else
+		return fmtSplit(result);
 }
 
 function fixNumber(input) {
@@ -144,7 +147,9 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 				tx.mosaics.forEach((m, i) => {
 					let mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
 					let quantity = fmtMosaic(m.quantity * multiplier, m.divisibility);
-					let quantityRemark = " ( " + fmtMosaic(m.quantity, m.divisibility) + " * " + multiplier + " )";
+					let quantityRemark = "";
+					if(multiplier!=1)
+						quantityRemark = " (" + fmtMosaic(m.quantity, m.divisibility) + " * " + multiplier + ")";
 					if(i==0)
 						items.push({label: "Mosaic transfer", content: mosaicID + " - " + quantity + quantityRemark});
 					else
@@ -184,12 +189,17 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 		} else if(tx.type==4098){ //Cosigning multisig transaction
 			
 		} else if(tx.type==4100){ //Initiating a multisig transaction; Adding and removing cosignatories
+			items.push({label: "Block", content: data.height});
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			items.push({label: "Deadline", content: fmtDate(tx.deadline)});
 			if(tx.otherTrans && tx.otherTrans.type==4097)
 				items.push({label: "Type", content: "multisig | aggregate modification transaction (cosignatory modification)"});
-			else
-				items.push({label: "Type", content: "multisig transaction"});
+			else{
+				let typeName = "multisig";
+				if(tx.otherTrans.mosaics && tx.otherTrans.mosaics.length>0)
+					typeName += " | mosaic";
+				items.push({label: "Type", content: typeName});
+			}
 			items.push({label: "Sender", content: tx.otherTrans.sender});
 			if(tx.otherTrans.recipient)
 				items.push({label: "Recipient", content: tx.otherTrans.recipient});
@@ -209,7 +219,9 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 				tx.otherTrans.mosaics.forEach((m, i) => {
 					let mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
 					let quantity = fmtMosaic(m.quantity * multiplier, m.divisibility);
-					let quantityRemark = " ( " + fmtMosaic(m.quantity, m.divisibility) + " * " + multiplier + " )";
+					let quantityRemark = "";
+					if(multiplier!=1)
+						quantityRemark = " (" + fmtMosaic(m.quantity, m.divisibility) + " * " + multiplier + ")";
 					if(i==0)
 						items.push({label: "Mosaic transfer", content: mosaicID + " - " + quantity + quantityRemark});
 					else

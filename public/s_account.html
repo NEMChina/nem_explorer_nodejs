@@ -108,15 +108,15 @@
 							<td colspan="6">Nothing to show</td>
 						</tr>
 						<tr ng-repeat="tx in txList" style="cursor:pointer;" ng-click="showTx(tx, $event)" ng-class="{success:selectedTXHash==tx.hash}">
-							<td ng-bind="$index+1"></td>
-							<td ng-bind="tx.timeStamp"></td>
+							<td ng-bind="$index+1" width="50"></td>
+							<td ng-bind="tx.timeStamp" width="160"></td>
 							<td>
 								<span style="color:green" ng-class="{hidden:tx.flow!=0}" ng-bind="tx.amount"></span>
 								<span style="color:red" ng-class="{hidden:tx.flow!=1}" ng-bind="tx.amount"></span>
 							</td>
-							<td ng-bind="tx.fee"></td>
-							<td><a href="#s_account?account={{tx.sender}}" target="_blank"><span class="noDetail" ng-bind="tx.sender"></span></a></td>
-							<td><a href="#s_account?account={{tx.recipient}}" target="_blank"><span class="noDetail" ng-bind="tx.recipient"></span></a></td>
+							<td ng-bind="tx.fee" width="80"></td>
+							<td width="360"><a href="#s_account?account={{tx.sender}}" target="_blank"><span class="noDetail" ng-bind="tx.sender"></span></a></td>
+							<td width="360"><a href="#s_account?account={{tx.recipient}}" target="_blank"><span class="noDetail" ng-bind="tx.recipient"></span></a></td>
 						</tr>
 					</tboby>
 				</table>

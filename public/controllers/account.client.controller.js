@@ -153,8 +153,8 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 				let tx = data[i];
 				tx.timeStamp = fmtDate(tx.timeStamp);
 				tx.amount = tx.amount?fmtXEM(tx.amount):0;
-				tx.amount = fixNumber(tx.amount);
-				tx.fee = fixNumber(fmtXEM(tx.fee));
+				tx.amount = tx.amount;
+				tx.fee = fmtXEM(tx.fee);
 				$scope.lastID = tx.id;
 				tx.flow = 0; // 0-imcoming, 1-outgoing
 				if($scope.searchAccount==tx.sender)

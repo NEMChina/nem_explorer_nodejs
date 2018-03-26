@@ -246,12 +246,14 @@ let correctAmountIfMosaic = (saveTx, tx, callback) => {
 		mosaics = tx.otherTrans.mosaics;
 	if(mosaics.length==0)
 		return amount;
+	amount = 0;
 	mosaics.forEach(m => {
-		if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem"){
-			return m.quantity * (tx.amount / 1000000);
-		}
+		if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
+			amount = m.quantity * (saveTx.amount / 1000000);
 	});
-	return 0;
+	if(amount<0)
+		amount = 0;
+	return amount;
 };
 
 
@@ -373,8 +375,8 @@ let saveMosaicTX = (saveTx, mosaics) => {
 		mosaicTx.recipient = saveTx.recipient;
 		mosaicTx.timeStamp = saveTx.timeStamp;
 		mosaicTx.namespace = mosaicId.namespaceId;
-		mosaicTx.mosaic = mosaicId.name * (saveTx.amountForMosaic / 1000000);
-		mosaicTx.quantity = quantity;
+		mosaicTx.mosaic = mosaicId.name;
+		mosaicTx.quantity = quantity * (saveTx.amountForMosaic / 1000000);
 		// calculate the number, no = block height + tx index + mosaic index
 		mosaicTx.no = saveTx.height;
 		mosaicTx.no = mosaicTx.no * 1000 + (saveTx.index+1);

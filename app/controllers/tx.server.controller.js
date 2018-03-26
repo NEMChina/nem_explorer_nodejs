@@ -230,7 +230,7 @@ module.exports = {
 					}
 					if(!tx)
 						return;
-					tx.sender =  address.publicKeyToAddress(tx.signer);
+					tx.sender = address.publicKeyToAddress(tx.signer);
 					if(tx.type==4100 && tx.otherTrans){
 						tx.otherTrans.sender =  tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):'';
 						if(tx.otherTrans.message && tx.otherTrans.message.type && tx.otherTrans.message.type==1)
@@ -262,22 +262,48 @@ let checkApostilleAndMosaicTransferFromTX = (tx) => {
 };
 
 let formatMosaicDivisibility = (tx, callback) => {
+	// collect all query mosaic params
+	let findMosaicParams = [];
 	if(tx.tx.mosaics && tx.tx.mosaics.length>0){
-		let count = 0;
-		tx.tx.mosaics.forEach((mosaic, i) => {
-			tx.tx.mosaics[i].divisibility = 0;
+		tx.tx.mosaics.forEach(mosaic => {
 			let m = mosaic.mosaicId.name;
 			let ns = mosaic.mosaicId.namespaceId;
-			let div = 0;
-			mosaicDB.findOneMosaic(m, ns, doc => {
-				if(doc && doc.divisibility && doc.divisibility>1)
-					tx.tx.mosaics[i].divisibility = doc.divisibility;
-				count++;
-				if(count==tx.tx.mosaics.length)
-					callback();
-			});
+			findMosaicParams.push({mosaicName: m, namespace: ns});
 		});
-	} else {
-		callback();
-	} 
+	}
+ 	if(tx.tx.otherTrans && tx.tx.otherTrans.mosaics && tx.tx.otherTrans.mosaics.length>0){
+ 		tx.tx.otherTrans.mosaics.forEach(mosaic => {
+ 			let m = mosaic.mosaicId.name;
+ 			let ns = mosaic.mosaicId.namespaceId;
+ 			findMosaicParams.push({mosaicName: m, namespace: ns});
+ 		});
+ 	}
+ 	if(findMosaicParams.length==0){
+ 		callback();
+ 		return;
+ 	}
+ 	// query mosaic
+ 	mosaicDB.findMosaics(findMosaicParams, mosaics => {
+		let divMap = new Map();
+		mosaics.forEach(m => {
+			if(m)
+				divMap.set(m.namespace+":"+m.mosaicName, m.divisibility);
+		});
+		// set divisibility into tx
+		if(tx.tx.mosaics && tx.tx.mosaics.length>0){
+			tx.tx.mosaics.forEach((mosaic, i) => {
+				let id = mosaic.mosaicId.namespaceId+":"+mosaic.mosaicId.name;
+				if(divMap.has(id))
+					tx.tx.mosaics[i].divisibility = divMap.get(id);
+			});
+		}
+	 	if(tx.tx.otherTrans && tx.tx.otherTrans.mosaics && tx.tx.otherTrans.mosaics.length>0){
+	 		tx.tx.otherTrans.mosaics.forEach((mosaic, i) => {
+	 			let id = mosaic.mosaicId.namespaceId+":"+mosaic.mosaicId.name;
+				if(divMap.has(id))
+					tx.tx.otherTrans.mosaics[i].divisibility = divMap.get(id);
+	 		});
+	 	}
+	 	callback();
+	});
 };

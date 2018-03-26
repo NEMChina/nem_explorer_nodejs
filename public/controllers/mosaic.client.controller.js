@@ -256,6 +256,8 @@ function MosaicTransferController($scope, $timeout, $interval, MosaicService){
 	}, 1000);
 	$scope.updateAge = function(){
 		let nowTime = new Date().getTime();
+		if(!$scope.mosaicTransferList)
+			return;
 		$scope.mosaicTransferList.forEach(m => {
 			m.age = compareTime(nowTime, m.time);
 		});
