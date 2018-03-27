@@ -251,7 +251,7 @@ let correctAmountIfMosaic = (saveTx, tx, callback) => {
 		if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
 			amount = m.quantity * (saveTx.amount / 1000000);
 	});
-	if(amount<0)
+	if(amount<1)
 		amount = 0;
 	return amount;
 };

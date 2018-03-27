@@ -208,7 +208,7 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 				let amount = 0;
 				tx.otherTrans.mosaics.forEach(m => {
 					if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
-						amount = fmtMosaic(fmtXEM(tx.amount) * m.quantity, m.divisibility);
+						amount = fmtMosaic(fmtXEM(tx.otherTrans.amount) * m.quantity, m.divisibility);
 				});
 				items.push({label: "Amount", content: amount});
 				items.push({label: "Fee", content: fmtXEM(tx.otherTrans.fee)});
