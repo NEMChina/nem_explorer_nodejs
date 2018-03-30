@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import nis from '../utils/nisRequest';
 import address from '../utils/address';
 import message from '../utils/message';
+import transactionDB from '../db/transactionDB';
 
 const BLOCKLISTSIZE = 10;
 
@@ -102,51 +103,46 @@ module.exports = {
 			}
 			let height = parseInt(req.body.height);
 			let r_block = {};
-			if(height==1){ //Nemsis Block
-				let params = JSON.stringify({"height": 1});
-				nis.blockAtPublic(params, data => {
-					r_block.height = 1;
-					r_block.timeStamp = 0;
-					r_block.difficulty = "#";
-					r_block.txAmount = data.transactions.length;
-					r_block.txFee = 0;
-					r_block.signer = "#";
-					r_block.hash = "#";
-					data.transactions.forEach(tx => {
-						tx.signerAccount = address.publicKeyToAddress(tx.signer);
-						tx.height = 1;
-						tx.timeStamp = 0;
-					});
-					r_block.txes = data.transactions;
-					res.json(r_block);
-				});
-			} else { //non nemsis block
-				let params = JSON.stringify({"height": height-1});
-				nis.blockList(params, data => {
-					if(!data || !data.data || data.data.length==0){
+			// query txes in block
+			transactionDB.transactionsByHeight(height, docs => {
+				r_block.txes = docs;
+				r_block.txFee = 0;
+				if(height==1){ //Nemsis Block
+					let params = JSON.stringify({"height": 1});
+					nis.blockAtPublic(params, data => {
+						r_block.height = 1;
+						r_block.timeStamp = 0;
+						r_block.difficulty = "#";
+						r_block.txAmount = data.transactions.length;
+						r_block.txFee = 0;
+						r_block.signer = "#";
+						r_block.hash = "#";
 						res.json(r_block);
-						return;
-					}
-					let block = data.data[0];
-					r_block.height = height;
-					r_block.timeStamp = block.block.timeStamp;
-					r_block.difficulty = block.difficulty;
-					r_block.txAmount = block.txes.length;
-					let txFee = 0;
-					block.txes.forEach(tx => {
-						txFee += tx.tx.fee;
-						tx.tx.signerAccount = address.publicKeyToAddress(tx.tx.signer);
-						tx.tx.height = height;
-						if(tx && tx.tx && tx.tx.message && tx.tx.message.type)
-							tx.tx.message.payload = message.hexToUtf8(tx.tx.message.payload);
 					});
-					r_block.txFee = txFee;
-					r_block.signer = address.publicKeyToAddress(block.block.signer);
-					r_block.hash = block.hash;
-					r_block.txes = block.txes;
-					res.json(r_block);
-				});
-			}
+				} else { //non nemsis block
+					// calculate all fee
+					if(height>1){
+						docs.forEach(tx => {
+							r_block.txFee += tx.fee;
+						});
+					}
+					let params = JSON.stringify({"height": height-1});
+					nis.blockList(params, data => {
+						if(!data || !data.data || data.data.length==0){
+							res.json(r_block);
+							return;
+						}
+						let block = data.data[0];
+						r_block.height = height;
+						r_block.timeStamp = block.block.timeStamp;
+						r_block.difficulty = block.difficulty;
+						r_block.txAmount = block.txes.length;
+						r_block.signer = address.publicKeyToAddress(block.block.signer);
+						r_block.hash = block.hash;
+						res.json(r_block);
+					});
+				}
+			});
 		} catch (e) {
 			console.error(e);
 		}

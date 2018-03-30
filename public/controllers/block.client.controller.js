@@ -148,7 +148,7 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 			    {label: "Txes", content: r_block.txAmount},
 			    {label: "Fees", content: fmtXEM(r_block.txFee)},
 			    {label: "Harvester", content: r_block.signer},
-			    {label: "Hash", content: r_block.hash}
+			    {label: "Block Hash", content: r_block.hash}
 			];
 			$scope.blockItems = list;
 			//load tx list
@@ -157,46 +157,27 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 			}
 			let txArrray = [];
 			let tx = null;
-			for(i in r_block.txes){
-				let item = r_block.txes[i]
-				tx = {};
-				if(parseInt(height)==1){
-					tx.hash = "#";
-					tx.time = fmtDate(item.timeStamp);
-					tx.amount = item.amount?fixNumber(fmtXEM(item.amount)):0;
-					tx.fee = fixNumber(fmtXEM(item.fee));
-					tx.sender = item.signerAccount;
-					tx.recipient = item.recipient;
-					tx.height = item.height;
-					tx.signature = item.signature;
-				} else {
-					tx.hash = item.hash;
-					tx.time = fmtDate(item.tx.timeStamp);
-					tx.amount = item.tx.amount?fixNumber(fmtXEM(item.tx.amount)):0;
-					tx.fee = fixNumber(fmtXEM(item.tx.fee));
-					tx.sender = item.tx.signerAccount;
-					tx.recipient = item.tx.recipient;
-					tx.height = item.tx.height;
-					tx.signature = item.tx.signature;
-				}
+			r_block.txes.forEach(tx => {
+				tx.time = fmtDate(tx.timeStamp);
+				tx.amount = tx.amount?fmtXEM(tx.amount):0;
+				tx.fee = fmtXEM(tx.fee);
 				txArrray.push(tx);
-			}
-			if(r_block.txes.length>0){
+			});
+			if(r_block.txes.length>0)
 				$scope.showBlockTransactionsFlag = true;
-			} else {
+			else
 				$scope.showBlockTransactionsFlag = false;
-			}
 			$scope.txList = txArrray;
 		});
 	}
 	//load transaction detail
-	$scope.showTx = function(height, hash, $event, recipient){
-		$scope.selectedTXHash = hash;
+	$scope.showTx = function(tx, $event){
+		$scope.selectedTXHash = tx.hash;
 		//just skip the action when click from <a>
 		if($event!=null && $event.target!=null && $event.target.className.indexOf("noDetail")!=-1){
 			return;
 		}
 		$("#txDetail").modal("show");
-		return showTransaction(height, hash, $scope, TXService, recipient);
+		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.recipient);
 	}
 }

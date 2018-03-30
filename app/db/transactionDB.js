@@ -74,6 +74,19 @@ let transactionsByAddress = (address, size, page, callback) => {
 	});
 };
 
+/**
+ * query transactions by block height
+ */
+let transactionsByHeight = (height, callback) => {
+	let Transaction = mongoose.model('Transaction');
+	Transaction.find({height: height}).sort({timeStamp: -1}).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else 
+			callback(docs);
+	});
+};
+
 let log = (message) => {
 	console.info(message);
 };
@@ -83,5 +96,6 @@ module.exports = {
 	saveTransactionByBatchNemesis,
 	findOneTransactionSortHeight,
 	findOneTransaction,
-	transactionsByAddress
+	transactionsByAddress,
+	transactionsByHeight
 }
