@@ -109,10 +109,10 @@ Date.prototype.format = function(fmt) {
 	return fmt; 
 }
 
-function showTransaction(height, hash, $scope, TXService, recipient) {
+function showTransaction(height, hash, $scope, TXService, signature) {
 	$scope.items = {};
 	$scope.txHash = hash;
-	TXService.tx({"height": height, "hash": hash, "recipient": recipient}, function(data){
+	TXService.tx({"height": height, "hash": hash, "signature": signature}, function(data){
 		if(!data || !data.tx){
 			$scope.items = [{label: "Not Found", content: ""}];
 			return;
@@ -159,10 +159,12 @@ function showTransaction(height, hash, $scope, TXService, recipient) {
 				items.push({label: "Amount", content: fmtXEM(tx.amount)});
 				items.push({label: "Fee", content: fmtXEM(tx.fee)});
 			}
-			if(tx.message && tx.message.type==2)
-				items.push({label: "Message(encrypted)", content: tx.message.payload});
-			else
-				items.push({label: "Message", content: tx.message.payload});
+			if(tx.message){
+				if(tx.message.type==2)
+					items.push({label: "Message(encrypted)", content: tx.message.payload});
+				else
+					items.push({label: "Message", content: tx.message.payload});
+			}
 		} else if(tx.type==2049){ //Initiating a importance transfer transaction
 			items.push({label: "Timestamp", content: fmtDate(tx.timeStamp)});
 			items.push({label: "Type", content: "importance"});

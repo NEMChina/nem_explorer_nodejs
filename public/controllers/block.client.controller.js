@@ -178,6 +178,6 @@ function SearchBlockController($scope, $location, BlockService, TXService){
 			return;
 		}
 		$("#txDetail").modal("show");
-		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.recipient);
+		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.signature);
 	}
 }

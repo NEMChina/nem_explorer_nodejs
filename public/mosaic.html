@@ -12,9 +12,10 @@
 			<tr>
 				<td>Namespace</td>
 				<td>
-					<a href="#/namespace?ns={{mosaic.namespace}}" target="_blank">
+					<a ng-if="mosaic.namespace!='nem'" href="#/namespace?ns={{mosaic.namespace}}" target="_blank">
 						<span ng-bind="mosaic.namespace"></span>
 					</a>
+					<span ng-if="mosaic.namespace=='nem'" ng-bind="mosaic.namespace"></span>
 				</td>
 			</tr>
 			<tr>

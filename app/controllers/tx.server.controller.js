@@ -69,7 +69,7 @@ module.exports = {
 		try {
 			let height = req.body.height;
 			let hash = req.body.hash;
-			let recipient = req.body.recipient;
+			let signature = req.body.signature;
 			if(!height || parseInt(height)==0){
 				let Transaction = mongoose.model('Transaction');
 				Transaction.findOne({hash: hash}).exec((err, doc) => {
@@ -132,7 +132,7 @@ module.exports = {
 						return;
 					}
 					data.transactions.forEach(tx => {
-						if(tx.recipient == recipient){
+						if(tx.signature == signature){
 							tx.tx = {};
 							tx.tx.timeStamp = tx.timeStamp;
 							tx.tx.signerAccount = address.publicKeyToAddress(tx.signer);
