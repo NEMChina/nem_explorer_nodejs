@@ -97,21 +97,7 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			list.push({label: "Harvested blocks (1 month)", content: "loading ..."});
 			$scope.harvestItems = list;
 			$scope.loadHarvestBlocks();
-			// init tabs
-			$timeout(function() {
-				$('#optionAccountTab a').click(function (e) {
-			    	e.preventDefault();
-			    	$(this).tab('show');
-			  	});
-			  	$('#optionTransactionTab a').click(function (e) {
-			    	e.preventDefault();
-			    	if($(e.target).text()=="Transactions")
-			    		$scope.showTransactionTabIndex = 0;
-			    	else if($(e.target).text()=="Mosaic Transactions")
-			    		$scope.showTransactionTabIndex = 1;
-			    	$(this).tab('show');
-			  	});
-			}, 100);
+			
 		});
 	}
 	//load transaction detail
@@ -135,8 +121,8 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.recipient);
 	};
 	//load transactions
-	$scope.loadTransactions = function(){
-		if($scope.showTransactionTabIndex!=0)
+	$scope.loadTransactions = function(init){
+		if(!init && $scope.showTransactionTabIndex!=0)
 			return;
 		if($scope.endFlag)
 			return;
@@ -172,8 +158,8 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 		});
 	};
 	//load mosaic transactions
-	$scope.loadMosaicTransactions = function(){
-		if($scope.showTransactionTabIndex!=1)
+	$scope.loadMosaicTransactions = function(init){
+		if(!init && $scope.showTransactionTabIndex!=1)
 			return;
 		if($scope.endMosaicFlag)
 			return;
@@ -257,8 +243,24 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			});
 		});
 	};
-	$scope.loadTransactions();
-	$scope.loadMosaicTransactions();
+	// init tabs
+	$timeout(function() {
+		$('#optionAccountTab a').click(function (e) {
+	    	e.preventDefault();
+	    	$(this).tab('show');
+	  	});
+	  	$('#optionTransactionTab a').click(function (e) {
+	    	e.preventDefault();
+	    	$(this).tab('show');
+	    	let selectTabHref = $('#optionTransactionTab .active a').attr('href');
+	    	if(selectTabHref=="#transactions")
+	    		$scope.showTransactionTabIndex = 0;
+	    	else if(selectTabHref=="#mosaicTransactions")
+	    		$scope.showTransactionTabIndex = 1;
+	  	});
+	}, 100);
+	$scope.loadTransactions(true);
+	$scope.loadMosaicTransactions(true);
 	$scope.showNamespace();
 	$scope.showMosaic();
 }

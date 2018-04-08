@@ -19,5 +19,6 @@ module.exports = () => {
 	require('../models/block.server.model');
 	require('../models/mosaicTransaction.server.model');
 	require('../models/mosaic.server.model');
+	require('../models/accountMosaic.server.model');
 	return db;
 }

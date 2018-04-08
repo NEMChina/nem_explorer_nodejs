@@ -5,6 +5,7 @@ angular.module("webapp").controller("MosaicTransferController", ["$scope", "$tim
 const mosaicListLimit = 50;
 const mosaicTransferListLimit = 50;
 const mosaicDetailMosaicTransferListLimit = 50;
+const mosaicDetailMosaicRichListLimit = 100;
 
 function MosaicListController($scope, MosaicService){
 	$scope.currentNamespace = "";
@@ -116,6 +117,10 @@ function MosaicListController($scope, MosaicService){
 function MosaicController($scope, $timeout, $location, MosaicService){
 	$scope.loadingFlag = false;
 	$scope.endFlag = false;
+	$scope.richListLoadingFlag = false;
+	$scope.richListEndFlag = false;
+	$scope.showTabIndex = 0; //0-mosaic transfer, 1-mosaic richlist
+	$scope.righListPage = 1;
 	let ns = $location.search().ns;
 	let m = $location.search().m;
 	if(!ns){
@@ -138,37 +143,26 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 		r.timeStamp = fmtDate(r.timeStamp);
 		r.initialSupply = fmtSplit(r.initialSupply.toFixed(r.divisibility));
 		$scope.mosaic = r;
-		MosaicService.mosaicTransferList(params, function(r_list){
-			r_list.forEach(item => {
-				item.timeStamp = fmtDate(item.timeStamp);
-				item.quantity = fmtMosaic(item.quantity, item.div);
-			});
-			$scope.mosaicTransferList = r_list;
-		});
+		$scope.loadMosaicTransfer(true);
+		$scope.loadMosaicRichList(true);
 	});
-	// init tabs
-	$timeout(function() {
-		$('#tab a').click(function (e) {
-	    	e.preventDefault();
-	    	$(this).tab('show');
-	  	});
-	}, 100);
-	// load more
-	$scope.loadMore = () => {
+	$scope.loadMosaicTransfer = (init) => {
+		if(!init && $scope.showTabIndex!=0)
+			return;
 		if($scope.endFlag)
 			return;
 		if($scope.loadingFlag)
 			return;
-		if(!$scope.mosaicTransferList || $scope.mosaicTransferList.length==0)
+		if($scope.mosaicTransferList && $scope.mosaicTransferList.length==0)
 			return;
-		let length = $scope.mosaicTransferList.length;
-		let lastNo = $scope.mosaicTransferList[length-1].no;
-		if(!lastNo)
-			return;
-		$scope.loadingFlag = true;
 		// attach the search conditions
 		let params = {ns: $scope.currentNamespace, m: $scope.currentMosaic};
-		params.no = lastNo;
+		if($scope.mosaicTransferList && $scope.mosaicTransferList.length>0){
+			let length = $scope.mosaicTransferList.length;
+			let lastNo = $scope.mosaicTransferList[length-1].no;
+			params.no = lastNo;
+		}
+		$scope.loadingFlag = true;
 		MosaicService.mosaicTransferList(params, function(r_list){
 			if(r_list.length==0){
 				$scope.endFlag = true;
@@ -179,12 +173,58 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 				item.timeStamp = fmtDate(item.timeStamp);
 				item.quantity = fmtMosaic(item.quantity, item.div);
 			});
-			$scope.mosaicTransferList = $scope.mosaicTransferList.concat(r_list);
-			$scope.loadingFlag = false;
+			if($scope.mosaicTransferList)
+				$scope.mosaicTransferList = $scope.mosaicTransferList.concat(r_list);
+			else
+				$scope.mosaicTransferList = r_list;
 			if(r_list.length<mosaicDetailMosaicTransferListLimit)
 				$scope.endFlag = true;
+			$scope.loadingFlag = false;
 		});
 	};
+	$scope.loadMosaicRichList = (init) => {
+		if(!init && $scope.showTabIndex!=1)
+			return;
+		if($scope.richListEndFlag)
+			return;
+		if($scope.richListLoadingFlag)
+			return;
+		if($scope.mosaicRichList && $scope.mosaicRichList.length==0)
+			return;
+		let params = {ns: ns, m: m, page: $scope.righListPage};
+		$scope.richListLoadingFlag = true;
+		MosaicService.mosaicRichList(params, function(r_richList){
+			$scope.righListPage++;
+			if(r_richList.length==0){
+				$scope.richListEndFlag = true;
+				$scope.richListLoadingFlag = false;
+				return;
+			}
+			r_richList.forEach(r => {
+				r.pre_quantity = r.quantity;
+				r.quantity = fmtMosaic(r.quantity, r.div);
+			});
+			if($scope.mosaicRichList)
+				$scope.mosaicRichList = $scope.mosaicRichList.concat(r_richList);
+			else
+				$scope.mosaicRichList = r_richList;
+			if(r_richList.length<mosaicDetailMosaicRichListLimit)
+				$scope.richListEndFlag = true;
+			$scope.richListLoadingFlag = false;
+		});
+	};
+	// init tabs
+	$timeout(function() {
+		$('#tab a').click(function (e) {
+	    	e.preventDefault();
+	    	$(this).tab('show');
+	    	let selectTabHref = $('#tab .active a').attr('href');
+	    	if(selectTabHref=="#mosaicTransfer")
+	    		$scope.showTabIndex = 0;
+	    	else if(selectTabHref=="#richList")
+	    		$scope.showTabIndex = 1;
+	  	});
+	}, 100);
 	// show mosaic transfer detail
 	$scope.showMosaicTransferDetail = function(index, $event){
 		$scope.selectedIndex = index;

@@ -122,7 +122,6 @@
 				</table>
 			</div>
 			<div class="text-center" ng-if="loadingFlag"><img src="views/images/loading.gif"/></div>
-			<div class="text-center" ng-if="endFlag">This is the end</div>
 		</div>
 		<div role="tabpanel" class="tab-pane" id="mosaicTransactions">
 			<div infinite-scroll="loadMosaicTransactions()" infinite-scroll-immediate-check="false" infinite-scroll-disabled="loadingMosaicFlag">
@@ -131,31 +130,33 @@
 						<tr>
 							<td>#</td>
 							<td>Timestamp</td>
-							<td>Mosaic / Quantity</td>
+							<td>Mosaic</td>
+							<td>Quantity</td>
 							<td>Sender</td>
 							<td>Recipient</td>
 						</tr>
 					</thead>
 					<tbody class="well well-large">
-						<tr ng-if="mosaicTXList.length==0">
-							<td colspan="5">Nothing to show</td>
+						<tr ng-if="mosaicTXList && mosaicTXList.length==0">
+							<td colspan="6">Nothing to show</td>
 						</tr>
 						<tr ng-repeat="tx in mosaicTXList" style="cursor:pointer;" ng-click="showMosaicTx(tx, $event)" ng-class="{success:selectedMosaicTXNO==tx.no}">
-							<td ng-bind="$index+1"></td>
-							<td ng-bind="tx.timeStamp"></td>
+							<td ng-bind="$index+1" width="42"></td>
+							<td ng-bind="tx.timeStamp" width="130"></td>
 							<td>
-								<span ng-bind="tx.mosaicName"></span><br/>
+								<span ng-bind="tx.mosaicName"></span>
+							</td>
+							<td width="110">
 								<span style="color:green" ng-class="{hidden:tx.flow==1}" ng-bind="tx.quantity"></span>
 								<span style="color:red" ng-class="{hidden:tx.flow==0}" ng-bind="tx.quantity"></span>
 							</td>
-							<td><a href="#s_account?account={{tx.sender}}" target="_blank"><span class="noDetail" ng-bind="tx.sender"></span></a></td>
-							<td><a href="#s_account?account={{tx.recipient}}" target="_blank"><span class="noDetail" ng-bind="tx.recipient"></span></a></td>
+							<td width="350"><a href="#s_account?account={{tx.sender}}" target="_blank"><span class="noDetail" ng-bind="tx.sender"></span></a></td>
+							<td width="350"><a href="#s_account?account={{tx.recipient}}" target="_blank"><span class="noDetail" ng-bind="tx.recipient"></span></a></td>
 						</tr>
 					</tboby>
 				</table>
 			</div>
 			<div class="text-center" ng-if="loadingMosaicFlag"><img src="views/images/loading.gif"/></div>
-			<div class="text-center" ng-if="endMosaicFlag">This is the end</div>
 		</div>
 	</div>
 	<div class="modal fade" id="txDetail" tabindex="-1" role="dialog">

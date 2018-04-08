@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 let TransactionSchema = new mongoose.Schema({
 	hash: {type: String, index: true, unique: true},
 	height: {type: Number, index: true, required: true},
-	sender: String,
-	recipient: String,
+	sender: {type: String, index: true},
+	recipient: {type: String, index: true},
 	amount: {type: Number, required: true},
 	fee: {type: Number, required: true},
 	timeStamp: {type: Number, index:true, required: true},

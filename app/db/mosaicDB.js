@@ -136,6 +136,33 @@ let updateMosaicSupply = (mosaicName, namespace, timeStamp, change, height) => {
 	});
 };
 
+/**
+ * save or update account mosaic
+ */
+let updateAccountMosaic = (accountMosaic, height) => {
+	let AccountMosaic = mongoose.model('AccountMosaic');
+	let params = {address: accountMosaic.address, mosaicID: accountMosaic.mosaicID};
+	AccountMosaic.update(params, accountMosaic, {upsert : true}, (err, doc) => {
+		if(err) 
+			log('<error> Block [' + height + '] update Account ['+accountMosaic.address+'] '+ 
+				'Mosaic ['+accountMosaic.mosaicID+'] : ' + err);
+	});
+};
+
+/**
+ * query mosaic rich list
+ */
+let getMosaicRichList = (mosaicID, limit, skip, callback) => { 
+	let AccountMosaic = mongoose.model('AccountMosaic');
+	let params = {mosaicID: mosaicID};
+	AccountMosaic.find(params).sort({quantity:-1}).limit(limit).skip(skip).exec((err, docs) => {
+		if(err || !docs)
+			callback([]);
+		else
+			callback(docs);
+	});
+};
+
 let log = (message) => {
 	console.info(message);
 };
@@ -150,5 +177,7 @@ module.exports = {
 	mosaicList,
 	mosaicTransferList,
 	findOneMosaicByMosaicNameAndNamespace,
-	updateMosaicSupply
+	updateMosaicSupply,
+	updateAccountMosaic,
+	getMosaicRichList
 }

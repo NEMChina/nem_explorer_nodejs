@@ -318,6 +318,20 @@ let updateAddress = (address, height) => {
 				});
 			});
 		});
+		// query account mosaic info from NIS
+		nis.mosaicListByAddress(address, data => {
+			if(!data || !data.data || data.data.length==0)
+				return;
+			data.data.forEach(m => {
+				if(!m.quantity || !m.mosaicId)
+					return;
+				let accountMosaic = {};
+				accountMosaic.address = address;
+				accountMosaic.mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
+				accountMosaic.quantity = m.quantity;
+				mosaicDB.updateAccountMosaic(accountMosaic, height);
+			});
+		});
 	});
 };
 

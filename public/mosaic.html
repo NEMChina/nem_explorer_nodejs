@@ -87,16 +87,19 @@
 		</table>
 		<ul class="nav nav-tabs" role="tablist" id="tab" style="margin-top: 40px;">
 			<li role="presentation" class="active">
-				<a role="tab" data-toggle="tab">
-					<span style="font-weight: bold;">
-						Mosaic Transfer
-					</span>
+				<a href="#mosaicTransfer" role="tab" data-toggle="tab">
+					<span style="font-weight: bold;">Mosaic Transfer</span>
+				</a>
+			</li>
+			<li role="presentation">
+				<a href="#richList" role="tab" data-toggle="tab">
+					<span style="font-weight: bold;">Rich List</span>
 				</a>
 			</li>
 		</ul>
 		<div class="tab-content">
-			<div role="tabpanel" class="tab-pane active" id="mosaics">
-				<div infinite-scroll="loadMore()" infinite-scroll-immediate-check="false" infinite-scroll-disabled="loadingFlag">
+			<div role="tabpanel" class="tab-pane active" id="mosaicTransfer">
+				<div infinite-scroll="loadMosaicTransfer()" infinite-scroll-immediate-check="false" infinite-scroll-disabled="loadingFlag">
 					<table class="table table-striped table-hover">
 						<thead>
 							<tr>
@@ -124,7 +127,31 @@
 							</tr>
 						</tboby>
 					</table>
-				<div>
+				</div>
+				<div class="text-center" ng-if="loadingFlag"><img src="views/images/loading.gif"/></div>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="richList">
+				<div infinite-scroll="loadMosaicRichList()" infinite-scroll-immediate-check="false" infinite-scroll-disabled="richListLoadingFlag">
+					<table class="table table-striped table-hover">
+						<thead>
+							<tr>
+								<td>#</td>
+								<td>Address</td>
+								<td>Quantity</td>
+							</tr>
+						</thead>
+						<tbody class="well well-large">
+							<tr ng-repeat="mr in mosaicRichList">
+								<td ng-bind="$index+1" width="50"></td>
+								<td>
+									<a href="#s_account?account={{mr.address}}" target="_blank"><span class="noDetail" ng-bind="mr.address"></span></a>
+								</td>
+								<td ng-bind="mr.quantity" width="240"></td>
+							</tr>
+						</tboby>
+					</table>
+				</div>
+				<div class="text-center" ng-if="richListLoadingFlag"><img src="views/images/loading.gif"/></div>
 			</div>
 		</div>
 		<div class="modal fade" id="mosaicTransferDetail" tabindex="-1" role="dialog">
@@ -164,6 +191,5 @@
 			</div>
 		</div>
 	</div>
-	<div class="text-center" ng-if="loadingFlag"><img src="views/images/loading.gif"/></div>
-	<div class="text-center" ng-if="endFlag">This is the end</div>
+	
 </div>
