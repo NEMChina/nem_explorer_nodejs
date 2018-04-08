@@ -113,6 +113,7 @@ function showTransaction(height, hash, $scope, TXService, signature) {
 	$scope.items = {};
 	$scope.txHash = hash;
 	TXService.tx({"height": height, "hash": hash, "signature": signature}, function(data){
+		console.info(data);
 		if(!data || !data.tx){
 			$scope.items = [{label: "Not Found", content: ""}];
 			return;
@@ -136,14 +137,14 @@ function showTransaction(height, hash, $scope, TXService, signature) {
 				let amount = 0;
 				tx.mosaics.forEach(m => {
 					if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
-						amount = fmtMosaic(fmtXEM(tx.amount) * m.quantity, m.divisibility);
+						amount = fmtMosaic(tx.amount/1000000 * m.quantity, m.divisibility);
 				});
 				items.push({label: "Amount", content: amount});
 				items.push({label: "Fee", content: fmtXEM(tx.fee)});
 				// output mosaic info
 				let multiplier = 0;
 				if(tx.amount)
-					multiplier = fmtXEM(tx.amount);
+					multiplier = tx.amount/1000000;
 				tx.mosaics.forEach((m, i) => {
 					let mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
 					let quantity = fmtMosaic(m.quantity * multiplier, m.divisibility);
@@ -210,14 +211,14 @@ function showTransaction(height, hash, $scope, TXService, signature) {
 				let amount = 0;
 				tx.otherTrans.mosaics.forEach(m => {
 					if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
-						amount = fmtMosaic(fmtXEM(tx.otherTrans.amount) * m.quantity, m.divisibility);
+						amount = fmtMosaic(tx.otherTrans.amount/1000000 * m.quantity, m.divisibility);
 				});
 				items.push({label: "Amount", content: amount});
 				items.push({label: "Fee", content: fmtXEM(tx.otherTrans.fee)});
 				// output mosaic info
 				let multiplier = 0;
 				if(tx.otherTrans.amount && !isNaN(tx.otherTrans.amount))
-					multiplier = fmtXEM(tx.otherTrans.amount);
+					multiplier = tx.otherTrans.amount/1000000;
 				tx.otherTrans.mosaics.forEach((m, i) => {
 					let mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
 					let quantity = fmtMosaic(m.quantity * multiplier, m.divisibility);

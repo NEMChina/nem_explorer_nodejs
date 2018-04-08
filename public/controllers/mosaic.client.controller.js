@@ -145,6 +145,18 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 		$scope.mosaic = r;
 		$scope.loadMosaicTransfer(true);
 		$scope.loadMosaicRichList(true);
+		// init tabs
+		$timeout(function() {
+			$('#tab a').click(function (e) {
+		    	e.preventDefault();
+		    	$(this).tab('show');
+		    	let selectTabHref = $('#tab .active a').attr('href');
+		    	if(selectTabHref=="#mosaicTransfer")
+		    		$scope.showTabIndex = 0;
+		    	else if(selectTabHref=="#richList")
+		    		$scope.showTabIndex = 1;
+		  	});
+		}, 100);
 	});
 	$scope.loadMosaicTransfer = (init) => {
 		if(!init && $scope.showTabIndex!=0)
@@ -213,18 +225,6 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 			$scope.richListLoadingFlag = false;
 		});
 	};
-	// init tabs
-	$timeout(function() {
-		$('#tab a').click(function (e) {
-	    	e.preventDefault();
-	    	$(this).tab('show');
-	    	let selectTabHref = $('#tab .active a').attr('href');
-	    	if(selectTabHref=="#mosaicTransfer")
-	    		$scope.showTabIndex = 0;
-	    	else if(selectTabHref=="#richList")
-	    		$scope.showTabIndex = 1;
-	  	});
-	}, 100);
 	// show mosaic transfer detail
 	$scope.showMosaicTransferDetail = function(index, $event){
 		$scope.selectedIndex = index;
