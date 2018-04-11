@@ -113,7 +113,6 @@ function showTransaction(height, hash, $scope, TXService, signature) {
 	$scope.items = {};
 	$scope.txHash = hash;
 	TXService.tx({"height": height, "hash": hash, "signature": signature}, function(data){
-		console.info(data);
 		if(!data || !data.tx){
 			$scope.items = [{label: "Not Found", content: ""}];
 			return;

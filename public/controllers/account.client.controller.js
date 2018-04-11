@@ -108,7 +108,7 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			return;
 		}
 		$("#txDetail").modal("show");
-		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.recipient);
+		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.signature);
 	};
 	//load transaction detail
 	$scope.showMosaicTx = function(tx, $event){
@@ -118,7 +118,7 @@ function SearchAccountController($scope, $timeout, $location, AccountService, Na
 			return;
 		}
 		$("#txDetail").modal("show");
-		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.recipient);
+		return showTransaction(tx.height, tx.hash, $scope, TXService, tx.signature);
 	};
 	//load transactions
 	$scope.loadTransactions = function(init){
