@@ -322,6 +322,7 @@ let updateAddress = (address, height) => {
 		nis.mosaicListByAddress(address, data => {
 			if(!data || !data.data || data.data.length==0)
 				return;
+			let mosaicIDs = [];
 			data.data.forEach(m => {
 				if(!m.quantity || !m.mosaicId)
 					return;
@@ -329,8 +330,10 @@ let updateAddress = (address, height) => {
 				accountMosaic.address = address;
 				accountMosaic.mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
 				accountMosaic.quantity = m.quantity;
+				mosaicIDs.push(accountMosaic.mosaicID);
 				mosaicDB.updateAccountMosaic(accountMosaic, height);
 			});
+			mosaicDB.clearAccountMosaic(address, mosaicIDs, height);
 		});
 	});
 };

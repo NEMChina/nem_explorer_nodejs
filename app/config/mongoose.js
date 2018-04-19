@@ -20,5 +20,6 @@ module.exports = () => {
 	require('../models/mosaicTransaction.server.model');
 	require('../models/mosaic.server.model');
 	require('../models/accountMosaic.server.model');
+	require('../models/errorMessage.server.model');
 	return db;
 }

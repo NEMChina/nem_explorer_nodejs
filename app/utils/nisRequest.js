@@ -1,5 +1,6 @@
 import http from 'http';
 import config from '../config/config';
+import errorMessageDB from '../db/errorMessageDB';
 
 const transferMosaicQueryCount = 25;
 
@@ -290,11 +291,18 @@ let get = function(path, callback) {
     			body += data;
     	});
     	res.on('end', function (data) {
-    		callback(JSON.parse(body));
+    		let result = {};
+    		try{
+    			result = JSON.parse(body);
+    		} catch (e){
+    			
+    		}
+    		callback(result);
     	});
   	});
   	request.on('error', function(e) { 
-	 	console.log("error: " + path);
+  		errorMessageDB.saveError(path + ", " + e);
+	 	console.log("error: " + path + ", " + e);
 	 	callback({});
 	});
 	// post the data
@@ -318,11 +326,18 @@ let hugeAliceGet = function(path, callback) {
     			body += data;
     	});
     	res.on('end', function (data) {
-    		callback(JSON.parse(body));
+    		let result = {};
+    		try{
+    			result = JSON.parse(body);
+    		} catch (e){
+    			
+    		}
+    		callback(result);
     	});
   	});
   	request.on('error', function(e) { 
-	 	console.log("error: " + path);
+  		errorMessageDB.saveError(path + ", " + e);
+	 	console.log("error: " + path + ", " + e);
 	 	callback({});
 	});
 	// post the data
@@ -373,7 +388,7 @@ let post = function(path, reqData, callback) {
 	    method: 'POST',
 	    headers: {   
      		'Content-Type':'application/json',
-     		'Content-Length': reqData.length
+     		'Content-Length': Buffer.byteLength(reqData)
    		}
 	};
 	let request = http.request(options, (res) => {
@@ -394,7 +409,8 @@ let post = function(path, reqData, callback) {
     	});
   	});
   	request.on('error', function(e) {
-	 	console.log("error: " + path);
+  		errorMessageDB.saveError(path + ", " + e);
+	 	console.log("error: " + path + ", " + e);
 	 	callback({});
 	});
 	// post the data
@@ -411,7 +427,7 @@ let hugeAlicePost = function(path, reqData, callback) {
 	    method: 'POST',
 	    headers: {   
      		'Content-Type':'application/json',
-     		'Content-Length': reqData.length
+     		'Content-Length': Buffer.byteLength(reqData)
    		}
 	};
 	let request = http.request(options, (res) => {
@@ -432,7 +448,8 @@ let hugeAlicePost = function(path, reqData, callback) {
     	});
   	});
   	request.on('error', function(e) {
-	 	console.log("error: " + path);
+  		errorMessageDB.saveError(path + ", " + e);
+	 	console.log("error: " + path + ", " + e);
 	 	callback({});
 	});
 	// post the data

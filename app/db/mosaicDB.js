@@ -150,6 +150,22 @@ let updateAccountMosaic = (accountMosaic, height) => {
 };
 
 /**
+ * clear account mosaic
+ */
+let clearAccountMosaic = (address, mosaicIDs, height) => {
+	let AccountMosaic = mongoose.model('AccountMosaic');
+	let params = {};
+	if(mosaicIDs.length>0)
+		params = {address: address, mosaicID: {"$nin": mosaicIDs}};
+	else 
+		params = {address: address};
+	AccountMosaic.remove(params, err => {
+		if(err) 
+			log('<error> Block [' + height + '] remove mosaics : ' + err);
+	});
+};
+
+/**
  * query mosaic rich list
  */
 let getMosaicRichList = (mosaicID, limit, skip, callback) => { 
@@ -179,5 +195,6 @@ module.exports = {
 	findOneMosaicByMosaicNameAndNamespace,
 	updateMosaicSupply,
 	updateAccountMosaic,
+	clearAccountMosaic,
 	getMosaicRichList
 }
