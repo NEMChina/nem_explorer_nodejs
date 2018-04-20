@@ -139,29 +139,24 @@ let updateMosaicSupply = (mosaicName, namespace, timeStamp, change, height) => {
 /**
  * save or update account mosaic
  */
-let updateAccountMosaic = (accountMosaic, height) => {
+let saveOrUpdateAccountMosaic = (accountMosaic, height) => {
 	let AccountMosaic = mongoose.model('AccountMosaic');
-	let params = {address: accountMosaic.address, mosaicID: accountMosaic.mosaicID};
-	AccountMosaic.update(params, accountMosaic, {upsert : true}, (err, doc) => {
-		if(err) 
-			log('<error> Block [' + height + '] update Account ['+accountMosaic.address+'] '+ 
-				'Mosaic ['+accountMosaic.mosaicID+'] : ' + err);
+	AccountMosaic.update({address: accountMosaic.address, mosaicID: accountMosaic.mosaicID}, accountMosaic, {upsert : true}, err => {
+		if(err)
+			log('<error> Block [' + height + '] upsert Account [' + accountMosaic.address + '] Mosaic [' + accountMosaic.mosaicID + '] : ' + err);
 	});
 };
 
 /**
- * clear account mosaic
+ * reset account mosaic
  */
-let clearAccountMosaic = (address, mosaicIDs, height) => {
+let resetAccountMosaic = (address, height, callback) => {
 	let AccountMosaic = mongoose.model('AccountMosaic');
-	let params = {};
-	if(mosaicIDs.length>0)
-		params = {address: address, mosaicID: {"$nin": mosaicIDs}};
-	else 
-		params = {address: address};
-	AccountMosaic.remove(params, err => {
+	let params = {address: address};
+	AccountMosaic.updateMany(params, {quantity: 0}, err => {
 		if(err) 
-			log('<error> Block [' + height + '] remove mosaics : ' + err);
+			log('<error> Block [' + height + '] update mosaics to 0 : ' + err);
+		callback();
 	});
 };
 
@@ -194,7 +189,7 @@ module.exports = {
 	mosaicTransferList,
 	findOneMosaicByMosaicNameAndNamespace,
 	updateMosaicSupply,
-	updateAccountMosaic,
-	clearAccountMosaic,
+	saveOrUpdateAccountMosaic,
+	resetAccountMosaic,
 	getMosaicRichList
 }

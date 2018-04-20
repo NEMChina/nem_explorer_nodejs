@@ -52,6 +52,20 @@ let findOneAccountRemark = (account, callback) => {
 	});
 };
 
+/**
+ * save or update account into DB
+ */
+let saveOrUpdateAccount = (account, callback) => {
+	let Account = mongoose.model('Account');
+	Account.update({address: account.address}, account, {upsert : true}, err => {
+		if(err)
+			log('<error> Block [' + account.height + '] save ['+account.address+']: ' + err);
+		else
+			log('<success> Block [' + account.height + '] save ['+account.address+']');
+		callback();
+	});
+};
+
 let log = (message) => {
 	console.info(message);
 };
@@ -60,5 +74,6 @@ module.exports = {
 	findOneAccount,
 	saveAccount,
 	updateAccount,
-	findOneAccountRemark
+	findOneAccountRemark,
+	saveOrUpdateAccount
 }

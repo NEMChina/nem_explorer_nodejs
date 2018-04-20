@@ -3,13 +3,16 @@ import mongoose from 'mongoose';
 /**
  * save transaction into DB
  */
-let saveTransaction = (saveTx, index) => {
+let saveTransaction = (saveTx, index, callback) => {
 	let Transaction = mongoose.model('Transaction');
 	new Transaction(saveTx).save(err => {
-		if(err)
+		if(err){
 			log('<error> Block ['+saveTx.height+'] save TX [' + index + '] : ' + err);
-		else
+			callback(false);
+		} else{
 			log('<success> Block ['+saveTx.height+'] save TX [' + index + ']');
+			callback(true);
+		}
 	});
 };
 
