@@ -17,7 +17,9 @@ import transactionWS from '../websocket/transactionWS';
 import pollController from '../controllers/poll.server.controller';
 
 let lastLoadedHeight = 0;
+let initFinishFlag = false;
 let foundAddressSet = new Set();
+let foundBlockSet = new Set();
 
 /**
  * init the blocks, transactions, account, namespace, mosaics and supernodes payout
@@ -52,6 +54,7 @@ let init = (server) => {
 				}
 				// schedule update transactions
 				loadBlocks(heightDB, data => {
+					initFinishFlag = true;
 					lastLoadedHeight = data;
 					// schdule scan the new block after init finished (every 30 seconds)
 					let scheduleRule = new schedule.RecurrenceRule();
@@ -133,6 +136,10 @@ let loadBlocks = (height, callback) => {
 		data.data.forEach((item, blockIndex) => {
 			let block = item.block;
 			let txes = item.txes;
+			if(initFinishFlag==true && foundBlockSet.has(block.height))
+				return;
+			if(initFinishFlag==true)
+				foundBlockSet.add(block.height);
 			// save block
 			saveBlock(block);
 			//update the account info which is in DB

@@ -5,10 +5,7 @@ import mongoose from 'mongoose';
  */
 let saveBlock = (saveBlock) => {
 	let Block = mongoose.model('Block');
-	new Block(saveBlock).save(err => {
-		if(err)
-			log('<error> Block [' + saveBlock.height + '] save block : ' + err);
-	});
+	new Block(saveBlock).save(err => { });
 };
 
 /**
