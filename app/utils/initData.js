@@ -303,28 +303,33 @@ let updateAddress = (address, height) => {
 					timeStamp: updateAccount.timeStamp,
 					height: height
 				}
-				accountDB.saveOrUpdateAccount(update, () => {
-					// query account mosaic info from NIS
-					nis.mosaicListByAddress(address, data => {
-						if(!data || !data.data)
-							return;
-						mosaicDB.resetAccountMosaic(address, height, () => {
-							let mosaicIDs = [];
-							data.data.forEach(m => {
-								if(!m.quantity || !m.mosaicId)
-									return;
-								let accountMosaic = {};
-								accountMosaic.address = address;
-								accountMosaic.mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
-								accountMosaic.quantity = m.quantity;
-								mosaicDB.saveOrUpdateAccountMosaic(accountMosaic, height);
+
+				//query the account remark and save the entity
+				accountDB.findOneAccountRemark(updateAccount, remark => {
+					if(remark)
+						update.remark = remark.remark;
+					accountDB.saveOrUpdateAccount(update, () => {
+						// query account mosaic info from NIS
+						nis.mosaicListByAddress(address, data => {
+							if(!data || !data.data)
+								return;
+							mosaicDB.resetAccountMosaic(address, height, () => {
+								let mosaicIDs = [];
+								data.data.forEach(m => {
+									if(!m.quantity || !m.mosaicId)
+										return;
+									let accountMosaic = {};
+									accountMosaic.address = address;
+									accountMosaic.mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
+									accountMosaic.quantity = m.quantity;
+									mosaicDB.saveOrUpdateAccountMosaic(accountMosaic, height);
+								});
 							});
 						});
 					});
 				});
 			});
 		});
-		
 	});
 };
 
