@@ -135,11 +135,11 @@ function SearchTXController($scope, $location, TXService){
 }
 
 function UnconfirmedTXController($scope, $timeout, $interval, $location, TXService){
+	$scope.txList = [];
 	$scope.fadeFlag = false;
 	$scope.loadUnconfirmedTXList = function(){
 		TXService.unconfirmedTXList(function(r_txList){
 			$scope.txList = r_txList;
-			$scope.checkShowNoUnconfirmed();
 			for(let i in $scope.txList)
 				$scope.txList[i] = $scope.handleTX($scope.txList[i]);
 			$scope.updateAge();
@@ -169,12 +169,6 @@ function UnconfirmedTXController($scope, $timeout, $interval, $location, TXServi
 		$("#txDetail").modal("show");
 		return showUnconfirmedTransaction($scope.txList[index], $scope);
 	};
-	$scope.checkShowNoUnconfirmed = function(){
-		if(!$scope.txList || $scope.txList.length==0)
-			$scope.showNoUnconfirmedFlag = true;
-		else
-			$scope.showNoUnconfirmedFlag = false;
-	};
 	$scope.loadUnconfirmedTXList();
 	// websocket - unconfirmed transactions
 	let sock = new SockJS('/ws/unconfirmed');
@@ -187,7 +181,6 @@ function UnconfirmedTXController($scope, $timeout, $interval, $location, TXServi
 		if(data.action == "add"){ //add new unconfirmed transaction
 			let tx = $scope.handleTX(data.content);
 			$scope.txList.unshift(tx);
-			$scope.checkShowNoUnconfirmed();
 		} else if(data.action == "remove"){
 			let signature = data.content.signature;
 			let newTxList = [];
@@ -197,7 +190,6 @@ function UnconfirmedTXController($scope, $timeout, $interval, $location, TXServi
 					newTxList.push(item);
 			}
 			$scope.txList = newTxList;
-			$scope.checkShowNoUnconfirmed();
 		} else if(data.action == "update"){
 			let tx = data.content;
 			for(let i in $scope.txList){
@@ -219,7 +211,6 @@ function UnconfirmedTXController($scope, $timeout, $interval, $location, TXServi
 					newTxList.push(item);
 			}
 			$scope.txList = newTxList;
-			$scope.checkShowNoUnconfirmed();
 		}
 		$scope.$apply();
     };

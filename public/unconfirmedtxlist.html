@@ -28,7 +28,7 @@
 			</tr>
 		</tbody>
 	</table>
-	<div ng-class="{hidden:showNoUnconfirmedFlag==false}">There is no unconfirmed transaction.</div>
+	<div ng-class="{hidden:txList.length!=0}">There is no unconfirmed transaction.</div>
 	<div class="modal fade" id="txDetail" tabindex="-1" role="dialog">
 		<div class="modal-dialog" style="width:800px;">
 	    	<div class="modal-content">
