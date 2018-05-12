@@ -233,8 +233,6 @@ module.exports = {
 					tx.sender = address.publicKeyToAddress(tx.signer);
 					if(tx.type==4100 && tx.otherTrans)
 						tx.otherTrans.sender =  tx.otherTrans.signer?address.publicKeyToAddress(tx.otherTrans.signer):'';
-					if(tx.message && tx.message.type && tx.message.type==1)
-						tx.message.payload = message.hexToUtf8(tx.message.payload);
 					r_txArray.push(tx);
 				});
 				res.json(r_txArray);
