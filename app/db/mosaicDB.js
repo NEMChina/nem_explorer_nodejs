@@ -130,7 +130,7 @@ let findOneMosaicByMosaicNameAndNamespace = (mosaicName, namespace, callback) =>
  */
 let updateMosaicSupply = (mosaicName, namespace, timeStamp, change, height) => {
 	let Mosaic = mongoose.model('Mosaic');
-	Mosaic.update({mosaicName: mosaicName, namespace: namespace, timeStamp: {$gt: timeStamp}}, {$inc: {initialSupply: change}}, (err, doc) => {
+	Mosaic.update({mosaicName: mosaicName, namespace: namespace, timeStamp: {$lt: timeStamp}}, {$inc: {initialSupply: change}}, (err, doc) => {
 		if(err) 
 			log('<error> Block [' + height + '] update Mosaic ['+mosaicName+'] : ' + err);
 	});

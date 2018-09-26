@@ -325,6 +325,7 @@ function showTransaction(height, hash, $scope, TXService, signature) {
 			else if(tx.supplyType==2)
 				change = " - " + fmtSplit(tx.delta);
 			items.push({label: "Change", content: change});
+			items.push({label: "Block", content: data.height});
 		}
 		$scope.items = items;
 	});
