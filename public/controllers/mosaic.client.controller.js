@@ -142,6 +142,7 @@ function MosaicController($scope, $timeout, $location, MosaicService){
 		}
 		r.timeStamp = fmtDate(r.timeStamp);
 		r.initialSupply = fmtSplit(r.initialSupply.toFixed(r.divisibility));
+		r.levyFee = fmtMosaic(r.levyFee, r.levyDiv);
 		$scope.mosaic = r;
 		$scope.loadMosaicTransfer(true);
 		$scope.loadMosaicRichList(true);

@@ -99,7 +99,38 @@ module.exports = {
 					res.json({});
 					return;
 				}
-				res.json(doc);
+				let r_mosaic = {};
+				r_mosaic.mosaicName = doc.mosaicName;
+				r_mosaic.namespace = doc.namespace;
+				r_mosaic.creator = doc.creator;
+				r_mosaic.description = doc.description;
+				r_mosaic.divisibility = doc.divisibility;
+				r_mosaic.height = doc.height;
+				r_mosaic.initialSupply = doc.initialSupply;
+				r_mosaic.levyFee = doc.levyFee;
+				r_mosaic.levyMosaic = doc.levyMosaic;
+				r_mosaic.levyNamespace = doc.levyNamespace;
+				r_mosaic.levyRecipient = doc.levyRecipient;
+				r_mosaic.levyType = doc.levyType;
+				r_mosaic.mosaicID = doc.mosaicID;
+				r_mosaic.no = doc.no;
+				r_mosaic.supplyMutable = doc.supplyMutable;
+				r_mosaic.timeStamp = doc.timeStamp;
+				r_mosaic.transferable = doc.transferable;
+				if(doc.levyMosaic && doc.levyNamespace){ //levy exist
+					let m = {};
+					m.mosaic = doc.levyMosaic;
+					m.namespace = doc.levyNamespace;
+					module.exports.queryMosaicTXDivisibility([m], divMap => {
+						let id = doc.levyNamespace + ":" + doc.levyMosaic;
+						if(divMap && divMap.get(id)){
+							r_mosaic.levyDiv = divMap.get(id);
+						}
+						res.json(r_mosaic);
+					});
+				} else{ //levy not exist
+					res.json(r_mosaic);
+				}
 			});
 		} catch (e) {
 			console.error(e);
@@ -273,6 +304,38 @@ module.exports = {
 					mosaicTXs[i].div = divMap.get(id);
 				});
 				callback(mosaicTXs);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	},
+
+	/**
+	 * query mosaic transactions divisibility
+	 */
+	queryMosaicTXDivisibility: (mosaics, callback) => {
+		try {
+			let divMap = new Map();
+			let findMosaicSet = new Set();
+			let findMosaicParams = [];
+			mosaics.forEach(mt => {
+				let id = mt.namespace + ":" + mt.mosaic;
+				if(!findMosaicSet.has(id)){
+					findMosaicSet.add(id);
+					findMosaicParams.push({mosaicName: mt.mosaic, namespace: mt.namespace});
+				}
+			});
+			if(findMosaicParams.length==0){
+				callback(divMap);
+				return;
+			}
+			// query mosaic divisibility from DB
+			mosaicDB.findMosaics(findMosaicParams, mosaics => {
+				mosaics.forEach(m => {
+					if(m)
+						divMap.set(m.namespace+":"+m.mosaicName, m.divisibility);
+				});
+				callback(divMap);
 			});
 		} catch (e) {
 			console.error(e);
