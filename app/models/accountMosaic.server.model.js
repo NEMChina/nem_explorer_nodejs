@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 let AccountMosaicSchema = new mongoose.Schema({
-	address: {type: String, required: true},
-	mosaicID: {type: String, required: true},
+	address: {type: String, required: true, index: true},
+	mosaicID: {type: String, required: true, index: true},
 	quantity: {type: Number, required: true}
 });
 
