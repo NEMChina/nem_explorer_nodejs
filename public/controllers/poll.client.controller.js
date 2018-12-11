@@ -18,6 +18,8 @@ function PollListController($scope, $timeout, PollService){
 				item.status = 0;
 			else
 				item.status = 1;
+			if(item.title && item.title.length>60)
+				item.title = item.title.substring(0, 59) + "..";
 		}
 		// load dataTable
 		$timeout(function() {
@@ -38,6 +40,9 @@ function PollListController($scope, $timeout, PollService){
 
 function PollController($scope, $timeout, $location, PollService){
 	$scope.hideMore = false;
+	$scope.showLoadingPollFlag = true;
+	$scope.showLoadingPollGraphFlag = true;
+	$scope.showLoadingPollVotersFlag = true;
 	let absUrl = $location.absUrl();
 	if(absUrl==null){
 		return;
@@ -55,10 +60,15 @@ function PollController($scope, $timeout, $location, PollService){
 			$scope.poll.type = item.type;
 			$scope.poll.multiple = "";
 			let whitelistString = ""
-			let whitelist = jsonParse(item.whitelist); // utils.js
-			if(whitelist){
-				for(let i in whitelist)
+			let whitelist = item.whitelist;
+			if(item.whitelist){
+				let whitelistSet = new Set();
+				for(let i in whitelist){
+					if(whitelistSet.has(whitelist[i]))
+						continue;
+					whitelistSet.add(whitelist[i]);
 					whitelistString += whitelist[i] + "<br/>";
+				}
 				if(whitelistString)
 					whitelistString = whitelistString.substring(0, whitelistString.length-5);
 			}
@@ -76,72 +86,43 @@ function PollController($scope, $timeout, $location, PollService){
 				$scope.poll.multiple = "No";
 			else if(item.multiple==1)
 				$scope.poll.multiple = "Yes";
+			$scope.showLoadingPollFlag = false;
 			$scope.loadPollResult(item);
+			if(item.type==0) //show voters whe the poll type is poi
+				$scope.loadPollVoters(item);
 		});
 	}
 	//load poll detail
 	$scope.loadPollResult = function(item){
-		$scope.showLoadingFlag = true;
 		$scope.results = [];
-		$scope.showScoreFlag = false;
 		PollService.pollResult({"id": item._id}, function(r){
-			// load poll graph
-			let optionLabels = JSON.parse(item.strings);
-			if(item.type==0){ // poi
-				let allScore = 0;
-				let optionScoreArr = [];
-				for(let i in r){
-					let optionScore = 0;
-					for(let j in r[i]){
-						r[i][j].time = fmtDate(r[i][j].time);
-						r[i][j].fmtPOI = (r[i][j].poi*100).toFixed(5) + "%";
-						optionScore += r[i][j].poi;
-					}
-					allScore += optionScore;
-					optionScoreArr.push(optionScore);
-				}
-				for(let i in optionLabels){
-					let graph = {};
-					graph.label = optionLabels[i];
-					graph.percentage = 0;
-					graph.votes = 0;
-					if(r[i].length>0){
-						if(allScore!=0)
-							graph.percentage = (optionScoreArr[i]*100/allScore).toFixed(2);
-						graph.votes = r[i].length;
-					}
-					if(item.type==0){
-						$scope.showScoreFlag = true;
-						graph.score = (optionScoreArr[i]*100).toFixed(5);
-					}
-					$scope.results.push(graph);
-				}
-			} else { //white list
-				let amount = 0;
-				for(let i in r){
-					for(let j in r[i]){
-						r[i][j].time = fmtDate(r[i][j].time);
-						amount++;
-					}
-				}
-				
-				for(let i in optionLabels){
-					let graph = {};
-					graph.label = optionLabels[i];
-					graph.percentage = 0;
-					graph.votes = 0;
-					if(r[i].length>0){
-						graph.percentage = (r[i].length*100/amount).toFixed(2);
-						graph.votes = r[i].length;
-					}
-					$scope.results.push(graph);
-				}
+			if(!r || !r.options)
+				return;
+			let options = r.options;
+			for(let i in options){
+				let graph = {};
+				let o = options[i];
+				graph.label = o.text;
+				graph.percentage = Number(o.percentage).toFixed(2);
+				graph.votes = o.votes;
+				if(item.type==0)
+					graph.score = Number(o.weighted*100).toFixed(5) + "%";
+				else if(item.type==1)
+					graph.score = o.votes;
+				$scope.results.push(graph);
 			}
-			// load tab labels
-			$scope.optionLabels = optionLabels;
-			// load tab votes
+			$scope.showLoadingPollGraphFlag = false;
+		});
+	};
+
+	//load poll detail
+	$scope.loadPollVoters = function(item){
+		// option label
+		$scope.optionLabels = item.strings;
+		// voters
+		PollService.pollResultVoters({"address": item.address, "strings": item.strings}, function(r){
 			$scope.optionVotes = r;
-			$scope.showLoadingFlag = false;
+			$scope.showLoadingPollVotersFlag = false;
 			// init tabs
 			$timeout(function() {
 				$('#optionVotesTab a').click(function (e) {

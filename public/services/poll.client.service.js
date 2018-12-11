@@ -16,6 +16,11 @@ function PollService($http){
 			$http.post("/poll/pollResult", params).success(function(data){
 				callback(data);
 			});
+		},
+		pollResultVoters: function(params, callback) {
+			$http.post("/poll/pollResultVoters", params).success(function(data){
+				callback(data);
+			});
 		}
 	}
 }

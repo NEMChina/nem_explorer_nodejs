@@ -6,7 +6,7 @@
 				<th>#</th>
 				<th>Title</th>
 				<th>Type</th>
-				<th>Create Time</th>
+				<th>Expired Time</th>
 				<th>Status</th>
 			</tr>
 		</thead>
@@ -17,7 +17,7 @@
 					<a href="#poll?id={{poll.id}}" target="_blank"><span ng-bind="poll.title"></span></a>
 				</td>
 				<td ng-bind="poll.typeName"></td>
-				<td ng-bind="poll.timeStamp"></td>
+				<td ng-bind="poll.expiredTime"></td>
 				<td>
 					<span ng-class="{hidden:poll.status==0}" style="color: green">VALID</span>
 					<span ng-class="{hidden:poll.status==1}" style="color: red">EXPIRED</span>
