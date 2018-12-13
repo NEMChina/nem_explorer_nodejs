@@ -88,8 +88,8 @@ function PollController($scope, $timeout, $location, PollService){
 				$scope.poll.multiple = "Yes";
 			$scope.showLoadingPollFlag = false;
 			$scope.loadPollResult(item);
-			if(item.type==0) //show voters whe the poll type is poi
-				$scope.loadPollVoters(item);
+			// if(item.type==0) //show voters whe the poll type is poi
+			// 	$scope.loadPollVoters(item);
 		});
 	}
 	//load poll detail

@@ -150,13 +150,15 @@ module.exports = {
 			    })
 			    .subscribe((voters) => {
 			    	let voterArr = [];
+			    	// init arrary
+			    	for(let i in labels)
+						voterArr[i] = [];
+					// push voters into arrary
 			    	for(let i in voters){
 			    		let vote = voters[i];
-			    		let index = indexMap.get(vote.option);
-			    		if(index!=0 && !index)
+			    		if(!indexMap.has(vote.option))
 			    			continue;
-			    		if(!voterArr[index])
-			    			voterArr[index] = [];
+			    		let index = indexMap.get(vote.option);
 			    		let length = voterArr[index].length;
 			    		voterArr[index][length] = {};
 			    		voterArr[index][length].addr = vote.address;
