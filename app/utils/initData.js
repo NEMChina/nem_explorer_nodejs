@@ -136,6 +136,7 @@ let loadBlocks = (height, callback) => {
 		data.data.forEach((item, blockIndex) => {
 			let block = item.block;
 			let txes = item.txes;
+			lastBlockHeight = block.height;
 			if(initFinishFlag==true && foundBlockSet.has(block.height))
 				return;
 			if(initFinishFlag==true)
@@ -148,7 +149,6 @@ let loadBlocks = (height, callback) => {
 			txes.forEach((itemTx, index) => {
 				handleTX(itemTx, index, block.height);
 			});
-			lastBlockHeight = block.height;
 		});
 		//recurse to query the next 10 blocks
 		loadBlocks(lastBlockHeight, callback);

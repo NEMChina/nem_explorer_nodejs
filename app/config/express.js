@@ -22,7 +22,7 @@ module.exports = () => {
 	require('../routes/node.server.route')(app);
 	require('../routes/mosaic.server.route')(app);
 	require('../routes/namespace.server.route')(app);
-	// require('../routes/supernode.server.route')(app);
+	require('../routes/supernode.server.route')(app);
 	require('../routes/market.server.route')(app);
 	require('../routes/sys.server.route')(app);
 	require('../routes/poll.server.route')(app);
@@ -60,7 +60,7 @@ module.exports = () => {
 	// init data
 	initData.init();
 	// schedule fetch data
-	// supernodeSchedule.scheduleFetchSupernode();
+	supernodeSchedule.scheduleFetchSupernode();
 	// schedule fetch node
 	nodeScheduleSchedule.scheduleFetchNode();
 	// schedule fetch price from coinmarketcap
