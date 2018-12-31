@@ -66,13 +66,12 @@ let init = (server) => {
 						});
 					});
 					// websocket update transactions
-					transactionWS.transaction((height, callback)=>{
+					transactionWS.transactionConnect((height, callback)=>{
 						loadBlocks(height, callback);
 					});
-					transactionWS.unconfirmedTransaction();
-					transactionWS.cleanHistoryUnconfirmedWhenInit();
-					blockWS.block();
-					mosaicWS.mosaic();
+					transactionWS.unconfirmedConnect();
+					blockWS.connect();
+					mosaicWS.connect();
 				});
 			});
 		});

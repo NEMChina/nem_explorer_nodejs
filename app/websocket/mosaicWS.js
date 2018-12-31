@@ -1,7 +1,7 @@
 import config from '../config/config';
 import channels from './channels';
 import SockJSClient from 'sockjs-client';
-import Stomp from 'stompjs';
+import Stomp from '@stomp/stompjs';
 import clientWS from './clientWS';
 import address from '../utils/address';
 import jsonUtil from '../utils/jsonUtil';
@@ -10,27 +10,23 @@ import nis from '../utils/nisRequest';
 
 const WS_URL = 'http://' + config.nisHost + ':' + config.wsPort + config.wsPath;
 
-/**
- * common subscribe
- */
-let subscribe = (channel, callback) => {
-	let NIS_SOCKET = new SockJSClient(WS_URL);
-	let stompClient = Stomp.over(NIS_SOCKET);
-	stompClient.connect({}, function(){
-		stompClient.subscribe(channel, function(data){
-			callback(data.body);
-	    });
+let client;
+const reconnectDelay = 30 * 1000;
+
+let connect = () => {
+	client = Stomp.over(() => {
+		return new SockJSClient(WS_URL);
 	});
+	client.connect({}, successCallback, failureCallback);
+	client.reconnect_delay = reconnectDelay;
 };
 
-/**
- * get new mosaic info from websocket
- */
-let mosaic = () => {
-	subscribe(channels.blocks, data => {
-		if(!data)
+let successCallback = frame => {
+	console.info("[success] Mosaic websocket connect!");
+	client.subscribe(channels.blocks, function(data){
+		if(!data || !data.body)
 			return;
-		let block = jsonUtil.parse(data);
+		let block = jsonUtil.parse(data.body);
 		if(!block || !block.height || !block.signature)
 			return;
 		let params = JSON.stringify({"height": block.height-1});
@@ -80,7 +76,11 @@ let mosaic = () => {
 				});
 			});
 		});
-	});
+    });
+};
+
+let failureCallback = error => {
+	console.info("[error] Mosaic websocket disconnect...");
 };
 
 let getMosaicFromTX = (tx) => {
@@ -128,5 +128,5 @@ let getMosaicQueryParamsFromTX = (tx) => {
 };
 
 module.exports = {
-	mosaic
+	connect
 };

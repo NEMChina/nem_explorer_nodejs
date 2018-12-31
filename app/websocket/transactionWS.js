@@ -1,7 +1,7 @@
 import config from '../config/config';
 import channels from './channels';
 import SockJSClient from 'sockjs-client';
-import Stomp from 'stompjs';
+import Stomp from '@stomp/stompjs';
 import nis from '../utils/nisRequest';
 import clientWS from './clientWS';
 import timeUtil from '../utils/timeUtil';
@@ -12,68 +12,76 @@ import messageUtil from '../utils/message';
 
 const WS_URL = 'http://' + config.nisHost + ':' + config.wsPort + config.wsPath;
 
-/**
- * common subscribe
- */
-let subscribe = (channel, callback) => {
-	let NIS_SOCKET = new SockJSClient(WS_URL);
-	let stompClient = Stomp.over(NIS_SOCKET);
-	stompClient.connect({}, function(){
-		stompClient.subscribe(channel, function(data){
-			callback(data.body);
-	    });
-	});
-};
+let transactionClient; // websocket client for transaction
+let unconfirmedClient; // websocket client for unconfirmed transaction
+const reconnectDelay = 30 * 1000;
 
-/**
- * update transaction from websocket
- */
-let transaction = (callback) => {
-	subscribe(channels.blocks, data => {
-		if(!data)
-			return;
-		let block = jsonUtil.parse(data);
-		if(!block || !block.height || !block.signature)
-			return;
-		// save new transaction into DB
-		callback(block.height-1, data => {
-			// remove unconfirmed transaction from DB
-			let params = JSON.stringify({"height": block.height});
-			nis.blockAtPublic(params, data => {
-				if(!data || !data.transactions)
-					return;
-				let transactions = data.transactions;
-				let UnconfirmedTransaction = mongoose.model('UnconfirmedTransaction');
-				for(let i in transactions){
-					if(transactions[i].signature) {
-						UnconfirmedTransaction.remove({signature: transactions[i].signature}, (err, doc) => {
-							if(err || !doc)
-								return;
-							doc = jsonUtil.parse(doc);
-							if(!doc.n || doc.n==0)
-								return;
-							// emit to client
-							emit("remove", {signature: transactions[i].signature});
-						});
+let transactionConnect = (callback) => {
+	transactionClient = Stomp.over(() => {
+		return new SockJSClient(WS_URL);
+	});
+	transactionClient.connect({}, () => {
+		console.info("[success] Transaction websocket connect!");
+		cleanHistoryUnconfirmedWhenConnect();
+		transactionClient.subscribe(channels.blocks, function(data){
+			if(!data || !data.body)
+				return;
+			let block = jsonUtil.parse(data.body);
+			if(!block || !block.height || !block.signature)
+				return;
+			// save new transaction into DB
+			callback(block.height-1, data => {
+				// remove unconfirmed transaction from DB
+				let params = JSON.stringify({"height": block.height});
+				nis.blockAtPublic(params, data => {
+					if(!data || !data.transactions)
+						return;
+					let transactions = data.transactions;
+					let UnconfirmedTransaction = mongoose.model('UnconfirmedTransaction');
+					for(let i in transactions){
+						if(transactions[i].signature) {
+							UnconfirmedTransaction.remove({signature: transactions[i].signature}, (err, doc) => {
+								if(err || !doc)
+									return;
+								doc = jsonUtil.parse(doc);
+								if(!doc.n || doc.n==0)
+									return;
+								// emit to client
+								emit("remove", {signature: transactions[i].signature});
+							});
+						}
 					}
-				}
-				// emit to client
-				if(transactions.length>0)
-					clientWS.emitTransaction(1);
+					// emit to client
+					if(transactions.length>0)
+						clientWS.emitTransaction(1);
+				});
+				removeExpiredUnconfirmedTransactionFromDB();
 			});
-			removeExpiredUnconfirmedTransactionFromDB();
-		});
-	});
+	    });
+	}, 
+	transactionFailureCallback);
+	transactionClient.reconnect_delay = reconnectDelay;
 };
 
-/**
- * update unconfirmed transaction from websocket
- */
-let unconfirmedTransaction = () => {
-	subscribe(channels.unconfirmed, data => {
-		if(!data)
+let transactionFailureCallback = error => {
+	console.info("[error] Transaction websocket disconnect...");
+};
+
+
+let unconfirmedConnect = () => {
+	unconfirmedClient = Stomp.over(() => {
+		return new SockJSClient(WS_URL);
+	});
+	unconfirmedClient.connect({}, unconfirmedSuccessCallback, unconfirmedFailureCallback);
+	unconfirmedClient.reconnect_delay = reconnectDelay;
+};
+
+let unconfirmedSuccessCallback = frame => {
+	console.info("[success] Unconfirmed websocket connect!");
+	unconfirmedClient.subscribe(channels.unconfirmed, function(data){
+		if(!data || !data.body)
 			return;
-		let unconfirmed = jsonUtil.parse(data);
+		let unconfirmed = jsonUtil.parse(data.body);
 		if(!unconfirmed || !unconfirmed.signature || !unconfirmed.type || !unconfirmed.signer)
 			return;
 		let signer = address.publicKeyToAddress(unconfirmed.signer);
@@ -200,7 +208,11 @@ let unconfirmedTransaction = () => {
 			});
 		}
 		removeExpiredUnconfirmedTransactionFromDB();
-	});
+    });
+};
+
+let unconfirmedFailureCallback = error => {
+	console.info("[error] Unconfirmed websocket disconnect...");
 };
 
 /**
@@ -221,7 +233,7 @@ let removeExpiredUnconfirmedTransactionFromDB = () => {
 	});
 };
 
-let cleanHistoryUnconfirmedWhenInit = () => {
+let cleanHistoryUnconfirmedWhenConnect = () => {
 	let UnconfirmedTransaction = mongoose.model('UnconfirmedTransaction');
 	UnconfirmedTransaction.find({}, (err, docs) => {
 		if(err || !docs)
@@ -251,8 +263,6 @@ let emit = (action, item) => {
 }; 
 
 module.exports = {
-	subscribe,
-	transaction,
-	unconfirmedTransaction,
-	cleanHistoryUnconfirmedWhenInit
+	transactionConnect,
+	unconfirmedConnect
 };
