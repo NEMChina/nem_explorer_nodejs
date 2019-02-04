@@ -55,12 +55,12 @@ let init = (server) => {
 				// schedule update transactions
 				loadBlocks(heightDB, data => {
 					initFinishFlag = true;
+					foundAddressSet = new Set();
 					lastLoadedHeight = data;
 					// schdule scan the new block after init finished (every 30 seconds)
 					let scheduleRule = new schedule.RecurrenceRule();
 					scheduleRule.second = [1];
 					schedule.scheduleJob(scheduleRule, () => {
-						foundAddressSet = new Set();
 						loadBlocks(lastLoadedHeight, data => {
 							lastLoadedHeight = data;
 						});
@@ -222,8 +222,6 @@ let handleTX = (itemTx, index, height) => {
 		saveOrUpdateMosaic(saveTx, tx);
 		// save supernode payout
 		saveSupernodePayout(saveTx, tx);
-		// save poll
-		savePoll(saveTx, tx);
 		// update the account info which is in DB
 		let signer = tx.signer?address.publicKeyToAddress(tx.signer):null;
 		let recipient = tx.recipient;
@@ -257,9 +255,13 @@ let handleTX = (itemTx, index, height) => {
  * update the account info in DB
  */
 let updateAddress = (address, height) => {
-	if(!address || foundAddressSet.has(address)) 
+	if(!address)
 		return;
-	foundAddressSet.add(address);
+	if(initFinishFlag==false){
+		if(foundAddressSet.has(address)) 
+			return;
+		foundAddressSet.add(address);
+	}
 	//query account info from NIS
 	nis.accountByAddress(address, data => {
 		if(!data || !data.account) {
@@ -300,7 +302,6 @@ let updateAddress = (address, height) => {
 					timeStamp: updateAccount.timeStamp,
 					height: height
 				}
-
 				//query the account remark and save the entity
 				accountDB.findOneAccountRemark(updateAccount, remark => {
 					if(remark)
@@ -545,16 +546,6 @@ let saveSupernodePayout = (saveTx, tx) => {
 		payout.timeStamp = saveTx.timeStamp;
 		supernodePayoutDB.saveSupernodePayout(payout);
 	}
-};
-
-/**
- * save poll
- */
-let savePoll = (saveTx, tx) => {
-	if(saveTx.type!=257 || saveTx.recipient!=config.pollAccount || !tx.message || !tx.message.type || tx.message.type!=1)
-		return;	
-	let message = messageUtil.hexToUtf8(tx.message.payload);
-	pollController.savePoll(saveTx.sender, saveTx.timeStamp, message);
 };
 
 /**

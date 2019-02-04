@@ -275,9 +275,15 @@ module.exports = {
 	accountHistoricalBatch
 }
 
+const agent = new http.Agent({
+  	keepAlive: true,
+  	maxSockets: 50
+});
+
 //http GET method util
 let get = function(path, callback) {
 	let options = {
+		agent: agent,
     	host: config.nisHost,
     	port: config.nisPort,
 	    path: path,
@@ -348,6 +354,7 @@ let hugeAliceGet = function(path, callback) {
 //http GET method util
 let getByHostAndPortNoError = function(host, port, path, callback) {
 	let options = {
+		agent: agent,
     	host: host,
     	port: port,
 	    path: path,
@@ -382,6 +389,7 @@ let getByHostAndPortNoError = function(host, port, path, callback) {
 //http POST method util
 let post = function(path, reqData, callback) {
 	let options = {
+		agent: agent,
     	host: config.nisHost,
     	port: config.nisPort,
 	    path: path,
