@@ -92,6 +92,7 @@ function BlockController($scope, $timeout, $interval, BlockService, TXService){
 				tx.sender = item.tx.signerAccount;
 				tx.recipient = item.tx.recipient;
 			}
+			tx.amount = fixAmountWhenMosaicTransfer(item.tx);
 			tx.height = item.tx.height;
 			tx.signature = item.tx.signature;
 			txArr.push(tx);

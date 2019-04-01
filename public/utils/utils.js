@@ -344,8 +344,35 @@ function showUnconfirmedTransaction(tx, $scope) {
 		items.push({label: "Type", content: typeName});
 		items.push({label: "Sender", content: tx.sender});
 		items.push({label: "Recipient", content: tx.recipient});
-		if(tx.amount)
-			items.push({label: "Amount", content: tx.amount});
+		if(tx.mosaics && tx.mosaics.length>0){
+			// check if 'nem:xem'
+			let amount = 0;
+			tx.mosaics.forEach(m => {
+				if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
+					amount = fmtMosaic(tx.amount/1000000 * m.quantity, m.divisibility);
+			});
+			items.push({label: "Amount", content: amount});
+			// output mosaic info
+			let multiplier = 0;
+			if(tx.amount)
+				multiplier = tx.amount/1000000;
+			tx.mosaics.forEach((m, i) => {
+				let mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
+				let quantity = fmtMosaic(m.quantity * multiplier, m.divisibility);
+				let quantityRemark = "";
+				if(multiplier!=1)
+					quantityRemark = " (" + fmtMosaic(m.quantity, m.divisibility) + " * " + multiplier + ")";
+				if(i==0)
+					items.push({label: "Mosaic transfer", content: mosaicID + " - " + quantity + quantityRemark});
+				else
+					items.push({label: "", content: mosaicID + " - " + quantity + quantityRemark});
+			});
+		} else {
+			if(tx.amount)
+				items.push({label: "Amount", content: tx.amount});
+			else
+				items.push({label: "Amount", content: 0});
+		}
 		if(tx.fee)
 			items.push({label: "Fee", content: tx.fee});
 		if(tx.message){
@@ -353,14 +380,6 @@ function showUnconfirmedTransaction(tx, $scope) {
 				items.push({label: "Message(encrypted)", content: tx.message.payload});
 			else
 				items.push({label: "Message", content: tx.message.payload});
-		}
-		if(tx.mosaics && tx.mosaics.length>0){
-			for(let i in tx.mosaics){
-				if(i==0)
-					items.push({label: "Mosaic transfer", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtSplit(tx.mosaics[i].quantity)});
-				else
-					items.push({label: "", content: tx.mosaics[i].mosaicId.namespaceId+":"+tx.mosaics[i].mosaicId.name + " - " + fmtSplit(tx.mosaics[i].quantity)});
-			}
 		}
 	} else if(tx.type==2049){ //Initiating a importance transfer transaction
 		items.push({label: "Type", content: "importance"});
@@ -496,4 +515,28 @@ function showUnconfirmedTransaction(tx, $scope) {
 		items.push({label: "Change", content: change});
 	}
 	$scope.items = items;
+}
+
+function fixAmountWhenMosaicTransfer(tx){
+	let amount = 0;
+	if(("" + tx.amount).indexOf(",")!=-1)
+		amount = Number(tx.amount.replace(/,/g, ""));
+	else
+		amount = tx.amount;
+	if(tx.mosaics && tx.mosaics.length>0){
+		// check if 'nem:xem'
+		amount = 0;
+		tx.mosaics.forEach(m => {
+			if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
+				amount = fmtMosaic(tx.amount/1000000 * m.quantity, m.divisibility);
+		});
+	} else if(tx.otherTrans && tx.otherTrans.mosaics && tx.otherTrans.mosaics.length>0){
+		// check if 'nem:xem'
+		amount = 0;
+		tx.mosaics.forEach(m => {
+			if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
+				amount = fmtMosaic(Ntx.amount/1000000 * m.quantity, m.divisibility);
+		});
+	}
+	return fmtXEM(amount);
 }

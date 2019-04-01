@@ -140,8 +140,10 @@ function UnconfirmedTXController($scope, $timeout, $interval, $location, TXServi
 	$scope.loadUnconfirmedTXList = function(){
 		TXService.unconfirmedTXList(function(r_txList){
 			$scope.txList = r_txList;
-			for(let i in $scope.txList)
+			for(let i in $scope.txList){
 				$scope.txList[i] = $scope.handleTX($scope.txList[i]);
+				$scope.txList[i].amount = fixAmountWhenMosaicTransfer($scope.txList[i].amount);
+			}
 			$scope.updateAge();
 			$timeout(function(){
 				$scope.fadeFlag = true;
@@ -223,6 +225,7 @@ function UnconfirmedTXController($scope, $timeout, $interval, $location, TXServi
 		tx.amount = isNaN(tx.amount)?0:fmtXEM(tx.amount);
 		tx.fee = fmtXEM(tx.fee);
 		tx.typeName = "";
+		tx.amount = fixAmountWhenMosaicTransfer(tx.amount);
 		if(tx.type==257)
 			tx.typeName += "transfer | ";
 		if(tx.type==2049)
