@@ -222,6 +222,7 @@ function UnconfirmedTXController($scope, $timeout, $interval, $location, TXServi
 		tx.time = tx.timeStamp;
 		tx.timeStamp = fmtDate(tx.timeStamp);
 		tx.deadline = fmtDate(tx.deadline);
+		tx.amountForMosaic = tx.amount;
 		tx.amount = isNaN(tx.amount)?0:fmtXEM(tx.amount);
 		tx.fee = fmtXEM(tx.fee);
 		tx.typeName = "";

@@ -349,13 +349,13 @@ function showUnconfirmedTransaction(tx, $scope) {
 			let amount = 0;
 			tx.mosaics.forEach(m => {
 				if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
-					amount = fmtMosaic(tx.amount/1000000 * m.quantity, m.divisibility);
+					amount = fmtMosaic(tx.amountForMosaic/1000000 * m.quantity, m.divisibility);
 			});
 			items.push({label: "Amount", content: amount});
 			// output mosaic info
 			let multiplier = 0;
-			if(tx.amount)
-				multiplier = tx.amount/1000000;
+			if(tx.amountForMosaic)
+				multiplier = tx.amountForMosaic/1000000;
 			tx.mosaics.forEach((m, i) => {
 				let mosaicID = m.mosaicId.namespaceId+":"+m.mosaicId.name;
 				let quantity = fmtMosaic(m.quantity * multiplier, m.divisibility);
@@ -533,7 +533,7 @@ function fixAmountWhenMosaicTransfer(tx){
 	} else if(tx.otherTrans && tx.otherTrans.mosaics && tx.otherTrans.mosaics.length>0){
 		// check if 'nem:xem'
 		amount = 0;
-		tx.mosaics.forEach(m => {
+		tx.otherTrans.mosaics.forEach(m => {
 			if(m.mosaicId.namespaceId=="nem" && m.mosaicId.name=="xem")
 				amount = fmtMosaic(Ntx.amount/1000000 * m.quantity, m.divisibility);
 		});
