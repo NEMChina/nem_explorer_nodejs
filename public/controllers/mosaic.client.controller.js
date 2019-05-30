@@ -16,7 +16,7 @@ function MosaicListController($scope, MosaicService){
 	MosaicService.mosaicList({}, function(r_list){
 		r_list.forEach(r => {
 			r.timeStamp = fmtDate(r.timeStamp);
-			r.initialSupply = fmtMosaic(r.initialSupply, r.divisibility);
+			r.initialSupply = fmtMosaicWhenMosaicList(r.initialSupply, r.divisibility);
 		});
 		$scope.mosaicList = r_list;
 	});
@@ -42,7 +42,7 @@ function MosaicListController($scope, MosaicService){
 			}
 			r_list.forEach(r => {
 				r.timeStamp = fmtDate(r.timeStamp);
-				r.initialSupply = fmtMosaic(r.initialSupply, r.divisibility);
+				r.initialSupply = fmtMosaicWhenMosaicList(r.initialSupply, r.divisibility);
 			});
 			$scope.mosaicList = $scope.mosaicList.concat(r_list);
 			$scope.loadingFlag = false;
@@ -61,7 +61,7 @@ function MosaicListController($scope, MosaicService){
 			MosaicService.mosaicList({}, function(r_list){
 				r_list.forEach(r => {
 					r.timeStamp = fmtDate(r.timeStamp);
-					r.initialSupply = fmtMosaic(r.initialSupply, r.divisibility);
+					r.initialSupply = fmtMosaicWhenMosaicList(r.initialSupply, r.divisibility);
 				});
 				$scope.currentNamespace = "";
 				$scope.searchingFlag = false;
@@ -100,7 +100,7 @@ function MosaicListController($scope, MosaicService){
 				}
 				r_mosaicList.forEach(r => {
 					r.timeStamp = fmtDate(r.timeStamp);
-					r.initialSupply = fmtMosaic(r.initialSupply, r.divisibility);
+					r.initialSupply = fmtMosaicWhenMosaicList(r.initialSupply, r.divisibility);
 				});
 				$scope.currentNamespace = ns;
 				$scope.currentMosaic = m;
