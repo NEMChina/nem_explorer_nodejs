@@ -148,6 +148,7 @@ let loadBlocks = (height, callback) => {
 			txes.forEach((itemTx, index) => {
 				handleTX(itemTx, index, block.height);
 			});
+			log('<success> Block ['+block.height+'] save TX [' + txes.length + ']');
 		});
 		//recurse to query the next 10 blocks
 		loadBlocks(lastBlockHeight, callback);
