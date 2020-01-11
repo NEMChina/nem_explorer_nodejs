@@ -1,4 +1,5 @@
 const config = {
+	mode: 1, // 0-product, 1-development
 	port: 8081,
 	mongodb: 'mongodb://localhost/explorer',
 	nisHost: '127.0.0.1',
