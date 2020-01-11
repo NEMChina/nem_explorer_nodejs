@@ -1,4 +1,6 @@
+import fs from 'fs';
 import http from 'http';
+import https from 'https';
 import express from 'express';
 import bodyParser from 'body-parser';
 import config from './config';
@@ -50,8 +52,19 @@ module.exports = () => {
 			console.error('500 set header after sent');
 		}
 	});
-
-	let server = http.createServer(app);
+	// https certificate
+	const credentials = {
+		key: fs.readFileSync('/etc/letsencrypt/live/explorer.nemtool.com/privkey.pem', 'utf8'),
+		cert: fs.readFileSync('/etc/letsencrypt/live/explorer.nemtool.com/cert.pem', 'utf8'),
+		ca: fs.readFileSync('/etc/letsencrypt/live/explorer.nemtool.com/chain.pem', 'utf8')
+	};
+	// create http server (and http to https)
+	const httpServer = http.createServer(function (req, res) {
+    	res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    	res.end();
+	});
+	// create https server
+	const httpsServer = https.createServer(credentials, app);
 	// init NEMLibrary 
 	if(config.network==68)
 		NEMLibrary.bootstrap(NetworkTypes.MAIN_NET);
@@ -69,17 +82,21 @@ module.exports = () => {
 	pollIndexSchedule.schedulePollIndex();
 
 	// websocket
-	clientWS.initUnconfirmedTransactionWS(server);
-	clientWS.initTransactionWS(server);
-	clientWS.initBlockWS(server);
-	clientWS.initMosaicWS(server);
+	clientWS.initUnconfirmedTransactionWS(httpsServer);
+	clientWS.initTransactionWS(httpsServer);
+	clientWS.initBlockWS(httpsServer);
+	clientWS.initMosaicWS(httpsServer);
 	
 	process.on('uncaughtException', function(e) {
 	　　console.log(e);
 	});
 	
-	server.listen(config.port, function(){
-		console.log('app started, listening on port:', config.port);
+	httpServer.listen(config.port, function(){
+		console.log('app started, http server listening on port:', config.port);
+	});
+
+	httpsServer.listen(443, function(){
+		console.log('app started, https server listening on port: 443');
 	});
 
 	return app;
