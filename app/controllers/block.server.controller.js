@@ -60,8 +60,6 @@ module.exports = {
 									signature.sender = address.publicKeyToAddress(signature.signer);
 								});
 							}
-							if(tx.tx.remoteAccount) 
-								tx.tx.remote = address.publicKeyToAddress(tx.tx.remoteAccount);
 						});
 						r_block.harvester = address.publicKeyToAddress(item.block.signer);
 						r_block.txes = item.txes;
