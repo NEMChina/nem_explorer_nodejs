@@ -174,15 +174,14 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 
 	//模态框隐藏时向后台发送数据请求
 	$('#manageMySupernodes').on('hidden.bs.modal', function () {
-		// alert("选择了"+$scope.selectedSupernodeNamesText)
 		// clean table list
 		$scope.tableList = [];
+		//clean roundSet
 		$scope.roundSet.clear()
 		
-		console.log("清空后的tableList:=="+JSON.stringify($scope.tableList))
 		$scope.$apply();
 		$scope.endFlag = false;
-		//重置为第一页
+		//reset page
 		$scope.page = 1
 		if ($scope.selectedSupernodeNamesText) {
 			$scope.loadingFlag = true;
@@ -197,10 +196,8 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 	//获取选中用户的10轮数据
 	$scope.selectedPayoutList10Rounds = function () {
 		SupernodeService.selectedPayoutList10Rounds({ "supernodeName": $scope.selectedSupernodeNamesText, "page": $scope.page }, function (r_payoutList) {
-			console.log("r_payoutList:=="+JSON.stringify(r_payoutList))
 			if (r_payoutList.length == 0 || r_payoutList.length == "" || r_payoutList.length == null || r_payoutList.length == undefined){
 				$scope.endFlag = true;
-				console.log("$scope.endFlag:=="+JSON.stringify($scope.endFlag))
 				return;
 			}
 				

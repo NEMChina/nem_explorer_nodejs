@@ -90,7 +90,10 @@ function BlockController($scope, $timeout, $interval, BlockService, TXService){
 				tx.amount = item.tx.amount?fmtXEM(item.tx.amount):0;
 				tx.fee = fmtXEM(item.tx.fee);
 				tx.sender = item.tx.signerAccount;
-				tx.recipient = item.tx.recipient;
+				if(item.tx.remote)
+					tx.recipient = item.tx.remote;
+				else
+					tx.recipient = item.tx.recipient;
 			}
 			tx.amount = fixAmountWhenMosaicTransfer(item.tx);
 			tx.height = item.tx.height;

@@ -54,6 +54,15 @@ function fmtMosaic(input, div) {
 		return fmtSplit(result);
 }
 
+function fmtMosaicWhenMosaicList(input, div) {
+	let divisor = 1;
+	let result = (input).toFixed(div);
+	if(result==0)
+		return "" + 0;
+	else
+		return fmtSplit(result);
+}
+
 function fixNumber(input) {
 	let reg = /^([0-9,])+(\.)[0-9]{2}[0-9]+$/;
 	if(reg.test(input))

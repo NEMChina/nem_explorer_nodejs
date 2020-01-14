@@ -189,7 +189,6 @@ module.exports = {
 			let supernodeName = req.body.supernodeName;
 			
 			let page = req.body.page - 1;
-			console.log("传来的参数是:"+supernodeName+","+page)
 			if(!supernodeName){
 				res.json([]);
 				return
@@ -198,13 +197,11 @@ module.exports = {
 			let supernodeNameArr = supernodeName.split(",");
 			let SupernodePayout = mongoose.model('SupernodePayout');
 			let Supernode = mongoose.model('Supernode');
-			console.log("supernodeNameArr:"+JSON.stringify(supernodeNameArr))
 			Supernode.find({"name":{"$in":supernodeNameArr}}).exec((err, supernodes) => {
 				if(err || !supernodes){
 					res.json([]);
 					return;
 				}
-				console.log("Supernode数据为:"+JSON.stringify(supernodes))
 				let supernodeNameMap = new Map();
 				let supernodeIDMap = new Map();
 				for(let i in supernodes){
@@ -215,7 +212,6 @@ module.exports = {
 					supernodeIDMap.set(supernodes[i].payoutAddress, supernodes[i].id);
 				}
 				SupernodePayout.findOne().sort({round: -1}).exec((err, doc) => {
-					console.log("SupernodePayout---findOne:"+JSON.stringify(doc))
 					if(err || !doc || !doc.round){
 						res.json([]);
 						return;
