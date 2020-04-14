@@ -7,6 +7,8 @@ import timeUtil from '../utils/timeUtil';
 import { BroadcastedPoll, NEMVoting } from "nem-voting";
 import { NEMLibrary, Address, NetworkTypes } from "nem-library";
 
+const LISTSIZE = 100 //分页,每页显示数量
+
 module.exports = {
 
 	/**
@@ -18,7 +20,7 @@ module.exports = {
 			if(req.body.page)
 				page = parseInt(req.body.page);
 			let PollIndex = mongoose.model('PollIndex');
-			PollIndex.find().sort({_id: -1}).exec((err, doc) => {
+			PollIndex.find().sort({_id: -1}).skip(LISTSIZE*(page-1)).limit(LISTSIZE).exec((err, doc) => {
 				if(err) {
 					console.info(err);
 					return res.json([]);
