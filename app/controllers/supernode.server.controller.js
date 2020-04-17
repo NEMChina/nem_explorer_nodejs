@@ -187,7 +187,6 @@ module.exports = {
 	selectedPayoutList10Rounds: (req, res, next) => {
 		try {
 			let supernodeName = req.body.supernodeName;
-			
 			let page = req.body.page - 1;
 			if(!supernodeName){
 				res.json([]);

@@ -34,6 +34,7 @@ module.exports = {
 					r_poll.title = item.title;
 					r_poll.type = item.type;
 					r_poll.doe = item.doe;
+					r_poll.creator = item.creator;
 					r_pollArray.push(r_poll);
 				});
 				res.json(r_pollArray);

@@ -2,6 +2,7 @@ angular.module("webapp").controller("PollListController", ["$scope", "$timeout",
 angular.module("webapp").controller("PollController", ["$scope", "$timeout", "$location", "PollService", PollController]);
 
 function PollListController($scope, $timeout, PollService){
+	$scope.justOffical = false;
 	$scope.loadingFlag = false;
 	$scope.endFlag = false;
 	$scope.page = 1;
@@ -146,17 +147,16 @@ function PollController($scope, $timeout, $location, PollService){
 	};
 }
 
-//搜索框
+//search
 angular.module("webapp").filter("search",function(){
-	return function (input, d) {
-		if(!d) return input
-		//创建新的数组
+	return function (input, searchParam) {
+		if(!searchParam) return input
+		//new dataGroup
 		var newData = [];
-		//遍历
+		//iteration
 		for (var i = 0; i < input.length; i++) {
-
 			var da = JSON.stringify(input[i]).toLowerCase();
-			if (da.indexOf(d.toLowerCase()) != -1) {
+			if (da.indexOf(searchParam.toLowerCase()) != -1) {
 				newData.push(input[i]);
 			}
 		}
@@ -165,5 +165,23 @@ angular.module("webapp").filter("search",function(){
 		}else{
 			return newData;
 		}
+	}
+})
+
+//justOffical
+angular.module("webapp").filter("justOffical",function(){
+	return function (input, justOffical) {
+		if(!justOffical) return input
+		//new dataGroup
+		var newData = [];
+		//OfficialAddress
+		const OfficialAddress = "NCXFX5P56EXXWDRUWAWXDWYJHEFV26WVC5VJ6GY2";
+		//iteration
+		for (var i = 0; i < input.length; i++) {
+			if (input[i].creator == OfficialAddress) {
+				newData.push(input[i]);
+			}
+		}
+		return newData;
 	}
 })
