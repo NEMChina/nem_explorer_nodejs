@@ -10,9 +10,10 @@ var lastId = undefined
 let schedulePollIndex = () => {
 	pollIndex();
 	let rule = new schedule.RecurrenceRule();
-	// rule.minute = [1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51]; //fetch pollIndex every 5 mins
+	// rule.minute = [1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56]; //fetch pollIndex every 5 mins
 	rule.second = [1];
 	schedule.scheduleJob(rule, () => {
+		//the first poll id is 924993
 		if(lastId > 924993 || lastId == undefined)
 			pollIndexAll(lastId);
 		pollIndex();
