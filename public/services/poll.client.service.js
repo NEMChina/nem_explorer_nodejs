@@ -7,8 +7,8 @@ function PollService($http){
 				callback(data);
 			});
 		},
-		pollList: function(callback) {
-			$http.post("/poll/list").success(function(data){
+		pollList: function(params,callback) {
+			$http.post("/poll/list",params).success(function(data){
 				callback(data);
 			});
 		},

@@ -50,40 +50,28 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 	$scope.showLoadingFlag = true;
 	$scope.showButtonFlag = false;
 	$scope.showWarningFlag = false;
-	SupernodeService.supernodeList(function(data){
-		if(!data || data.length==0){
-			$scope.items = [{label: "Supernodes data Not Found", content: ""}];
+	$scope.page = 1;
+	$scope.loadingFlag = false;
+	$scope.endFlag = false;
+	SupernodeService.supernodeList(function (data) {
+		if (!data || data.length == 0) {
+			$scope.items = [{ label: "Supernodes data Not Found", content: "" }];
 			return;
 		}
 		$scope.supernodeList = data;
 		for(let i in data){
 			$scope.supernodeMap.set(""+data[i].id, data[i].name);
 		}
-		SupernodeService.payoutListLast10Rounds(function(r_payoutList){
-			if(!r_payoutList)
-				return;
-			// load pay out data list
-			for(let i in r_payoutList) {
-				let payout = r_payoutList[i];
-				if(payout.round && !$scope.roundSet.has(payout.round))
-					$scope.roundSet.add(payout.round);
-				payout.recipient = "<a href='#s_account?account="+payout.recipient+"' target='_blank'>"+payout.recipient+"</a>";
-				payout.amount = fmtXEM(payout.amount);
-				payout.fee = fmtXEM(payout.fee);
-				payout.timeStamp = fmtDate(payout.timeStamp);
-				if(payout.supernodeName){
-					payout.supernodeName = XBBCODE.process({
-						text: payout.supernodeName,
-						removeMisalignedTags: true,
-						addInLineBreaks: false
-					}).html;
-				}
-				$scope.payoutMap.set(payout.round+"_"+payout.supernodeID, payout);
-			}
-			$scope.showLoadingFlag = false;
-			$scope.showButtonFlag = true;
-			$scope.loadPayoutList();
-		});
+
+		$scope.showLoadingFlag = false;
+		$scope.showButtonFlag = true;
+		$scope.showWarningFlag = true;
+
+		$scope.loadMore = function(){
+			if($scope.loadingFlag==true) return;
+			$scope.loadingFlag = true;
+			$scope.selectedPayoutList10Rounds()
+		};
 	});
 	$scope.loadPayoutList = function(refreshFlag){
 		// clean table list
@@ -122,10 +110,11 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 				table.payoutList = payoutList;
 				$scope.tableList.push(table);
 			});
+			$scope.loadingFlag = false;
 			$scope.showWarningFlag = false;
 		}
 		if(refreshFlag)
-			$scope.$apply();
+			$scope.$applyAsync();
 	}
 	$scope.showManageMySupernodes = function(){
 		$("#manageMySupernodes").modal("show");
@@ -172,16 +161,66 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 	    	});
 		}
 	};
+
+	//get data after modal closed
+	$('#manageMySupernodes').on('hidden.bs.modal', function(){
+		// clean table list
+		$scope.tableList = [];
+		//clean roundSet
+		$scope.roundSet.clear()
+		$scope.$apply();
+		$scope.endFlag = false;
+		//reset page
+		$scope.page = 1
+		if($scope.selectedSupernodeNamesText){
+			$scope.loadingFlag = true;
+			$scope.selectedPayoutList10Rounds()
+		}else{
+			$scope.showWarningFlag = true;
+			$scope.$apply();
+		}
+	})
+
+	//get selected supernodes 10 rounds data
+	$scope.selectedPayoutList10Rounds = function(){
+		SupernodeService.selectedPayoutList10Rounds({"supernodeName": $scope.selectedSupernodeNamesText, "page": $scope.page},function(r_payoutList){
+			if(r_payoutList.length == 0 || r_payoutList.length == "" || r_payoutList.length == null || r_payoutList.length == undefined){
+				$scope.endFlag = true;
+				return;
+			}
+			// load pay out data list
+			for(let i in r_payoutList){
+				let payout = r_payoutList[i];
+				if(payout.round && !$scope.roundSet.has(payout.round))
+					$scope.roundSet.add(payout.round);
+				payout.recipient = "<a href='#s_account?account="+payout.recipient+"' target='_blank'>"+payout.recipient+"</a>";
+				payout.amount = fmtXEM(payout.amount);
+				payout.fee = fmtXEM(payout.fee);
+				payout.timeStamp = fmtDate(payout.timeStamp);
+				if(payout.supernodeName){
+					payout.supernodeName = XBBCODE.process({
+						text: payout.supernodeName,
+						removeMisalignedTags: true,
+						addInLineBreaks: false
+					}).html;
+				}
+				$scope.payoutMap.set(payout.round+"_"+payout.supernodeID,payout);
+			}
+			$scope.page++
+			$scope.loadPayoutList(true);
+		});
+	}
+	
 	$scope.addMySupernodes = function(item, refreshFlag){
 		$scope.selectedSupernodeNames.push(item.name);
 		let text = "";
 		for(let i in $scope.selectedSupernodeNames)
-			text += $scope.selectedSupernodeNames[i] + ", ";
+			text += $scope.selectedSupernodeNames[i] + ",";
 		if(text)
-			text = text.substring(0, text.length-2);
+			text = text.substring(0, text.length-1);
 		$scope.selectedSupernodeNamesText = text;
 		if(refreshFlag)
-			$scope.$apply();
+			$scope.$applyAsync();
 	};
 	$scope.removeMySupernodes = function(item, refreshFlag){
 		// remove name
@@ -198,7 +237,7 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 			text = text.substring(0, text.length-2);
 		$scope.selectedSupernodeNamesText = text;
 		if(refreshFlag)
-			$scope.$apply();
+			$scope.$applyAsync();
 	};
 	$scope.addMySupernodesCookies = function(item){
 		let mySupernodes = validateNumberCookies($cookies.get("mySupernodes"));
@@ -210,7 +249,6 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 			mySupernodes += "," + item.id;
 		mySupernodes = sortMySupernodes(mySupernodes);
 		$cookies.put("mySupernodes", mySupernodes, {expires: expireDate});
-		$scope.loadPayoutList(true);
 	};
 	$scope.removeMySupernodesCookies = function(item){
 		let mySupernodes = validateNumberCookies($cookies.get("mySupernodes"));
@@ -228,8 +266,8 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 			mySupernodes = mySupernodes.substring(0, mySupernodes.length-1);
 		mySupernodes = sortMySupernodes(mySupernodes);
 		$cookies.put("mySupernodes", mySupernodes, {expires: expireDate});
-		$scope.loadPayoutList(true);
 	};
+
 }
 
 function sortMySupernodes(mySupernodes){
