@@ -9,65 +9,69 @@
 	<div id="warning" class="alert alert-success hide" ng-class="{hide:showWarningFlag==false}" style="margin-top: 20px;">
 	    <span id="warningContent">Please add your supernodes.</span>
 	</div>
-	<div style="margin-top: 40px;" ng-repeat="table in tableList">
-		<h4>Round: <span ng-bind="table.round"></span></h4>
-		<table class="table table-hover table-condensed">
-			<thead>
-				<tr>
-					<th>#</th>
-					<th>Supernode Name</th>
-					<th>Address</th>
-					<th>Timestamp</th>
-					<th>Amount</th>
-				</tr>
-			</thead>
-			<tbody class="well well-large">
-				<tr ng-repeat="payout in table.payoutList">
-					<td ng-bind="$index+1"></td>
-					<td ng-bind-html="payout.supernodeName|to_trusted"></td>
-					<td ng-bind-html="payout.recipient|to_trusted"></td>
-					<td ng-bind="payout.timeStamp"></td>
-					<td ng-bind="payout.amount"></td>
-				</tr>
-			</tbody>
-		</table>
+	<div infinite-scroll="loadMore()" infinite-scroll-immediate-check="false" infinite-scroll-disabled="endFlag">
+		<div style="margin-top: 40px;" ng-repeat="table in tableList">
+			<h4>Round: <span ng-bind="table.round"></span></h4>
+			<table class="table table-hover table-condensed">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Supernode Name</th>
+						<th>Address</th>
+						<th>Timestamp</th>
+						<th>Amount</th>
+					</tr>
+				</thead>
+				<tbody class="well well-large">
+					<tr ng-repeat="payout in table.payoutList">
+						<td ng-bind="$index+1"></td>
+						<td ng-bind-html="payout.supernodeName|to_trusted"></td>
+						<td ng-bind-html="payout.recipient|to_trusted"></td>
+						<td ng-bind="payout.timeStamp"></td>
+						<td ng-bind="payout.amount"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
-	<div class="modal fade" id="manageMySupernodes" tabindex="-1" role="dialog">
-		<div class="modal-dialog" style="width:800px;">
-	    	<div class="modal-content">
-	        	<div class="modal-header">
-	            	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-	            	<div class="modal-title">
-	            		<b>Manage My Supernodes</b>
-	            		&nbsp;&nbsp;&nbsp;&nbsp;
-	            		<!-- <a style="cursor: pointer;" ng-click="cleanMySupernodes()">Clean All</a> -->
-	            	</div>
-		         </div>
-		         <div class="modal-body">
-		         	<div>
-		         		<span style="font-weight: bold;">Selected: </span>
-		         		<span ng-bind-html="selectedSupernodeNamesText|to_trusted"></span>
-		         	</div>
-		         	<table class="table table-striped table-hover" id="supernodeTable">
-	         			<thead>
-	         				<tr>
-	         					<th>#</th>
-	         					<th ng-class="{hidden:1==1}">id</th>
-	         					<th>Supernode Name</th>
-	         					<th>Recipient</th>
-	         				</tr>
-	         			</thead>
-	         			<tbody class="well well-large">
-	         				<tr ng-repeat="supernode in supernodeList" style="cursor: pointer;">
-	         					<td ng-bind="$index+1"></td>
-	         					<td ng-bind="supernode.id" ng-class="{hidden:1==1}"></td>
-	         					<td ng-bind="supernode.name"></td>
-	         					<td ng-bind="supernode.payoutAddress"></td>
-	         				</tr>
-	         			</tbody>
-	         		</table>
-		         </div>
+	<h2><div ng-show='endFlag' class="bottom" align="center"><hr>No more data!</div></h2>
+</div>
+<div class="modal fade" id="manageMySupernodes" tabindex="-1" role="dialog">
+	<div class="modal-dialog" style="width:800px;">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<div class="modal-title">
+					<b>Manage My Supernodes</b>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<!-- <a style="cursor: pointer;" ng-click="cleanMySupernodes()">Clean All</a> -->
+				</div>
+			</div>
+			<div class="modal-body">
+				<div>
+					<span style="font-weight: bold;">Selected: </span>
+					<span ng-bind-html="selectedSupernodeNamesText|to_trusted"></span>
+				</div>
+				<table class="table table-striped table-hover" id="supernodeTable">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th ng-class="{hidden:1==1}">id</th>
+							<th>Supernode Name</th>
+							<th>Recipient</th>
+						</tr>
+					</thead>
+					<tbody class="well well-large">
+						<tr ng-repeat="supernode in supernodeList" style="cursor: pointer;">
+							<td ng-bind="$index+1"></td>
+							<td ng-bind="supernode.id" ng-class="{hidden:1==1}"></td>
+							<td ng-bind="supernode.name"></td>
+							<td ng-bind="supernode.payoutAddress"></td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</div>
+</div>
 </div>

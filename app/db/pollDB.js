@@ -25,12 +25,19 @@ let savePollIndex = (pollIndex) => {
  * save poll index array into DB
  */
 let savePollIndexArray = (pollIndexArr) => {
-	let PollIndex = mongoose.model('PollIndex');
-	PollIndex.insertMany(pollIndexArr, err => {
-		if(err)
-			console.error(err);
+	pollIndexArr.forEach((polldata,i) => {
+		savePollIndex(polldata);
 	});
+	
 };
+
+// let savePollIndexArray = (pollIndexArr) => {
+// 	let PollIndex = mongoose.model('PollIndex');
+// 	PollIndex.insertMany(pollIndexArr, err => {
+// 		if(err)
+// 			console.error(err);
+// 	});
+// };
 
 let log = (message) => {
 	console.info(message);
