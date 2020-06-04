@@ -1,7 +1,4 @@
 <div id="content" class="container fontSize12" style="padding-bottom:70px;">
-	<div ng-class="{hide:showLoadingFlag==false}">
-		<img src="views/images/loading.gif" />
-	</div>
 	<div class="pull-left" ng-class="{hide:showButtonFlag==false}">
 		<button type="button" class="btn btn-info" ng-click="showManageMySupernodes()">Manage my supernodes</button>
 	</div>
@@ -34,7 +31,10 @@
 			</table>
 		</div>
 	</div>
-	<h2><div ng-show='endFlag' class="bottom" align="center"><hr>No more data!</div></h2>
+	<div class="text-center" ng-if="showLoadingFlag || loadingFlag" style="padding-top:20px;">
+		<img src="views/images/loading.gif" />
+	</div>
+	<div class="text-center" ng-if="endFlag">This is the end</div>
 </div>
 <div class="modal fade" id="manageMySupernodes" tabindex="-1" role="dialog">
 	<div class="modal-dialog" style="width:800px;">

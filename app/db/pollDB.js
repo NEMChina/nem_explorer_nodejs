@@ -31,14 +31,6 @@ let savePollIndexArray = (pollIndexArr) => {
 	
 };
 
-// let savePollIndexArray = (pollIndexArr) => {
-// 	let PollIndex = mongoose.model('PollIndex');
-// 	PollIndex.insertMany(pollIndexArr, err => {
-// 		if(err)
-// 			console.error(err);
-// 	});
-// };
-
 let log = (message) => {
 	console.info(message);
 };

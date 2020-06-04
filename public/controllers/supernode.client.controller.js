@@ -51,8 +51,9 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 	$scope.showButtonFlag = false;
 	$scope.showWarningFlag = false;
 	$scope.page = 1;
-	$scope.loadingFlag = false;
+	$scope.loadingFlag = false; //load more use
 	$scope.endFlag = false;
+	
 	SupernodeService.supernodeList(function (data) {
 		if (!data || data.length == 0) {
 			$scope.items = [{ label: "Supernodes data Not Found", content: "" }];
@@ -62,10 +63,20 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 		for(let i in data){
 			$scope.supernodeMap.set(""+data[i].id, data[i].name);
 		}
+		//check cookies
+		let mySupernodes = $cookies.get("mySupernodes")?$cookies.get("mySupernodes"):"";
+		if(mySupernodes){
+			$scope.showLoadingFlag = true;
+			mySupernodes = validateNumberCookies(mySupernodes, $scope.supernodeMap);
+			let mySupernodesArr = mySupernodes.split(",");
+			for(let i in mySupernodesArr) $scope.selectedSupernodeNamesText += $scope.supernodeMap.get(""+mySupernodesArr[i])+","
+			$scope.selectedPayoutList10Rounds()
+		}else{
+			$scope.showLoadingFlag = false;
+			$scope.showWarningFlag = true;
+		}
 
-		$scope.showLoadingFlag = false;
 		$scope.showButtonFlag = true;
-		$scope.showWarningFlag = true;
 
 		$scope.loadMore = function(){
 			if($scope.loadingFlag==true) return;
@@ -76,6 +87,7 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 	$scope.loadPayoutList = function(refreshFlag){
 		// clean table list
 		$scope.tableList = [];
+		
 		// load my supernodes from cookies
 		let mySupernodes = $cookies.get("mySupernodes")?$cookies.get("mySupernodes"):"";
 		mySupernodes = validateNumberCookies(mySupernodes, $scope.supernodeMap);
@@ -112,10 +124,12 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 			});
 			$scope.loadingFlag = false;
 			$scope.showWarningFlag = false;
+			$scope.showLoadingFlag = false;
 		}
 		if(refreshFlag)
 			$scope.$applyAsync();
 	}
+
 	$scope.showManageMySupernodes = function(){
 		$("#manageMySupernodes").modal("show");
 		if(!$scope.initTableFlag){
@@ -174,8 +188,10 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 		$scope.page = 1
 		if($scope.selectedSupernodeNamesText){
 			$scope.loadingFlag = true;
+			$scope.showWarningFlag = false;
 			$scope.selectedPayoutList10Rounds()
 		}else{
+			$scope.showLoadingFlag = false;
 			$scope.showWarningFlag = true;
 			$scope.$apply();
 		}
@@ -210,7 +226,6 @@ function SupernodeCustomController($scope, $timeout, $cookies, SupernodeService)
 			$scope.loadPayoutList(true);
 		});
 	}
-	
 	$scope.addMySupernodes = function(item, refreshFlag){
 		$scope.selectedSupernodeNames.push(item.name);
 		let text = "";

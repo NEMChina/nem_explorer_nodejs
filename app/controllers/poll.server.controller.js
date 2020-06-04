@@ -7,7 +7,7 @@ import timeUtil from '../utils/timeUtil';
 import { BroadcastedPoll, NEMVoting } from "nem-voting";
 import { NEMLibrary, Address, NetworkTypes } from "nem-library";
 
-const LISTSIZE = 100 //分页,每页显示数量
+const LISTSIZE = 100 //pageSize
 
 module.exports = {
 

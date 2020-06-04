@@ -32,18 +32,20 @@ function PollListController($scope, $timeout, PollService){
 				$scope.pollList = r_pollList;
 			if(r_pollList.length==0 || r_pollList.length<100)
 				$scope.endFlag = true;
+			
 			$scope.loadingFlag = false;
 		});
 	}
 		
 	$scope.loadMore = function(){
-		if($scope.endFlag==true)
+		if($scope.endFlag)
 			return;
-		if($scope.loadingFlag==true)
+		if($scope.loadingFlag)
 			return;
-			$scope.page++;
+		$scope.page++;
 		$scope.getPollList();
 	};
+
 	$scope.getPollList();
 
 	$scope.order1 = 'expiredTime';
